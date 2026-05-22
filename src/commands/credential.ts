@@ -1,0 +1,91 @@
+import { createPublicClient, http, isAddress, type Chain } from "viem";
+import { base, baseSepolia } from "viem/chains";
+import { fmt, log, die } from "../ui.js";
+
+const CNF_ABI = [
+  { name: "isValid", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ type: "bool" as const }] },
+  { name: "credentialOf", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ name: "tokenId", type: "uint256" as const }] },
+  { name: "getCredential", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "tokenId", type: "uint256" as const }], outputs: [{ type: "tuple" as const, components: [{ name: "holder", type: "address" as const }, { name: "issuer", type: "address" as const }, { name: "credentialType", type: "bytes32" as const }, { name: "issuedAt", type: "uint64" as const }, { name: "expiresAt", type: "uint64" as const }, { name: "revoked", type: "bool" as const }] }] },
+] as const;
+
+const CHAINS: Record<string, Chain> = {
+  "8453": base,
+  "84532": baseSepolia,
+};
+
+export async function credentialStatus(opts: {
+  wallet: string;
+  issuer: string;
+  rpc?: string;
+  chain: string;
+}) {
+  if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
+  if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
+
+  const chain = CHAINS[opts.chain] ?? baseSepolia;
+  const transport = opts.rpc ? http(opts.rpc) : http();
+  const client = createPublicClient({ chain, transport });
+
+  console.log();
+  console.log(fmt.bold("  ILAL Credential Status"));
+  log.line();
+  log.kv("wallet", opts.wallet);
+  log.kv("issuer", opts.issuer);
+  log.kv("chain", chain.name);
+  log.line();
+
+  log.step("Querying CNFIssuer on-chain…");
+
+  const [valid, tokenId] = await Promise.all([
+    client.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [opts.wallet as `0x${string}`] }),
+    client.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [opts.wallet as `0x${string}`] }),
+  ]);
+
+  if ((tokenId as bigint) === 0n) {
+    log.fail("No credential found for this wallet");
+    console.log();
+    console.log(fmt.bold("  How to get a CNF credential:"));
+    console.log();
+    console.log(fmt.bold("  Path A — Coinbase Verifications (EAS)"));
+    console.log(`  ${fmt.gray("1.")} Complete KYC at ${fmt.cyan("https://coinbase.com/onchain-verify")}`);
+    console.log(`  ${fmt.gray("2.")} Find your attestation UID on EAS Explorer:`);
+    const easExplorer = chain.id === 8453
+      ? "https://base.easscan.org"
+      : "https://base-sepolia.easscan.org";
+    console.log(`       ${fmt.cyan(easExplorer)}`);
+    console.log(`       ${fmt.gray("Filter: Attester = 0x357458739F90461b99789350868CD7CF330Dd7EE")}`);
+    console.log(`  ${fmt.gray("3.")} Run: ${fmt.cyan("ilal credential mint --attestation <uid>")}`);
+    console.log();
+    console.log(fmt.bold("  Path B — ZK proof (privacy-preserving, no KYC data on-chain)"));
+    console.log(`  ${fmt.gray("1.")} Operator adds wallet to the attestation Merkle tree`);
+    console.log(`  ${fmt.gray("2.")} Run: ${fmt.cyan("ilal credential prove --wallet " + opts.wallet + " --update-root")}`);
+    console.log();
+    return;
+  }
+
+  const cred = await client.readContract({
+    address: opts.issuer as `0x${string}`,
+    abi: CNF_ABI,
+    functionName: "getCredential",
+    args: [tokenId as bigint],
+  }) as { holder: string; issuer: string; credentialType: string; issuedAt: bigint; expiresAt: bigint; revoked: boolean };
+
+  const expiresAt = new Date(Number(cred.expiresAt) * 1000);
+  const issuedAt = new Date(Number(cred.issuedAt) * 1000);
+  const daysLeft = Math.floor((expiresAt.getTime() - Date.now()) / 86_400_000);
+
+  log.kv("token ID", (tokenId as bigint).toString());
+  log.kv("issued", issuedAt.toISOString().split("T")[0]!);
+  log.kv("expires", expiresAt.toISOString().split("T")[0]! + (daysLeft > 0 ? fmt.gray(` (${daysLeft}d remaining)`) : ""));
+  log.kv("revoked", cred.revoked ? fmt.red("yes") : "no");
+  log.line();
+
+  if (valid) {
+    log.ok(fmt.bold(fmt.green("Credential valid — wallet can trade")));
+  } else if (cred.revoked) {
+    log.fail(fmt.bold("Credential revoked"));
+  } else {
+    log.fail(fmt.bold("Credential expired — renew with ilal credential renew"));
+  }
+  console.log();
+}
