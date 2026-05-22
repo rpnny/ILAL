@@ -25,11 +25,12 @@ ilal init
 # 2. Check credential + pool status
 ilal status
 
-# 3. Mint a CNF via ZK proof (adds your wallet to the Merkle tree)
-PRIVATE_KEY=0x... ilal credential prove --wallet 0xYourWallet --update-root
+# 3. Mint a CNF via ZK proof
+#    Requires the issuer root to already include your wallet.
+PRIVATE_KEY=0x... ilal credential prove --wallet 0xYourWallet
 
 # 4. Execute a compliant swap
-PRIVATE_KEY=0x... ilal swap --amount-in 0.001 --token-in 0x60Fa08963dD59724a188A37C7239fA89F97DB17D
+PRIVATE_KEY=0x... ilal swap --amount-in 0.001 --token-in 0x2E0dEd1CF4ec6106079df4eF1200959c2a454f3A --min-amount-out 0
 ```
 
 ## Getting a CNF credential
@@ -49,10 +50,10 @@ PRIVATE_KEY=0x... ilal swap --amount-in 0.001 --token-in 0x60Fa08963dD59724a188A
 ### Path B — ZK proof (privacy-preserving)
 
 ```bash
-PRIVATE_KEY=0x... ilal credential prove --wallet 0xYourWallet --update-root
+PRIVATE_KEY=0x... ilal credential prove --wallet 0xYourWallet
 ```
 
-Generates a Groth16 proof locally (~5s), verifies it on-chain, and mints/renews your CNF without revealing identity.
+Generates a Groth16 proof locally (~5s), verifies it on-chain, and mints/renews your CNF without revealing identity. If the Merkle root does not match, the issuer/operator must queue the updated root with `ilal oracle propose-root --root <newRoot>` and activate it after the timelock.
 
 ## Command reference
 
@@ -60,14 +61,18 @@ Generates a Groth16 proof locally (~5s), verifies it on-chain, and mints/renews 
 |---|---|
 | `ilal init` | Create `.ilal.json` with contract addresses |
 | `ilal status` | Dashboard: credential · issuer config · pool policy |
-| `ilal credential prove` | ZK proof → mint or renew CNF (all-in-one) |
+| `ilal credential prove` | Trader flow: local ZK proof → mint or renew CNF |
 | `ilal credential mint` | Mint CNF via Coinbase EAS attestation |
 | `ilal credential renew` | Renew CNF via EAS attestation |
-| `ilal swap` | Compliant swap via ILALRouter |
+| `ilal swap` | Compliant swap via ILALRouter with optional `--min-amount-out` |
 | `ilal pool add-liquidity` | Add liquidity to a compliant pool |
 | `ilal pool remove-liquidity` | Remove liquidity from a compliant pool |
 | `ilal pool policy set` | Register compliance policy for a pool |
 | `ilal pool policy get` | Read pool compliance policy |
+| `ilal oracle propose-root` | Operator flow: queue a new Merkle root behind the 48h timelock |
+| `ilal oracle activate-root` | Operator flow: activate the pending Merkle root after timelock |
+| `ilal oracle propose-verifier` | Operator flow: queue a new ZK verifier behind the 72h timelock |
+| `ilal oracle activate-verifier` | Operator flow: activate the pending ZK verifier after timelock |
 | `ilal session sign` | Sign a standalone SessionToken |
 | `ilal proof mint` | Mint CNF from existing proof.json + public.json |
 | `ilal deploy` | Deploy full ILAL contract stack |
@@ -78,10 +83,10 @@ The CLI reads `.ilal.json` in the current directory. Run `ilal init` to create i
 
 ```bash
 ilal swap \
-  --router    0x35fE5eE12C102e78f5AbfD24cfe803Ad5824ca7F \
-  --hook      0x6a1e3d7441fE8610fB5e2d2066912326457e8A80 \
-  --issuer    0x319c0F1cb46c85B42E051251c4db04BA6BD265a2 \
-  --pool-id   0xab4f3b0242cd9c33e6564b8a63d21eec62b570e7df9e5ce01e88d26b8223fb59 \
+  --router    0xd0aF4D1EFF36CB2a1E88017eA398dCaDe1Ac0040 \
+  --hook      0x6C57b50Ef9286b132066012B19b291FB120ACa80 \
+  --issuer    0xB13AE2498Df62A85768a4b783109C05fCf5A264a \
+  --pool-id   0x16b3e7a5c52216925f705673b3ab25db5e6025da530cf53b3bcb5affeb18d95f \
   --amount-in 0.001
 ```
 
@@ -89,10 +94,10 @@ ilal swap \
 
 | Contract | Address |
 |---|---|
-| CNFIssuer | `0x319c0F1cb46c85B42E051251c4db04BA6BD265a2` |
-| ComplianceHook | `0x6a1e3d7441fE8610fB5e2d2066912326457e8A80` |
-| ILALRouter | `0x35fE5eE12C102e78f5AbfD24cfe803Ad5824ca7F` |
-| PolicyRegistry | `0x72A425672c1D0FA95C75F5073e6DAf72194A1E0F` |
+| CNFIssuer | `0xB13AE2498Df62A85768a4b783109C05fCf5A264a` |
+| ComplianceHook | `0x6C57b50Ef9286b132066012B19b291FB120ACa80` |
+| ILALRouter | `0xd0aF4D1EFF36CB2a1E88017eA398dCaDe1Ac0040` |
+| PolicyRegistry | `0x19fD4eCF4359fCc8d5E79916691a28c24A22a9B4` |
 
 ## License
 

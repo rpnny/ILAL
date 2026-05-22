@@ -71,7 +71,8 @@ export async function status(opts: {
 
         if (tokenId === 0n) {
           log.kv("status", fmt.badge("missing", "red"));
-          log.command("ilal credential prove --wallet " + cfg.wallet + " --update-root");
+          log.command("ilal credential prove --wallet " + cfg.wallet);
+          console.log(fmt.gray("If root mismatch occurs, ask the issuer to queue and activate the updated root via `ilal oracle`."));
           credentialReady = false;
         } else {
           const cred = await client.readContract({

@@ -2,6 +2,7 @@
 import { Command } from "commander";
 import { credentialStatus } from "./commands/credential.js";
 import { credentialProve } from "./commands/prove.js";
+import { oracleProposeRoot, oracleActivateRoot, oracleProposeVerifier, oracleActivateVerifier } from "./commands/oracle.js";
 import { mintCredential, renewCredential } from "./commands/mint.js";
 import { proofMint, proofRenew } from "./commands/proof.js";
 import { sessionSign } from "./commands/session.js";
@@ -106,13 +107,12 @@ credential
   .option("-w, --wallet <address>", "Wallet address to prove eligibility for")
   .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
   .option("-a, --action <action>", "mint or renew (default: auto-detect)")
-  .option("--update-root", "Call setMerkleRoot on-chain before minting (requires owner key)", false)
   .option("--circuit-dir <path>", "Path to circuits/build directory (auto-detected by default)")
   .option("--out-dir <path>", "Directory to write proof/witness files")
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
   .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
-  .action(async (opts: { wallet: string; issuer: string; action?: string; updateRoot: boolean; circuitDir?: string; outDir?: string; chain: string; rpc?: string; privateKey?: string }) => {
+  .action(async (opts: { wallet: string; issuer: string; action?: string; circuitDir?: string; outDir?: string; chain: string; rpc?: string; privateKey?: string }) => {
     await credentialProve(opts).catch(err);
   });
 
@@ -285,6 +285,7 @@ program
   .command("swap")
   .description("Execute a compliant token swap through the ILAL channel")
   .requiredOption("--amount-in <amount>", "Input amount in human-readable units (e.g. 100)")
+  .option("--min-amount-out <wei>", "Minimum output amount in wei — reverts if pool gives less (default: 0 = off)")
   .option("--token-in <address>", "Token to sell (defaults to tokenA from config)")
   .option("--token-a <address>", "currency0 token address (or set in .ilal.json)")
   .option("--token-b <address>", "currency1 token address (or set in .ilal.json)")
@@ -300,12 +301,67 @@ program
   .option("--ttl <seconds>", "Session token lifetime in seconds", "600")
   .option("--simulate", "Sign session without sending tx", false)
   .action(async (opts: {
-    amountIn: string; tokenIn?: string; tokenA?: string; tokenB?: string;
+    amountIn: string; minAmountOut?: string; tokenIn?: string; tokenA?: string; tokenB?: string;
     poolId?: string; router?: string; hook?: string; issuer?: string;
     fee?: string; tickSpacing?: string; chain: string; rpc?: string;
     privateKey?: string; ttl: string; simulate: boolean;
   }) => {
     await swap(opts).catch(err);
+  });
+
+// ─── oracle ───────────────────────────────────────────────────────────────────
+// Operator-only commands — require owner key.
+// Merkle root and ZK verifier changes are timelocked:
+//   ROOT_DELAY = 48h, VERIFIER_DELAY = 72h.
+
+const oracle = program
+  .command("oracle")
+  .description("Operator commands for managing timelocked Merkle root and ZK verifier");
+
+oracle
+  .command("propose-root")
+  .description("Queue a new Merkle root (step 1 of 2 — owner only, ROOT_DELAY = 48 h timelock)")
+  .requiredOption("--root <uint256>", "New Merkle root value (decimal or 0x hex)")
+  .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
+  .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
+  .action(async (opts: { root: string; issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await oracleProposeRoot(opts).catch(err);
+  });
+
+oracle
+  .command("activate-root")
+  .description("Activate the pending Merkle root after the 48-hour timelock has elapsed (step 2 of 2)")
+  .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
+  .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
+  .action(async (opts: { issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await oracleActivateRoot(opts).catch(err);
+  });
+
+oracle
+  .command("propose-verifier")
+  .description("Queue a new ZK verifier contract (step 1 of 2 — owner only, VERIFIER_DELAY = 72 h)")
+  .requiredOption("--verifier <address>", "New IGroth16Verifier contract address")
+  .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
+  .option("-c, --chain <chainId>", "Chain ID", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
+  .action(async (opts: { verifier: string; issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await oracleProposeVerifier(opts).catch(err);
+  });
+
+oracle
+  .command("activate-verifier")
+  .description("Activate the pending ZK verifier after the 72-hour timelock has elapsed (step 2 of 2)")
+  .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
+  .option("-c, --chain <chainId>", "Chain ID", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
+  .action(async (opts: { issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await oracleActivateVerifier(opts).catch(err);
   });
 
 // ─── deploy ───────────────────────────────────────────────────────────────────

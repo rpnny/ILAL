@@ -119,9 +119,9 @@ export async function demo(opts: { commands?: boolean }) {
     console.log();
     log.section("Live Demo Commands");
     log.command("ilal status --wallet <wallet>");
-    log.command("ilal credential prove --wallet <wallet> --update-root");
+    log.command("ilal credential prove --wallet <wallet>");
     log.command("ilal session sign --pool <poolId> --action swap --hook <hook> --issuer <issuer> --caller <router>");
-    log.command("ilal swap --amount-in 100 --token-in <token> --pool-id <poolId>");
+    log.command("ilal swap --amount-in 100 --token-in <token> --pool-id <poolId> --min-amount-out 0");
   }
 
   console.log();

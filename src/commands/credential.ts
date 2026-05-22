@@ -57,8 +57,10 @@ export async function credentialStatus(opts: {
     console.log(`  ${fmt.gray("3.")} Run: ${fmt.cyan("ilal credential mint --attestation <uid>")}`);
     console.log();
     console.log(fmt.bold("  Path B — ZK proof (privacy-preserving, no KYC data on-chain)"));
-    console.log(`  ${fmt.gray("1.")} Operator adds wallet to the attestation Merkle tree`);
-    console.log(`  ${fmt.gray("2.")} Run: ${fmt.cyan("ilal credential prove --wallet " + opts.wallet + " --update-root")}`);
+    console.log(`  ${fmt.gray("1.")} Issuer/operator adds wallet to the Merkle tree`);
+    console.log(`  ${fmt.gray("2.")} Operator queues root: ${fmt.cyan("ilal oracle propose-root --root <newMerkleRoot>")}`);
+    console.log(`  ${fmt.gray("3.")} After timelock, operator activates: ${fmt.cyan("ilal oracle activate-root")}`);
+    console.log(`  ${fmt.gray("4.")} Trader runs: ${fmt.cyan("ilal credential prove --wallet " + opts.wallet)}`);
     console.log();
     return;
   }

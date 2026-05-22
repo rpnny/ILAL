@@ -65,6 +65,7 @@ const ROUTER_ABI = [
         { name: "amountSpecified",   type: "int256" as const  },
         { name: "sqrtPriceLimitX96", type: "uint160" as const },
       ]},
+      { name: "minAmountOut", type: "uint256" as const },
       { name: "hookData", type: "bytes" as const },
     ],
     outputs: [{ name: "delta", type: "int256" as const }],
@@ -119,22 +120,23 @@ function poolFeePercent(fee: number): string {
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export async function swap(opts: {
-  amountIn:    string;
-  tokenIn?:    string;
-  zeroForOne?: boolean;
-  poolId?:     string;
-  router?:     string;
-  hook?:       string;
-  issuer?:     string;
-  tokenA?:     string;
-  tokenB?:     string;
-  fee?:        string;
-  tickSpacing?: string;
-  chain?:      string;
-  rpc?:        string;
-  privateKey?: string;
-  ttl?:        string;
-  simulate?:   boolean;
+  amountIn:      string;
+  minAmountOut?: string;  // optional slippage floor in token-out human units
+  tokenIn?:      string;
+  zeroForOne?:   boolean;
+  poolId?:       string;
+  router?:       string;
+  hook?:         string;
+  issuer?:       string;
+  tokenA?:       string;
+  tokenB?:       string;
+  fee?:          string;
+  tickSpacing?:  string;
+  chain?:        string;
+  rpc?:          string;
+  privateKey?:   string;
+  ttl?:          string;
+  simulate?:     boolean;
 }) {
   const cfg    = withConfig(opts);
   const rawKey = cfg.privateKey ?? process.env["PRIVATE_KEY"];
@@ -298,6 +300,14 @@ export async function swap(opts: {
     sqrtPriceLimitX96: zeroForOne ? MIN_SQRT_PRICE : MAX_SQRT_PRICE,
   };
 
+  // Slippage: parse --min-amount-out if provided (0 = disabled)
+  // We don't know the tokenOut decimals here without another RPC call,
+  // so we accept wei (raw bigint) from the flag.  The CLI documents this.
+  const minAmountOut = opts.minAmountOut ? BigInt(opts.minAmountOut) : 0n;
+  if (minAmountOut > 0n) {
+    log.kv("min-amount-out", `${fmt.cyan(minAmountOut.toString())} wei (slippage protection on)`);
+  }
+
   // Execute swap
   const txSpin = new Spinner("Sending swap tx…").start();
   let txHash: `0x${string}`;
@@ -306,7 +316,7 @@ export async function swap(opts: {
       address:      cfg.router as `0x${string}`,
       abi:          ROUTER_ABI,
       functionName: "swap",
-      args:         [poolKey, swapParams, hookData],
+      args:         [poolKey, swapParams, minAmountOut, hookData],
       value:        0n,
     });
     txSpin.update(`Confirming ${fmt.gray(fmt.hash(txHash))}…`);

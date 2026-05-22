@@ -1,8 +1,8 @@
 /**
  * prove.ts — `ilal credential prove`
  *
- * All-in-one command: builds Merkle tree, generates Groth16 ZK proof,
- * (optionally) updates the on-chain merkleRoot, then mints or renews the CNF.
+ * Trader command: builds a local Merkle proof, generates a Groth16 ZK proof,
+ * then mints or renews the CNF if the issuer's active root already includes it.
  *
  * Usage:
  *   ilal credential prove \
@@ -10,8 +10,10 @@
  *     --issuer  0x319c0... \
  *     --chain   84532 \
  *     --action  mint          # or renew (default: auto-detect)
- *     --update-root           # call setMerkleRoot before minting
  *     --circuit-dir ./circuits/build
+ *
+ * Operator root changes live under `ilal oracle propose-root` and
+ * `ilal oracle activate-root`.
  */
 
 import { execSync } from "child_process";
@@ -52,11 +54,6 @@ const CNF_ABI = [
   {
     name: "renewWithProof", type: "function" as const, stateMutability: "nonpayable" as const,
     inputs: [{ name: "proof", type: "bytes" as const }, { name: "publicInputs", type: "uint256[]" as const }],
-    outputs: [],
-  },
-  {
-    name: "setMerkleRoot", type: "function" as const, stateMutability: "nonpayable" as const,
-    inputs: [{ name: "_root", type: "uint256" as const }],
     outputs: [],
   },
   {
@@ -247,7 +244,6 @@ export async function credentialProve(opts: {
   issuer?: string;
   chain?: string;
   action?: string;
-  updateRoot: boolean;
   circuitDir?: string;
   outDir?: string;
   rpc?: string;
@@ -310,24 +306,6 @@ export async function credentialProve(opts: {
   log.kv("expiresAt",  fmt.cyan(new Date((Date.now() + 90 * 24 * 3600 * 1000)).toISOString().split("T")[0]!));
   log.kv("merkleRoot", fmt.gray(proofResult.merkleRoot.toString().slice(0, 22) + "…"));
   log.line();
-
-  // ── Update merkle root on-chain ────────────────────────────────────────────
-  if (opts.updateRoot) {
-    const rootSpin = new Spinner("Updating merkleRoot on-chain…").start();
-    try {
-      const rootHash = await walClient.writeContract({
-        address: cfg.issuer as `0x${string}`,
-        abi: CNF_ABI,
-        functionName: "setMerkleRoot",
-        args: [proofResult.merkleRoot],
-      });
-      await pubClient.waitForTransactionReceipt({ hash: rootHash });
-      rootSpin.succeed(`merkleRoot updated ${fmt.gray(fmt.hash(rootHash))}`);
-    } catch (e) {
-      rootSpin.fail("setMerkleRoot failed");
-      dieOnContract(e);
-    }
-  }
 
   // ── Send mint / renew tx ───────────────────────────────────────────────────
   const { proofBytes, publicInputs } = encodeProof(proofResult.proofJson, proofResult.publicJson);
