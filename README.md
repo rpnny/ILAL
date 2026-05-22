@@ -1,4 +1,4 @@
-# @ilal/cli
+# @ilalv3/cli
 
 **ILAL Protocol CLI** — compliant swaps and credential management for Uniswap v4.
 
@@ -7,13 +7,13 @@ ILAL gates swaps and liquidity operations behind on-chain compliance credentials
 ## Install
 
 ```bash
-npm install -g @ilal/cli
+npm install -g @ilalv3/cli
 ```
 
 Or run without installing:
 
 ```bash
-npx @ilal/cli <command>
+npx @ilalv3/cli <command>
 ```
 
 ## Quick start (Base Sepolia demo)
