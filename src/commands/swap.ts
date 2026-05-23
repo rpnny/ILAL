@@ -72,6 +72,14 @@ const ROUTER_ABI = [
   },
 ] as const;
 
+const CNF_ABI = [
+  { name: "isValid",      type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ type: "bool" as const }] },
+  { name: "credentialOf", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
+  { name: "merkleRoot",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint256" as const }] },
+  { name: "zkVerifier",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+  { name: "eas",          type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+] as const;
+
 // ─── Session helpers ──────────────────────────────────────────────────────────
 
 const SESSION_TOKEN_TYPE = [
@@ -96,6 +104,7 @@ const MIN_SQRT_PRICE = 4295128740n;        // TickMath.MIN_SQRT_PRICE + 1
 const MAX_SQRT_PRICE = 1461446703485210103287273052203988822378723970341n; // MAX - 1
 const DYNAMIC_FEE_FLAG = 8388608;
 const PIPS_DENOMINATOR = 1_000_000n;
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
   const baseUrl = chain.blockExplorers?.default?.url;
@@ -188,6 +197,9 @@ export async function swap(opts: {
   spin.stop();
 
   const amountIn = parseUnits(opts.amountIn, decimals);
+  if (amountIn <= 0n) {
+    die("amount-in must be greater than 0. Use `ilal swap --simulate` for a dry run.");
+  }
   log.kv("amount", `${opts.amountIn} ${fmt.cyan(symbol)} (${amountIn.toString()} wei)`);
   let protocolFeePips = 0;
   let treasury: string | undefined;
@@ -201,35 +213,45 @@ export async function swap(opts: {
   }
   const protocolFeeAmount = amountIn * BigInt(protocolFeePips) / PIPS_DENOMINATOR;
   const totalDebit = amountIn + protocolFeeAmount;
+
+  const preflightSpin = new Spinner("Running preflight checks…").start();
+  const [root, verifier, eas, valid, tokenId, balance] = await Promise.all([
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [account.address] }) as Promise<boolean>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [account.address] }) as Promise<bigint>,
+    pubClient.readContract({ address: tokenIn, abi: ERC20_ABI, functionName: "balanceOf", args: [account.address] }) as Promise<bigint>,
+  ]);
+  preflightSpin.stop();
+
+  const preflightErrors: string[] = [];
+  const hasEASPath = eas !== ZERO_ADDRESS;
+  const hasZKPath = verifier !== ZERO_ADDRESS && root !== 0n;
+  if (tokenId === 0n) {
+    preflightErrors.push(`wallet has no CNF credential; mint one before trading.`);
+    if (hasEASPath) preflightErrors.push("issuer supports EAS/mock attestation minting: run `ilal credential mint --attestation <uid>`.");
+    else if (hasZKPath) preflightErrors.push(`issuer supports ZK minting: run \`ilal credential prove --wallet ${account.address}\`.`);
+    else preflightErrors.push("issuer has no active issuance path: EAS is unset and ZK verifier/root are not both configured.");
+  }
+  else if (!valid) preflightErrors.push("wallet CNF credential exists but is not valid.");
+  if (balance < totalDebit) preflightErrors.push(`insufficient ${symbol} balance: need ${totalDebit.toString()} wei including ILAL fee, have ${balance.toString()} wei.`);
+
+  if (preflightErrors.length > 0) {
+    log.section("Preflight Failed");
+    for (const error of preflightErrors) log.warn(error);
+    console.log();
+    if (!opts.simulate) {
+      die("Swap not sent. Fix the preflight issues above, or use --simulate to inspect session/hookData only.");
+    }
+  }
+
   log.deal([
     { label: "verified input", value: `${opts.amountIn} ${symbol}`, note: "exact-in swap", tone: "cyan" },
     { label: "LP fee", value: poolFeePercent(parseInt(cfg.fee ?? "3000")), note: "hook-priced flow", tone: "green" },
     { label: "ILAL fee", value: protocolFeePips > 0 ? pipsToPercent(protocolFeePips) : "off", note: protocolFeePips > 0 ? "protocol revenue" : "legacy router", tone: protocolFeePips > 0 ? "cyan" : "gray" },
   ]);
   log.line();
-
-  // Check allowance — approve if needed
-  const approveSpin = new Spinner("Checking allowance…").start();
-  const allowed = await pubClient.readContract({
-    address: tokenIn,
-    abi:     ERC20_ABI,
-    functionName: "allowance",
-    args:    [account.address, cfg.router as `0x${string}`],
-  }) as bigint;
-
-  if (allowed < totalDebit) {
-    approveSpin.update(`Approving ${symbol} for ILALRouter…`);
-    const approveHash = await walClient.writeContract({
-      address:      tokenIn,
-      abi:          ERC20_ABI,
-      functionName: "approve",
-      args:         [cfg.router as `0x${string}`, totalDebit * 10n], // approve 10× for future swaps
-    });
-    await pubClient.waitForTransactionReceipt({ hash: approveHash });
-    approveSpin.succeed(`Approved ${symbol} ${fmt.gray(fmt.hash(approveHash))}`);
-  } else {
-    approveSpin.succeed(`Allowance ok (${fmt.gray(allowed.toString())} wei)`);
-  }
 
   // Sign session token
   const signSpin = new Spinner("Signing session token…").start();
@@ -279,10 +301,33 @@ export async function swap(opts: {
   log.line();
 
   if (opts.simulate) {
-    log.ok("Simulation mode — skipping on-chain tx");
+    log.ok("Simulation mode — skipping approval and on-chain tx");
     log.kv("hookData", hookData.slice(0, 22) + "…");
     console.log();
     return;
+  }
+
+  // Check allowance — approve if needed
+  const approveSpin = new Spinner("Checking allowance…").start();
+  const allowed = await pubClient.readContract({
+    address: tokenIn,
+    abi:     ERC20_ABI,
+    functionName: "allowance",
+    args:    [account.address, cfg.router as `0x${string}`],
+  }) as bigint;
+
+  if (allowed < totalDebit) {
+    approveSpin.update(`Approving ${symbol} for ILALRouter…`);
+    const approveHash = await walClient.writeContract({
+      address:      tokenIn,
+      abi:          ERC20_ABI,
+      functionName: "approve",
+      args:         [cfg.router as `0x${string}`, totalDebit * 10n], // approve 10× for future swaps
+    });
+    await pubClient.waitForTransactionReceipt({ hash: approveHash });
+    approveSpin.succeed(`Approved ${symbol} ${fmt.gray(fmt.hash(approveHash))}`);
+  } else {
+    approveSpin.succeed(`Allowance ok (${fmt.gray(allowed.toString())} wei)`);
   }
 
   // Build PoolKey

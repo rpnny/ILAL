@@ -8,7 +8,7 @@ import { proofMint, proofRenew } from "./commands/proof.js";
 import { sessionSign } from "./commands/session.js";
 import { poolPolicySet, poolPolicyGet } from "./commands/pool.js";
 import { deploy } from "./commands/deploy.js";
-import { demo, demoCheck } from "./commands/demo.js";
+import { demo, demoCheck, demoFaucet } from "./commands/demo.js";
 import { init } from "./commands/init.js";
 import { status } from "./commands/status.js";
 import { swap } from "./commands/swap.js";
@@ -21,7 +21,7 @@ const program = new Command();
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.1.0")
+  .version("0.2.2")
   .addHelpText("before", `\n  ${fmt.bold(fmt.cyan("◆"))} ${fmt.bold("ILAL Protocol")}  ${fmt.gray("Uniswap v4 Compliance Hook")}\n`);
 
 // ─── init ─────────────────────────────────────────────────────────────────────
@@ -80,6 +80,16 @@ demoCommand
   .option("-k, --private-key <hex>", "Private key used only to derive the wallet address")
   .action(async (opts: { wallet?: string; privateKey?: string }) => {
     await demoCheck(opts).catch(err);
+  });
+
+demoCommand
+  .command("faucet")
+  .description("Mint mock demo TOKA/TOKB to a wallet (testnet mock tokens only)")
+  .option("-w, --wallet <address>", "Recipient wallet (defaults to PRIVATE_KEY address)")
+  .option("--amount <tokens>", "Human token amount to mint for each token", "10000")
+  .option("-k, --private-key <hex>", "Private key that pays gas")
+  .action(async (opts: { wallet?: string; amount?: string; privateKey?: string }) => {
+    await demoFaucet(opts).catch(err);
   });
 
 const err = (e: unknown) => {

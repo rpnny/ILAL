@@ -35,7 +35,12 @@ const CNF_ISSUER_ABI = [
     inputs: [{ name: "wallet", type: "address" as const }],
     outputs: [{ type: "bool" as const }],
   },
+  { name: "eas", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+  { name: "schemaUID", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "bytes32" as const }] },
+  { name: "trustedAttester", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
 ] as const;
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 async function sendMintTx(
   mode: "mint" | "renew",
@@ -75,8 +80,14 @@ async function sendMintTx(
   // Verify EAS attestation exists on-chain before sending tx
   log.step("Verifying attestation on EAS…");
 
-  const easAddress = EAS_ADDRESSES[chain.id];
-  if (!easAddress) die(`No EAS contract known for chain ${chain.id}. Use --rpc with a custom setup.`);
+  const [issuerEAS, issuerSchema, issuerAttester] = await Promise.all([
+    publicClient.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "eas" }) as Promise<string>,
+    publicClient.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "schemaUID" }) as Promise<string>,
+    publicClient.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "trustedAttester" }) as Promise<string>,
+  ]);
+
+  const easAddress = issuerEAS !== ZERO_ADDRESS ? issuerEAS : EAS_ADDRESSES[chain.id];
+  if (!easAddress) die(`No EAS contract known for chain ${chain.id}. Use an issuer with eas() configured.`);
 
   const EAS_ABI = [
     {
@@ -103,7 +114,7 @@ async function sendMintTx(
   ] as const;
 
   const attestation = await publicClient.readContract({
-    address: easAddress,
+    address: easAddress as `0x${string}`,
     abi: EAS_ABI,
     functionName: "getAttestation",
     args: [opts.attestation as `0x${string}`],
@@ -120,16 +131,20 @@ async function sendMintTx(
     die(`Attestation recipient (${attestation.recipient}) does not match your wallet (${account.address}).`);
 
   log.ok(`Attester: ${attestation.attester}`);
-  if (attestation.attester.toLowerCase() === COINBASE_ATTESTER.toLowerCase()) {
+  if (attestation.attester.toLowerCase() === issuerAttester.toLowerCase()) {
+    log.ok("Issuer trusted attester confirmed");
+  } else if (attestation.attester.toLowerCase() === COINBASE_ATTESTER.toLowerCase()) {
     log.ok("Coinbase Verifications attester confirmed");
   } else {
-    log.warn(`Unknown attester — not Coinbase Verifications (${COINBASE_ATTESTER})`);
+    log.warn(`Attester mismatch — issuer expects ${issuerAttester}`);
   }
 
-  if (attestation.schema.toLowerCase() !== COINBASE_SCHEMA_UID.toLowerCase()) {
-    log.warn(`Schema mismatch — expected Coinbase schema, got ${attestation.schema}`);
-  } else {
+  if (attestation.schema.toLowerCase() !== issuerSchema.toLowerCase()) {
+    log.warn(`Schema mismatch — issuer expects ${issuerSchema}, got ${attestation.schema}`);
+  } else if (attestation.schema.toLowerCase() === COINBASE_SCHEMA_UID.toLowerCase()) {
     log.ok("Coinbase Account Verification schema confirmed");
+  } else {
+    log.ok("Issuer schema confirmed");
   }
 
   log.line();

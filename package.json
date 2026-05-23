@@ -1,6 +1,6 @@
 {
   "name": "@ilalv3/cli",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "ILAL Protocol CLI — compliant swaps and credential management for Uniswap v4",
   "type": "module",
   "bin": {
@@ -23,9 +23,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ilal-protocol/ilal.git"
+    "url": "git+https://github.com/rpnny/ilal-cli.git"
   },
-  "homepage": "https://github.com/ilal-protocol/ilal#readme",
+  "homepage": "https://github.com/rpnny/ilal-cli#readme",
   "publishConfig": {
     "access": "public"
   },

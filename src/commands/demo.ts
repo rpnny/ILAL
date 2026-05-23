@@ -1,15 +1,17 @@
 import {
   createPublicClient,
+  createWalletClient,
   formatUnits,
   http,
   isAddress,
   isHex,
+  parseUnits,
   type Chain,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { loadConfig } from "../config.js";
-import { fmt, header, log } from "../ui.js";
+import { die, fmt, header, log, Spinner } from "../ui.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 const POOL_MANAGER: Record<string, `0x${string}`> = {
@@ -18,11 +20,11 @@ const POOL_MANAGER: Record<string, `0x${string}`> = {
 };
 
 const SAMPLE = {
-  wallet: "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
-  issuer: "0x319c0F1cb46c85B42E051251c4db04BA6BD265a2",
-  hook: "0xdFF2ebBAc963f5Ed0B0EBCf021aB5EA16d57ea94",
-  router: "0x4A1F7E7d9D2D1f2A0c4A2F4A8C1A0B3E9E5d1111",
-  pool: "0x7ef1c0ffee00000000000000000000000000000000000000000000000000bEEF",
+  wallet: "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+  issuer: "0xc4E032A7574016bd0e3d1a5BbFdE886af09CeD9A",
+  hook: "0xF5066ad9c25F3f54cfb19609A60187C48C184A80",
+  router: "0x7727F0f3EBe99A558487394D001950ee6B33BB86",
+  pool: "0xc1c8f29d6f03b5cd18bf2b862d48f45cc338022a154945b89c4bcb0a3e11e87f",
   proof: "0x91f2b8a0c43e902f7f1a8c0d",
   session: "0x6b84eac5e0db21f8d5d43b7a",
 };
@@ -34,6 +36,7 @@ const CNF_ABI = [
   { name: "credentialOf", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
   { name: "merkleRoot", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint256" as const }] },
   { name: "zkVerifier", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+  { name: "eas", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
 ] as const;
 
 const REGISTRY_ABI = [
@@ -50,6 +53,7 @@ const ERC20_ABI = [
   { name: "decimals", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint8" as const }] },
   { name: "balanceOf", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "owner", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
   { name: "allowance", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "owner", type: "address" as const }, { name: "spender", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
+  { name: "mint", type: "function" as const, stateMutability: "nonpayable" as const, inputs: [{ name: "to", type: "address" as const }, { name: "amount", type: "uint256" as const }], outputs: [] },
 ] as const;
 
 function stage(n: number, title: string, subtitle: string) {
@@ -257,16 +261,24 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
   if (cfg.issuer && isAddress(cfg.issuer)) {
     log.section("Issuer State");
     try {
-      const [root, verifier] = await Promise.all([
+      const [root, verifier, eas] = await Promise.all([
         client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
         client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
+        client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
       ]);
+      const hasEASPath = eas !== ZERO;
+      const hasZKPath = root !== 0n && verifier !== ZERO;
+      if (hasEASPath) ok("issuance path", `${fmt.badge("EAS/mock", "green")} ${fmt.addr(eas)}`);
+      else if (hasZKPath) ok("issuance path", fmt.badge("ZK", "green"));
+      else warn("issuance path", fmt.badge("not ready", "yellow"));
       if (root === 0n) warn("merkleRoot", fmt.badge("not set", "yellow"));
       else ok("merkleRoot", root.toString().slice(0, 24) + "...");
       if (verifier === ZERO) warn("zkVerifier", fmt.badge("not set", "yellow"));
       else ok("zkVerifier", fmt.addr(verifier));
+      pass(hasEASPath || hasZKPath);
     } catch (e) {
       bad("issuer reads", e instanceof Error ? e.message.split("\n")[0]! : String(e));
+      pass(false);
     }
 
     if (wallet && isAddress(wallet)) {
@@ -369,5 +381,48 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
   }
   const suggestedTokenIn = cfg.tokenB ?? "<token>";
   log.command(`ilal swap --amount-in 0.001 --token-in ${suggestedTokenIn}`);
+  console.log();
+}
+
+export async function demoFaucet(opts: { wallet?: string; amount?: string; privateKey?: string }) {
+  const cfg = loadConfig();
+  const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
+  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
+  if (!rawKey || !isHex(rawKey) || rawKey.length !== 66) {
+    die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
+  }
+  if (!cfg.tokenA || !cfg.tokenB || !isAddress(cfg.tokenA) || !isAddress(cfg.tokenB)) {
+    die("tokenA/tokenB required. Run `ilal init` with demo token addresses first.");
+  }
+
+  const account = privateKeyToAccount(rawKey as `0x${string}`);
+  const wallet = opts.wallet ?? account.address;
+  if (!isAddress(wallet)) die(`Invalid wallet address: ${wallet}`);
+
+  const client = createPublicClient({ chain, transport: http(cfg.rpc) });
+  const walletClient = createWalletClient({ account, chain, transport: http(cfg.rpc) });
+
+  header("ILAL Demo Faucet", chain.name);
+  log.kv("recipient", fmt.addr(wallet));
+  log.line();
+
+  for (const token of [cfg.tokenA, cfg.tokenB] as `0x${string}`[]) {
+    const [symbol, decimals] = await Promise.all([
+      client.readContract({ address: token, abi: ERC20_ABI, functionName: "symbol" }) as Promise<string>,
+      client.readContract({ address: token, abi: ERC20_ABI, functionName: "decimals" }) as Promise<number>,
+    ]);
+    const amount = parseUnits(opts.amount ?? "10000", decimals);
+    const spin = new Spinner(`Minting ${opts.amount ?? "10000"} ${symbol}…`).start();
+    const hash = await walletClient.writeContract({
+      address: token,
+      abi: ERC20_ABI,
+      functionName: "mint",
+      args: [wallet as `0x${string}`, amount],
+    });
+    await client.waitForTransactionReceipt({ hash });
+    spin.succeed(`Minted ${symbol} ${fmt.hash(hash)}`);
+  }
+
+  log.callout("Demo tokens ready", "wallet can now pass token-balance preflight checks", "green");
   console.log();
 }

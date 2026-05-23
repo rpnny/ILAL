@@ -17,6 +17,7 @@ const CNF_ABI = [
   { name: "getCredential", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "tokenId", type: "uint256" as const }], outputs: [{ type: "tuple" as const, components: [{ name: "holder", type: "address" as const }, { name: "issuer", type: "address" as const }, { name: "credentialType", type: "bytes32" as const }, { name: "issuedAt", type: "uint64" as const }, { name: "expiresAt", type: "uint64" as const }, { name: "revoked", type: "bool" as const }] }] },
   { name: "merkleRoot",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint256" as const }] },
   { name: "zkVerifier",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+  { name: "eas",          type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
 ] as const;
 
 const HOOK_ABI = [
@@ -26,6 +27,8 @@ const HOOK_ABI = [
 const REGISTRY_ABI = [
   { name: "getPolicy", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "poolId", type: "bytes32" as const }], outputs: [{ type: "tuple" as const, components: [{ name: "cnfIssuer", type: "address" as const }, { name: "requiredCredentialType", type: "bytes32" as const }, { name: "enabled", type: "bool" as const }] }] },
 ] as const;
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 function daysUntil(unixSec: number): number {
   return Math.floor((unixSec * 1000 - Date.now()) / 86_400_000);
@@ -105,21 +108,29 @@ export async function status(opts: {
   if (cfg.issuer && isAddress(cfg.issuer)) {
     const spin = new Spinner("Fetching issuer config…").start();
     try {
-      const [root, verifier] = await Promise.all([
+      const [root, verifier, eas] = await Promise.all([
         client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
         client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
+        client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
       ]);
       spin.stop();
+      const hasEASPath = eas !== ZERO_ADDRESS;
+      const hasZKPath = root !== 0n && verifier !== ZERO_ADDRESS;
 
       log.section("Issuer");
       log.kv("address",   fmt.cyan(cfg.issuer));
-      log.kv("zkVerifier", verifier === "0x0000000000000000000000000000000000000000"
+      log.kv("issuance", hasEASPath
+        ? `${fmt.badge("EAS", "green")} ${fmt.addr(eas)}`
+        : hasZKPath
+          ? fmt.badge("ZK", "green")
+          : fmt.badge("not ready", "red"));
+      log.kv("zkVerifier", verifier === ZERO_ADDRESS
         ? fmt.badge("not set", "red")
         : fmt.green(fmt.addr(verifier)));
       log.kv("merkleRoot", root === 0n
         ? fmt.badge("not set", "red")
         : fmt.gray(root.toString().slice(0, 20) + "…"));
-      issuerReady = root !== 0n && verifier !== "0x0000000000000000000000000000000000000000";
+      issuerReady = hasEASPath || hasZKPath;
     } catch (e) {
       spin.stop();
       log.warn(`Could not fetch issuer config: ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`);

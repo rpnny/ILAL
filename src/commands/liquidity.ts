@@ -36,8 +36,17 @@ const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 const ERC20_ABI = [
   { name: "symbol",    type: "function" as const, stateMutability: "view" as const,       inputs: [], outputs: [{ type: "string" as const }] },
   { name: "decimals",  type: "function" as const, stateMutability: "view" as const,       inputs: [], outputs: [{ type: "uint8" as const }] },
+  { name: "balanceOf", type: "function" as const, stateMutability: "view" as const,       inputs: [{ name: "owner", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
   { name: "allowance", type: "function" as const, stateMutability: "view" as const,       inputs: [{ name: "owner", type: "address" as const }, { name: "spender", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
   { name: "approve",   type: "function" as const, stateMutability: "nonpayable" as const, inputs: [{ name: "spender", type: "address" as const }, { name: "amount", type: "uint256" as const }], outputs: [{ type: "bool" as const }] },
+] as const;
+
+const CNF_ABI = [
+  { name: "isValid",      type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ type: "bool" as const }] },
+  { name: "credentialOf", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
+  { name: "merkleRoot",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint256" as const }] },
+  { name: "zkVerifier",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+  { name: "eas",          type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
 ] as const;
 
 const ROUTER_LIQUIDITY_ABI = [
@@ -113,6 +122,8 @@ function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
   return baseUrl ? `${baseUrl}/tx/${hash}` : undefined;
 }
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 // ─── Shared core ──────────────────────────────────────────────────────────────
 
 async function executeLiquidity(
@@ -180,11 +191,50 @@ async function executeLiquidity(
   log.kv("liquidity",   liquidity.toString());
   log.line();
 
+  if (liquidity <= 0n) {
+    die("liquidity must be greater than 0. No approval or liquidity transaction was sent.");
+  }
+
+  const preflightSpin = new Spinner("Running preflight checks…").start();
+  const [root, verifier, eas, valid, tokenId, sym0, sym1, bal0, bal1] = await Promise.all([
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [account.address] }) as Promise<boolean>,
+    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [account.address] }) as Promise<bigint>,
+    pubClient.readContract({ address: c0, abi: ERC20_ABI, functionName: "symbol" }) as Promise<string>,
+    pubClient.readContract({ address: c1, abi: ERC20_ABI, functionName: "symbol" }) as Promise<string>,
+    pubClient.readContract({ address: c0, abi: ERC20_ABI, functionName: "balanceOf", args: [account.address] }) as Promise<bigint>,
+    pubClient.readContract({ address: c1, abi: ERC20_ABI, functionName: "balanceOf", args: [account.address] }) as Promise<bigint>,
+  ]);
+  preflightSpin.stop();
+
+  const preflightErrors: string[] = [];
+  const hasEASPath = eas !== ZERO_ADDRESS;
+  const hasZKPath = verifier !== ZERO_ADDRESS && root !== 0n;
+  if (tokenId === 0n) {
+    preflightErrors.push("wallet has no CNF credential; mint one before changing liquidity.");
+    if (hasEASPath) preflightErrors.push("issuer supports EAS/mock attestation minting: run `ilal credential mint --attestation <uid>`.");
+    else if (hasZKPath) preflightErrors.push(`issuer supports ZK minting: run \`ilal credential prove --wallet ${account.address}\`.`);
+    else preflightErrors.push("issuer has no active issuance path: EAS is unset and ZK verifier/root are not both configured.");
+  }
+  else if (!valid) preflightErrors.push("wallet CNF credential exists but is not valid.");
+  if (action === "add" && (bal0 === 0n || bal1 === 0n)) {
+    preflightErrors.push(`token balances are not ready for adding liquidity: ${sym0}=${bal0.toString()} wei, ${sym1}=${bal1.toString()} wei.`);
+  }
+
+  if (preflightErrors.length > 0) {
+    log.section("Preflight Failed");
+    for (const error of preflightErrors) log.warn(error);
+    console.log();
+    die(`${verb} liquidity not sent. Fix the preflight issues above.`);
+  }
+
   // Approve both tokens if adding liquidity
   if (action === "add") {
     const MAX = 2n ** 256n - 1n;
     for (const token of [c0, c1] as `0x${string}`[]) {
-      const sym = await pubClient.readContract({ address: token, abi: ERC20_ABI, functionName: "symbol" }) as string;
+      const sym = token.toLowerCase() === c0.toLowerCase() ? sym0 : sym1;
       const allowed = await pubClient.readContract({
         address: token, abi: ERC20_ABI, functionName: "allowance",
         args: [account.address, cfg.router as `0x${string}`],

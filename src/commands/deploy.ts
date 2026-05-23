@@ -73,13 +73,15 @@ export async function deploy(opts: {
 
   if (isMock) {
     env["WALLET_TO_SEED"] = opts.walletToSeed!;
+    env["WALLET"] = opts.walletToSeed!;
+    env["MOCK_EAS"] = "true";
   } else {
     env["EAS_ADDRESS"] = easAddress;
     env["SCHEMA_UID"] = COINBASE_SCHEMA_UID;
     env["TRUSTED_ATTESTER"] = COINBASE_ATTESTER;
   }
 
-  const script = isMock ? "script/DeployMock.s.sol" : "script/Deploy.s.sol";
+  const script = isMock ? "script/DeployDemo.s.sol" : "script/Deploy.s.sol";
 
   const flags = [
     `--rpc-url ${rpc}`,
