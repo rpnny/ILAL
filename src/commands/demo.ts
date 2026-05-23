@@ -184,6 +184,16 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
 
   let score = 0;
   let total = 0;
+  let networkReady = false;
+  let configReady = true;
+  let codeReady = true;
+  let economicsReady = false;
+  let issuerPathReady = false;
+  let credentialReady = false;
+  let policyReady = false;
+  let walletBalancesReady = false;
+  const walletBalanceChecks: boolean[] = [];
+
   const pass = (condition: boolean) => {
     total++;
     if (condition) score++;
@@ -194,6 +204,7 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
   try {
     const block = await client.getBlockNumber();
     ok("latest block", block.toString());
+    networkReady = true;
     pass(true);
   } catch (e) {
     bad("latest block", e instanceof Error ? e.message.split("\n")[0]! : String(e));
@@ -226,18 +237,25 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
             : value!;
       ok(label, display);
     }
-    else bad(label, fmt.badge("missing", "red"));
+    else {
+      bad(label, fmt.badge("missing", "red"));
+      configReady = false;
+    }
     pass(valid);
   }
   log.line();
 
   log.section("Contract Code", "must exist on-chain");
-  pass(await hasCode(client, "CNFIssuer", cfg.issuer));
-  pass(await hasCode(client, "ComplianceHook", cfg.hook));
-  pass(await hasCode(client, "PolicyRegistry", cfg.registry));
-  pass(await hasCode(client, "ILALRouter", cfg.router));
-  pass(await hasCode(client, "currency0", cfg.tokenA));
-  pass(await hasCode(client, "currency1", cfg.tokenB));
+  const codeChecks = [
+    await hasCode(client, "CNFIssuer", cfg.issuer),
+    await hasCode(client, "ComplianceHook", cfg.hook),
+    await hasCode(client, "PolicyRegistry", cfg.registry),
+    await hasCode(client, "ILALRouter", cfg.router),
+    await hasCode(client, "currency0", cfg.tokenA),
+    await hasCode(client, "currency1", cfg.tokenB),
+  ];
+  for (const check of codeChecks) pass(check);
+  codeReady = codeChecks.every(Boolean);
   log.line();
 
   if (cfg.router && isAddress(cfg.router)) {
@@ -250,9 +268,11 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
       ok("LP fee", cfg.fee === "8388608" ? `${fmt.badge("dynamic", "green")} verified 0.05%` : "pool fee tier");
       ok("ILAL fee", protocolFeePips > 0 ? `${fmt.badge("protocol", "cyan")} ${pipsToPercent(protocolFeePips)}` : fmt.badge("off", "yellow"));
       ok("treasury", fmt.addr(treasury));
+      economicsReady = true;
       pass(true);
     } catch {
       warn("protocol fee", fmt.badge("legacy router", "yellow"));
+      economicsReady = true;
       pass(true);
     }
     log.line();
@@ -271,11 +291,12 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
       if (hasEASPath) ok("issuance path", `${fmt.badge("EAS/mock", "green")} ${fmt.addr(eas)}`);
       else if (hasZKPath) ok("issuance path", fmt.badge("ZK", "green"));
       else warn("issuance path", fmt.badge("not ready", "yellow"));
+      issuerPathReady = hasEASPath || hasZKPath;
       if (root === 0n) warn("merkleRoot", fmt.badge("not set", "yellow"));
       else ok("merkleRoot", root.toString().slice(0, 24) + "...");
       if (verifier === ZERO) warn("zkVerifier", fmt.badge("not set", "yellow"));
       else ok("zkVerifier", fmt.addr(verifier));
-      pass(hasEASPath || hasZKPath);
+      pass(issuerPathReady);
     } catch (e) {
       bad("issuer reads", e instanceof Error ? e.message.split("\n")[0]! : String(e));
       pass(false);
@@ -289,6 +310,7 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
         ]);
         if (valid) ok("credential", `${fmt.badge("valid", "green")} token #${tokenId}`);
         else warn("credential", tokenId === 0n ? fmt.badge("missing", "yellow") : fmt.badge("invalid", "yellow"));
+        credentialReady = valid;
         pass(valid);
       } catch (e) {
         bad("credential", e instanceof Error ? e.message.split("\n")[0]! : String(e));
@@ -312,6 +334,7 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
       const issuerMatches = policy.cnfIssuer.toLowerCase() === (cfg.issuer ?? "").toLowerCase();
       const ready = policy.enabled && issuerMatches;
       (ready ? ok : warn)("policy", `${policy.enabled ? fmt.badge("enabled", "green") : fmt.badge("disabled", "yellow")} issuer ${fmt.addr(policy.cnfIssuer)}`);
+      policyReady = ready;
       pass(ready);
     } catch (e) {
       bad("policy", e instanceof Error ? e.message.split("\n")[0]! : String(e));
@@ -334,37 +357,64 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
         const balanceText = `${formatUnits(balance, decimals)} ${symbol}`;
         const allowanceText = allowance > 0n ? fmt.badge("approved", "green") : fmt.badge("needs approval", "yellow");
         (balance > 0n ? ok : warn)(label, `${balanceText} ${allowanceText}`);
+        walletBalanceChecks.push(balance > 0n);
         pass(balance > 0n);
       } catch (e) {
         bad(label, e instanceof Error ? e.message.split("\n")[0]! : String(e));
+        walletBalanceChecks.push(false);
         pass(false);
       }
     }
+    walletBalancesReady = walletBalanceChecks.length === 2 && walletBalanceChecks.every(Boolean);
     log.line();
   }
 
+  const infrastructureChecks = [networkReady, configReady, codeReady, economicsReady, issuerPathReady, policyReady];
+  const infrastructureReady = infrastructureChecks.every(Boolean);
+  const walletSelected = !!wallet && isAddress(wallet);
+  const walletReady = walletSelected && credentialReady && walletBalancesReady;
+  const realTxReady = infrastructureReady && walletReady;
   const readiness = total === 0 ? 0 : Math.round((score / total) * 100);
+  const infraScore = Math.round((infrastructureChecks.filter(Boolean).length / infrastructureChecks.length) * 100);
+  const walletScore = walletSelected
+    ? Math.round(([credentialReady, walletBalancesReady].filter(Boolean).length / 2) * 100)
+    : 0;
   log.section("Readiness");
-  const tone = readiness >= 85 ? "green" : readiness >= 60 ? "yellow" : "red";
-  log.progress("score", readiness, tone);
+  const tone = realTxReady ? "green" : infrastructureReady ? "yellow" : readiness >= 60 ? "yellow" : "red";
+  log.progress("overall", readiness, tone);
+  log.progress("infrastructure", infraScore, infrastructureReady ? "green" : "yellow");
+  log.progress("wallet", walletScore, walletReady ? "green" : "yellow");
   log.metrics([
-    { label: "credential", value: wallet ? "ready" : "missing", tone: wallet ? "green" : "yellow" },
-    { label: "policy", value: cfg.poolId ? "enabled" : "missing", tone: cfg.poolId ? "green" : "yellow" },
+    { label: "infra", value: infrastructureReady ? "ready" : "incomplete", tone: infrastructureReady ? "green" : "yellow" },
+    { label: "wallet", value: walletReady ? "ready" : "not ready", tone: walletReady ? "green" : "yellow" },
+    { label: "tx", value: realTxReady ? "ready" : "blocked", tone: realTxReady ? "green" : "yellow" },
+  ]);
+  log.metrics([
+    { label: "credential", value: credentialReady ? "valid" : "missing", tone: credentialReady ? "green" : "yellow" },
+    { label: "balances", value: walletBalancesReady ? "funded" : "missing", tone: walletBalancesReady ? "green" : "yellow" },
+    { label: "policy", value: policyReady ? "enabled" : "missing", tone: policyReady ? "green" : "yellow" },
     { label: "deal", value: cfg.fee === "8388608" ? "better" : "standard", tone: cfg.fee === "8388608" ? "green" : "gray" },
   ]);
-  if (readiness >= 85) {
+  if (realTxReady) {
     log.callout("Live demo ready", "credential, policy, hook, router, pool, and balances are aligned", "green");
+  } else if (infrastructureReady) {
+    log.callout("Demo infrastructure ready", "wallet is not ready yet: mint CNF and fund demo tokens before real tx", "yellow");
   } else {
     log.callout("Live demo not ready", "fill the missing config/state first", tone);
   }
   log.line();
 
-  log.section("Live Path", readiness >= 85 ? "what the judge is about to see" : "target flow");
-  flowStep("credential", wallet ? `${fmt.addr(wallet)} holds a valid CNF` : "wallet not selected", wallet ? "green" : "yellow");
+  log.section("Live Path", realTxReady ? "what the judge is about to see" : "target flow");
+  flowStep(
+    "credential",
+    credentialReady && wallet ? `${fmt.addr(wallet)} holds a valid CNF` : wallet ? `${fmt.addr(wallet)} has no valid CNF` : "wallet not selected",
+    credentialReady ? "green" : "yellow"
+  );
   flowStep("session", `local EIP-712 binds user + router + pool + action`, "green");
   flowStep("hook", `${cfg.hook ? fmt.addr(cfg.hook) : fmt.badge("missing", "red")} gates swap/liquidity`, cfg.hook ? "green" : "red");
-  flowStep("pool", cfg.poolId ? `${fmt.hash(cfg.poolId)} policy enabled` : fmt.badge("missing", "red"), cfg.poolId ? "green" : "red");
-  flowStep("result", readiness >= 85 ? fmt.badge("ready for real tx", "green") : fmt.badge("preflight incomplete", "yellow"), readiness >= 85 ? "green" : "yellow");
+  flowStep("pool", policyReady && cfg.poolId ? `${fmt.hash(cfg.poolId)} policy enabled` : fmt.badge("policy not ready", "yellow"), policyReady ? "green" : "yellow");
+  flowStep("balances", walletBalancesReady ? fmt.badge("funded", "green") : fmt.badge("missing demo tokens", "yellow"), walletBalancesReady ? "green" : "yellow");
+  flowStep("result", realTxReady ? fmt.badge("ready for real tx", "green") : fmt.badge("wallet not ready for real tx", "yellow"), realTxReady ? "green" : "yellow");
   log.line();
 
   log.section("Next Commands");
