@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { credentialStatus } from "./commands/credential.js";
-import { credentialProve } from "./commands/prove.js";
+import { credentialProve, credentialRoot } from "./commands/prove.js";
 import { oracleProposeRoot, oracleActivateRoot, oracleProposeVerifier, oracleActivateVerifier } from "./commands/oracle.js";
 import { mintCredential, renewCredential } from "./commands/mint.js";
 import { proofMint, proofRenew } from "./commands/proof.js";
@@ -21,7 +21,7 @@ const program = new Command();
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.2.4")
+  .version("0.2.5")
   .addHelpText("before", `\n  ${fmt.bold(fmt.cyan("◆"))} ${fmt.bold("ILAL Protocol")}  ${fmt.gray("Uniswap v4 Compliance Hook")}\n`);
 
 // ─── init ─────────────────────────────────────────────────────────────────────
@@ -132,8 +132,19 @@ credential
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
   .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
-  .action(async (opts: { wallet: string; issuer: string; action?: string; circuitDir?: string; outDir?: string; chain: string; rpc?: string; privateKey?: string }) => {
+  .option("--expires-at <unix>", "Unix timestamp used in the ZK proof/root (must match issuer root)")
+  .action(async (opts: { wallet: string; issuer: string; action?: string; circuitDir?: string; outDir?: string; chain: string; rpc?: string; privateKey?: string; expiresAt?: string }) => {
     await credentialProve(opts).catch(err);
+  });
+
+credential
+  .command("zk-root")
+  .description("Compute the Merkle root needed for a one-wallet ZK credential demo")
+  .requiredOption("-w, --wallet <address>", "Wallet address included in the ZK tree")
+  .option("-i, --issuer <address>", "Issuer address, used to print matching public-input hashes")
+  .requiredOption("--expires-at <unix>", "Future Unix timestamp; pass the same value to credential prove")
+  .action(async (opts: { wallet: string; issuer?: string; expiresAt: string }) => {
+    await credentialRoot(opts).catch(err);
   });
 
 credential

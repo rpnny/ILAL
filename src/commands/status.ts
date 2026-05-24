@@ -18,6 +18,12 @@ const CNF_ABI = [
   { name: "merkleRoot",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint256" as const }] },
   { name: "zkVerifier",   type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
   { name: "eas",          type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+  { name: "issuerMetadata", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [
+    { name: "name", type: "string" as const },
+    { name: "jurisdiction", type: "string" as const },
+    { name: "credentialStandard", type: "string" as const },
+    { name: "uri", type: "string" as const },
+  ] },
 ] as const;
 
 const HOOK_ABI = [
@@ -119,6 +125,19 @@ export async function status(opts: {
 
       log.section("Issuer");
       log.kv("address",   fmt.cyan(cfg.issuer));
+      try {
+        const meta = await client.readContract({
+          address: cfg.issuer as `0x${string}`,
+          abi: CNF_ABI,
+          functionName: "issuerMetadata",
+        }) as readonly [string, string, string, string];
+        if (meta[0]) log.kv("name", meta[0]);
+        if (meta[1]) log.kv("jurisdiction", meta[1]);
+        if (meta[2]) log.kv("standard", meta[2]);
+        if (meta[3]) log.kv("uri", fmt.gray(meta[3]));
+      } catch {
+        log.kv("metadata", fmt.badge("legacy issuer", "yellow"));
+      }
       log.kv("issuance", hasEASPath
         ? `${fmt.badge("EAS", "green")} ${fmt.addr(eas)}`
         : hasZKPath

@@ -130,11 +130,27 @@ interface ProofFiles {
   merkleRoot: bigint;
 }
 
+function resolveExpiresAt(expiresAt?: string): bigint {
+  if (!expiresAt) return BigInt(Math.floor(Date.now() / 1000) + 90 * 24 * 3600);
+  const parsed = BigInt(expiresAt);
+  if (parsed <= BigInt(Math.floor(Date.now() / 1000))) die("--expires-at must be a future Unix timestamp");
+  return parsed;
+}
+
+function computeZKLeafAndRoot(walletAddr: string, expiresAt: bigint): { leaf: bigint; merkleRoot: bigint } {
+  const walletField = addressToField(walletAddr);
+  const leaf = poseidon4([walletField, 2n, 840n, expiresAt]);
+  const tree = new IncrementalMerkleTree(poseidon2, DEPTH, 0n, 2);
+  tree.insert(leaf);
+  return { leaf, merkleRoot: tree.root };
+}
+
 function generateProof(opts: {
   walletAddr: string;
   issuerAddr: string;
   circuitDir: string;
   outDir: string;
+  expiresAt?: string;
 }): ProofFiles {
   const { walletAddr, issuerAddr, circuitDir, outDir } = opts;
 
@@ -145,14 +161,13 @@ function generateProof(opts: {
   const walletHash   = computeWalletHash(walletAddr);
   const issuerHash   = poseidonField(addressToField(issuerAddr));
   const schemaHashValue = schemaHash(COINBASE_SCHEMA_UID);
-  const expiresAt    = BigInt(Math.floor(Date.now() / 1000) + 90 * 24 * 3600); // +90 days
+  const expiresAt    = resolveExpiresAt(opts.expiresAt);
 
   // Build single-leaf Poseidon Merkle tree
-  const leaf = poseidon4([walletField, 2n, 840n, expiresAt]);
+  const { leaf, merkleRoot } = computeZKLeafAndRoot(walletAddr, expiresAt);
   const tree = new IncrementalMerkleTree(poseidon2, DEPTH, 0n, 2);
   tree.insert(leaf);
   const merkleProof = tree.createProof(0);
-  const merkleRoot  = tree.root;
 
   // Build input.json
   const input = {
@@ -248,6 +263,7 @@ export async function credentialProve(opts: {
   outDir?: string;
   rpc?: string;
   privateKey?: string;
+  expiresAt?: string;
 }) {
   const cfg    = withConfig(opts);
   const rawKey = cfg.privateKey ?? process.env["PRIVATE_KEY"];
@@ -296,14 +312,21 @@ export async function credentialProve(opts: {
   let proofResult: ProofFiles & { merkleRoot: bigint };
   try {
     spin.update("Generating ZK witness…");
-    proofResult = generateProof({ walletAddr: cfg.wallet, issuerAddr: cfg.issuer, circuitDir, outDir }) as ProofFiles & { merkleRoot: bigint };
+    proofResult = generateProof({
+      walletAddr: cfg.wallet,
+      issuerAddr: cfg.issuer,
+      circuitDir,
+      outDir,
+      expiresAt: opts.expiresAt,
+    }) as ProofFiles & { merkleRoot: bigint };
     spin.succeed(`Proof generated & verified locally`);
   } catch (e) {
     spin.fail("Proof generation failed");
     die(e instanceof Error ? e.message.split("\n")[0]! : String(e));
   }
 
-  log.kv("expiresAt",  fmt.cyan(new Date((Date.now() + 90 * 24 * 3600 * 1000)).toISOString().split("T")[0]!));
+  const proofExpiresAt = BigInt(proofResult.publicJson[3]!);
+  log.kv("expiresAt",  fmt.cyan(new Date(Number(proofExpiresAt) * 1000).toISOString().split("T")[0]!));
   log.kv("merkleRoot", fmt.gray(proofResult.merkleRoot.toString().slice(0, 22) + "…"));
   log.line();
 
@@ -343,5 +366,35 @@ export async function credentialProve(opts: {
     args: [cfg.wallet as `0x${string}`],
   });
   log.kv("isValid()", valid ? fmt.green("✓ true") : fmt.red("✗ false"));
+  console.log();
+}
+
+export async function credentialRoot(opts: {
+  wallet?: string;
+  issuer?: string;
+  expiresAt?: string;
+}) {
+  if (!opts.wallet) die("Wallet address required. Use --wallet <address>.");
+  if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
+  const expiresAt = resolveExpiresAt(opts.expiresAt);
+  const { leaf, merkleRoot } = computeZKLeafAndRoot(opts.wallet, expiresAt);
+
+  header("ILAL ZK Root Preparation", "operator pre-deploy / pre-root");
+  log.kv("wallet", fmt.cyan(opts.wallet));
+  log.kv("kycLevel", "2");
+  log.kv("countryCode", "840");
+  log.kv("expiresAt", `${expiresAt.toString()} ${fmt.gray(new Date(Number(expiresAt) * 1000).toISOString())}`);
+  log.kv("leaf", leaf.toString());
+  log.kv("merkleRoot", fmt.cyan(merkleRoot.toString()));
+
+  if (opts.issuer) {
+    if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
+    log.kv("issuerHash", poseidonField(addressToField(opts.issuer)).toString());
+    log.kv("schemaHash", schemaHash(COINBASE_SCHEMA_UID).toString());
+  }
+
+  log.line();
+  log.command(`INITIAL_MERKLE_ROOT=${merkleRoot.toString()} forge script contracts/script/DeployDemo.s.sol ...`);
+  log.command(`PRIVATE_KEY=0x... ilal credential prove --wallet ${opts.wallet} --expires-at ${expiresAt.toString()}`);
   console.log();
 }

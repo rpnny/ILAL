@@ -12,14 +12,14 @@ import { fmt, log, header, die } from "../ui.js";
 // Known testnet / mainnet addresses for quick init
 const PRESETS: Record<string, Record<string, string>> = {
   "84532": {
-    issuer:      "0xc4E032A7574016bd0e3d1a5BbFdE886af09CeD9A",
-    hook:        "0xF5066ad9c25F3f54cfb19609A60187C48C184A80",
-    registry:    "0x910a3efDc426f3216738106dd0DC6EA696477233",
-    router:      "0x7727F0f3EBe99A558487394D001950ee6B33BB86",
+    issuer:      "0x18EF418Ca1C81d37BD3247D34c19Adc42306535F",
+    hook:        "0x1623276697B4e6609F8887C9Caa9dB6A6fa08A80",
+    registry:    "0xB2A94DE0432c1dEDfa941816A450002C6581B0aD",
+    router:      "0xf7DBe6721AE935FA25D963076cd202994E0D5e17",
     treasury:    "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-    tokenA:      "0x582362E608F36850F6f641510d5D19C1EaB4cb27",
-    tokenB:      "0x6eBBdAC70EC422C512727B25c7F0D9120ed101Ff",
-    poolId:      "0xc1c8f29d6f03b5cd18bf2b862d48f45cc338022a154945b89c4bcb0a3e11e87f",
+    tokenA:      "0x589dDBdf4Bd6d605bD809a540FF4BC1066f6895e",
+    tokenB:      "0xA9C0AB8e7Bc6a79649903EdE052E1B41585cCd08",
+    poolId:      "0xf32ae7435348041d4e979a24ce417bfe71d0f6642d2dcb2326e01acfe660fa0d",
     fee:         "8388608",
     tickSpacing: "60",
     rpc:         "https://sepolia.base.org",

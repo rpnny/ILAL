@@ -22,10 +22,10 @@ const POOL_MANAGER: Record<string, `0x${string}`> = {
 
 const SAMPLE = {
   wallet: "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
-  issuer: "0xc4E032A7574016bd0e3d1a5BbFdE886af09CeD9A",
-  hook: "0xF5066ad9c25F3f54cfb19609A60187C48C184A80",
-  router: "0x7727F0f3EBe99A558487394D001950ee6B33BB86",
-  pool: "0xc1c8f29d6f03b5cd18bf2b862d48f45cc338022a154945b89c4bcb0a3e11e87f",
+  issuer: "0x18EF418Ca1C81d37BD3247D34c19Adc42306535F",
+  hook: "0x1623276697B4e6609F8887C9Caa9dB6A6fa08A80",
+  router: "0xf7DBe6721AE935FA25D963076cd202994E0D5e17",
+  pool: "0xf32ae7435348041d4e979a24ce417bfe71d0f6642d2dcb2326e01acfe660fa0d",
   proof: "0x91f2b8a0c43e902f7f1a8c0d",
   session: "0x6b84eac5e0db21f8d5d43b7a",
 };
@@ -38,6 +38,12 @@ const CNF_ABI = [
   { name: "merkleRoot", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint256" as const }] },
   { name: "zkVerifier", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
   { name: "eas", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+  { name: "issuerMetadata", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [
+    { name: "name", type: "string" as const },
+    { name: "jurisdiction", type: "string" as const },
+    { name: "credentialStandard", type: "string" as const },
+    { name: "uri", type: "string" as const },
+  ] },
 ] as const;
 
 const REGISTRY_ABI = [
@@ -314,6 +320,19 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
       ]);
       const hasEASPath = eas !== ZERO;
       const hasZKPath = root !== 0n && verifier !== ZERO;
+      try {
+        const meta = await client.readContract({
+          address: cfg.issuer as `0x${string}`,
+          abi: CNF_ABI,
+          functionName: "issuerMetadata",
+        }) as readonly [string, string, string, string];
+        if (meta[0]) ok("issuer name", meta[0]);
+        if (meta[1]) ok("jurisdiction", meta[1]);
+        if (meta[2]) ok("standard", meta[2]);
+        if (meta[3]) ok("metadata uri", fmt.gray(meta[3]));
+      } catch {
+        warn("issuer metadata", fmt.badge("legacy issuer", "yellow"));
+      }
       if (hasEASPath) ok("issuance path", `${fmt.badge("EAS/mock", "green")} ${fmt.addr(eas)}`);
       else if (hasZKPath) ok("issuance path", fmt.badge("ZK", "green"));
       else warn("issuance path", fmt.badge("not ready", "yellow"));
