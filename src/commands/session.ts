@@ -10,6 +10,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { fmt, log, header, die } from "../ui.js";
+import { withConfig } from "../config.js";
 
 const CHAINS: Record<string, Chain> = {
   "8453": base,
@@ -41,15 +42,17 @@ const HOOK_DATA_ABI = parseAbiParameters([
 
 export async function sessionSign(opts: {
   user?: string;
-  pool: string;
+  pool?: string;
   action: string;
-  hook: string;
-  issuer: string;
+  hook?: string;
+  issuer?: string;
   caller?: string;
-  chain: string;
+  chain?: string;
   ttl: number;
   privateKey?: string;
 }) {
+  const cfg = withConfig({ chain: opts.chain, hook: opts.hook, issuer: opts.issuer });
+
   // Resolve private key
   const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
   if (!rawKey) die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
@@ -57,19 +60,23 @@ export async function sessionSign(opts: {
 
   const account = privateKeyToAccount(rawKey as `0x${string}`);
   const user = (opts.user ?? account.address) as `0x${string}`;
-  const authorizedCaller = (opts.caller ?? user) as `0x${string}`;
+  const pool = opts.pool ?? cfg.poolId;
+  const hook = opts.hook ?? cfg.hook;
+  const issuer = opts.issuer ?? cfg.issuer;
+  const authorizedCaller = (opts.caller ?? cfg.router ?? user) as `0x${string}`;
+  const chainId = opts.chain ?? cfg.chain ?? "84532";
 
   if (!isAddress(user)) die(`Invalid user address: ${user}`);
   if (!isAddress(authorizedCaller)) die(`Invalid authorized caller address: ${authorizedCaller}`);
-  if (!isAddress(opts.hook)) die(`Invalid hook address: ${opts.hook}`);
-  if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
-  if (!isHex(opts.pool) || opts.pool.length !== 66) die("poolId must be a 32-byte hex string (0x + 64 chars).");
+  if (!hook || !isAddress(hook)) die(`Invalid hook address: ${hook ?? "<missing>"}. Use --hook or run ilal init.`);
+  if (!issuer || !isAddress(issuer)) die(`Invalid issuer address: ${issuer ?? "<missing>"}. Use --issuer or run ilal init.`);
+  if (!pool || !isHex(pool) || pool.length !== 66) die("poolId must be a 32-byte hex string. Use --pool or run ilal init.");
 
   const actionKey = opts.action.toLowerCase().replace(/[^a-z]/g, "");
   const actionCode = ACTIONS[actionKey];
   if (actionCode === undefined) die(`Unknown action "${opts.action}". Use: swap | addLiquidity | removeLiquidity`);
 
-  const chain = CHAINS[opts.chain] ?? baseSepolia;
+  const chain = CHAINS[chainId] ?? baseSepolia;
   const walletClient = createWalletClient({ account, chain, transport: http() });
 
   const deadline = BigInt(Math.floor(Date.now() / 1000) + opts.ttl);
@@ -80,10 +87,10 @@ export async function sessionSign(opts: {
   const token = {
     user,
     authorizedCaller,
-    cnfIssuer: opts.issuer as `0x${string}`,
+    cnfIssuer: issuer as `0x${string}`,
     chainId: BigInt(chain.id),
-    verifyingHook: opts.hook as `0x${string}`,
-    poolId: opts.pool as `0x${string}`,
+    verifyingHook: hook as `0x${string}`,
+    poolId: pool as `0x${string}`,
     action: actionCode,
     deadline,
     nonce: nonce as `0x${string}`,
@@ -93,11 +100,11 @@ export async function sessionSign(opts: {
   log.section("Session");
   log.kv("user", fmt.addr(user));
   log.kv("caller", fmt.addr(authorizedCaller));
-  log.kv("chain", chain.name);
-  log.kv("pool", fmt.hash(opts.pool));
+  log.kv("chain", `${chain.name} (${chain.id})`);
+  log.kv("pool", fmt.hash(pool));
   log.kv("action", opts.action);
-  log.kv("hook", fmt.addr(opts.hook));
-  log.kv("issuer", fmt.addr(opts.issuer));
+  log.kv("hook", fmt.addr(hook));
+  log.kv("issuer", fmt.addr(issuer));
   log.kv("deadline", new Date(Number(deadline) * 1000).toISOString());
   log.line();
 
@@ -110,7 +117,7 @@ export async function sessionSign(opts: {
       name: "ILAL ComplianceHook",
       version: "1",
       chainId: BigInt(chain.id),
-      verifyingContract: opts.hook as `0x${string}`,
+      verifyingContract: hook as `0x${string}`,
     },
     types: { SessionToken: SESSION_TOKEN_TYPE },
     primaryType: "SessionToken",
@@ -130,5 +137,6 @@ export async function sessionSign(opts: {
   console.log(`  ${fmt.cyan(hookData)}`);
   console.log();
   console.log(fmt.gray("  verifies: caller, deadline, chainId, hook, pool, action, sig, CNF"));
+  console.log(fmt.gray("  note: this hookData is a one-time authorization; nonce replay is blocked on-chain"));
   console.log();
 }

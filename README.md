@@ -52,6 +52,10 @@ PRIVATE_KEY=0x... ilal credential mint \
   --attestation <AttestationUID> \
   --chain 84532
 
+# Or, with the MockEAS owner key, create a fresh test attestation:
+PRIVATE_KEY=0x... ilal demo attest --wallet 0xYourWallet
+PRIVATE_KEY=0xYourWalletKey ilal credential mint --attestation <uid>
+
 # If the wallet needs more demo tokens:
 PRIVATE_KEY=0x... ilal demo faucet --wallet 0xYourWallet
 ```
@@ -99,8 +103,11 @@ Generates a Groth16 proof locally (~5s), verifies it on-chain, and mints/renews 
 | `ilal session sign` | Sign a standalone SessionToken |
 | `ilal proof mint` | Mint CNF from existing proof.json + public.json |
 | `ilal deploy --mock` | Deploy a seeded testnet demo stack with MockEAS, tokens, router, hook, and policy |
+| `ilal demo attest` | Create a MockEAS test attestation so a wallet can mint CNF |
 | `ilal demo faucet` | Mint mock demo TOKA/TOKB to a wallet |
 | `ilal deploy` | Deploy full ILAL contract stack |
+
+Session note: ILAL hookData is a one-time EIP-712 authorization with a deadline and nonce. The expensive compliance step is the CNF issuance or renewal; swaps do not verify a fresh ZK proof. Use `ilal session sign` to export hookData, and `ilal swap --hook-data <hex>` to execute with an externally signed authorization.
 
 ## Configuration
 

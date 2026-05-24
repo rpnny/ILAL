@@ -1,6 +1,7 @@
 import {
   createPublicClient,
   createWalletClient,
+  decodeEventLog,
   formatUnits,
   http,
   isAddress,
@@ -54,6 +55,31 @@ const ERC20_ABI = [
   { name: "balanceOf", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "owner", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
   { name: "allowance", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "owner", type: "address" as const }, { name: "spender", type: "address" as const }], outputs: [{ type: "uint256" as const }] },
   { name: "mint", type: "function" as const, stateMutability: "nonpayable" as const, inputs: [{ name: "to", type: "address" as const }, { name: "amount", type: "uint256" as const }], outputs: [] },
+] as const;
+
+const MOCK_EAS_ABI = [
+  {
+    type: "event" as const,
+    name: "AttestationCreated",
+    inputs: [
+      { name: "uid", type: "bytes32" as const, indexed: true },
+      { name: "recipient", type: "address" as const, indexed: true },
+      { name: "attester", type: "address" as const, indexed: true },
+    ],
+  },
+  {
+    name: "attest",
+    type: "function" as const,
+    stateMutability: "nonpayable" as const,
+    inputs: [
+      { name: "schema", type: "bytes32" as const },
+      { name: "recipient", type: "address" as const },
+      { name: "attester", type: "address" as const },
+      { name: "expirationTime", type: "uint64" as const },
+      { name: "data", type: "bytes" as const },
+    ],
+    outputs: [{ type: "bytes32" as const }],
+  },
 ] as const;
 
 function stage(n: number, title: string, subtitle: string) {
@@ -474,5 +500,80 @@ export async function demoFaucet(opts: { wallet?: string; amount?: string; priva
   }
 
   log.callout("Demo tokens ready", "wallet can now pass token-balance preflight checks", "green");
+  console.log();
+}
+
+export async function demoAttest(opts: { wallet: string; privateKey?: string; expiresInDays?: string }) {
+  const cfg = loadConfig();
+  const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
+  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
+  if (!rawKey || !isHex(rawKey) || rawKey.length !== 66) {
+    die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
+  }
+  if (!cfg.issuer || !isAddress(cfg.issuer)) die("CNFIssuer required. Run `ilal init` first.");
+  if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
+
+  const account = privateKeyToAccount(rawKey as `0x${string}`);
+  const client = createPublicClient({ chain, transport: http(cfg.rpc) });
+  const walletClient = createWalletClient({ account, chain, transport: http(cfg.rpc) });
+
+  const [eas, schemaUID, trustedAttester] = await Promise.all([
+    client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
+    client.readContract({ address: cfg.issuer as `0x${string}`, abi: [
+      { name: "schemaUID", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "bytes32" as const }] },
+    ], functionName: "schemaUID" }) as Promise<string>,
+    client.readContract({ address: cfg.issuer as `0x${string}`, abi: [
+      { name: "trustedAttester", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+    ], functionName: "trustedAttester" }) as Promise<string>,
+  ]);
+
+  if (eas === ZERO) die("Configured issuer has no EAS/MockEAS path. Use a mock demo issuer or Coinbase EAS attestation.");
+
+  const days = BigInt(parseInt(opts.expiresInDays ?? "90", 10));
+  const expiration = BigInt(Math.floor(Date.now() / 1000)) + days * 24n * 60n * 60n;
+
+  header("ILAL Demo Attestation", chain.name);
+  log.kv("mockEAS", fmt.addr(eas));
+  log.kv("issuer", fmt.addr(cfg.issuer));
+  log.kv("recipient", fmt.addr(opts.wallet));
+  log.kv("attester", fmt.addr(trustedAttester));
+  log.line();
+
+  const spin = new Spinner("Creating MockEAS attestation…").start();
+  const hash = await walletClient.writeContract({
+    address: eas as `0x${string}`,
+    abi: MOCK_EAS_ABI,
+    functionName: "attest",
+    args: [
+      schemaUID as `0x${string}`,
+      opts.wallet as `0x${string}`,
+      trustedAttester as `0x${string}`,
+      expiration,
+      "0x",
+    ],
+  });
+  const receipt = await client.waitForTransactionReceipt({ hash });
+  spin.succeed(`Attestation created ${fmt.gray(fmt.hash(hash))}`);
+
+  let uid: string | undefined;
+  for (const logItem of receipt.logs) {
+    if (logItem.address.toLowerCase() !== eas.toLowerCase()) continue;
+    try {
+      const decoded = decodeEventLog({ abi: MOCK_EAS_ABI, data: logItem.data, topics: logItem.topics });
+      if (decoded.eventName === "AttestationCreated") {
+        uid = decoded.args.uid;
+        break;
+      }
+    } catch {}
+  }
+
+  log.line();
+  if (uid) log.kv("attestation", fmt.cyan(uid));
+  log.kv("tx", fmt.gray(hash));
+  log.callout("CNF mint path ready", "the recipient wallet can now run `ilal credential mint --attestation <uid>`", "green");
+  if (uid) {
+    console.log();
+    log.command(`PRIVATE_KEY=0x... ilal credential mint --issuer ${cfg.issuer} --attestation ${uid} --chain ${chain.id}`);
+  }
   console.log();
 }

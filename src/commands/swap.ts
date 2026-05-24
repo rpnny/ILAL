@@ -22,6 +22,7 @@
 import {
   createPublicClient,
   createWalletClient,
+  decodeAbiParameters,
   encodeAbiParameters,
   http,
   isAddress,
@@ -99,6 +100,18 @@ const HOOK_DATA_ABI = parseAbiParameters([
   "bytes signature",
 ]);
 
+type DecodedSessionToken = {
+  user: `0x${string}`;
+  authorizedCaller: `0x${string}`;
+  cnfIssuer: `0x${string}`;
+  chainId: bigint;
+  verifyingHook: `0x${string}`;
+  poolId: `0x${string}`;
+  action: number;
+  deadline: bigint;
+  nonce: `0x${string}`;
+};
+
 // sqrtPriceLimitX96 — use min/max to let the swap fill fully
 const MIN_SQRT_PRICE = 4295128740n;        // TickMath.MIN_SQRT_PRICE + 1
 const MAX_SQRT_PRICE = 1461446703485210103287273052203988822378723970341n; // MAX - 1
@@ -145,6 +158,7 @@ export async function swap(opts: {
   rpc?:          string;
   privateKey?:   string;
   ttl?:          string;
+  hookData?:     string;
   simulate?:     boolean;
 }) {
   const cfg    = withConfig(opts);
@@ -253,46 +267,70 @@ export async function swap(opts: {
   ]);
   log.line();
 
-  // Sign session token
-  const signSpin = new Spinner("Signing session token…").start();
   const ttl      = parseInt(opts.ttl ?? "600");
   const deadline = BigInt(Math.floor(Date.now() / 1000) + ttl);
   const nonce    = `0x${Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("hex")}` as `0x${string}`;
+  let hookData: `0x${string}`;
+  let sessionNonce = nonce;
 
-  const token = {
-    user:          account.address as `0x${string}`,
-    authorizedCaller: cfg.router as `0x${string}`,
-    cnfIssuer:     cfg.issuer as `0x${string}`,
-    chainId:       BigInt(chain.id),
-    verifyingHook: cfg.hook as `0x${string}`,
-    poolId:        cfg.poolId as `0x${string}`,
-    action:        1 as const, // ACTION_SWAP
-    deadline,
-    nonce,
-  };
+  if (opts.hookData) {
+    if (!isHex(opts.hookData)) die("--hook-data must be 0x-prefixed ABI-encoded hookData.");
+    try {
+      const [externalToken] = decodeAbiParameters(HOOK_DATA_ABI, opts.hookData as `0x${string}`) as readonly [DecodedSessionToken, `0x${string}`];
+      const issues: string[] = [];
+      if (externalToken.user.toLowerCase() !== account.address.toLowerCase()) issues.push("user does not match signer wallet");
+      if (externalToken.authorizedCaller.toLowerCase() !== cfg.router!.toLowerCase()) issues.push("authorizedCaller does not match router");
+      if (externalToken.cnfIssuer.toLowerCase() !== cfg.issuer!.toLowerCase()) issues.push("cnfIssuer does not match config");
+      if (externalToken.chainId !== BigInt(chain.id)) issues.push(`chainId mismatch: hookData=${externalToken.chainId.toString()} config=${chain.id}`);
+      if (externalToken.verifyingHook.toLowerCase() !== cfg.hook!.toLowerCase()) issues.push("verifyingHook does not match config");
+      if (externalToken.poolId.toLowerCase() !== cfg.poolId!.toLowerCase()) issues.push("poolId does not match config");
+      if (externalToken.action !== 1) issues.push("action is not swap");
+      if (externalToken.deadline < BigInt(Math.floor(Date.now() / 1000))) issues.push("session deadline has expired");
+      if (issues.length > 0) die(`Invalid --hook-data for this swap: ${issues.join("; ")}`);
+      sessionNonce = externalToken.nonce;
+      hookData = opts.hookData as `0x${string}`;
+      log.ok("Using externally supplied one-time session authorization");
+    } catch (e) {
+      die(`Could not decode --hook-data: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  } else {
+    // Sign session token
+    const signSpin = new Spinner("Signing one-time session authorization…").start();
+    const token = {
+      user:          account.address as `0x${string}`,
+      authorizedCaller: cfg.router as `0x${string}`,
+      cnfIssuer:     cfg.issuer as `0x${string}`,
+      chainId:       BigInt(chain.id),
+      verifyingHook: cfg.hook as `0x${string}`,
+      poolId:        cfg.poolId as `0x${string}`,
+      action:        1 as const, // ACTION_SWAP
+      deadline,
+      nonce,
+    };
 
-  const signature = await walClient.signTypedData({
-    account,
-    domain: {
-      name:              "ILAL ComplianceHook",
-      version:           "1",
-      chainId:           BigInt(chain.id),
-      verifyingContract: cfg.hook as `0x${string}`,
-    },
-    types:       { SessionToken: SESSION_TOKEN_TYPE },
-    primaryType: "SessionToken",
-    message:     token,
-  });
+    const signature = await walClient.signTypedData({
+      account,
+      domain: {
+        name:              "ILAL ComplianceHook",
+        version:           "1",
+        chainId:           BigInt(chain.id),
+        verifyingContract: cfg.hook as `0x${string}`,
+      },
+      types:       { SessionToken: SESSION_TOKEN_TYPE },
+      primaryType: "SessionToken",
+      message:     token,
+    });
 
-  const hookData = encodeAbiParameters(HOOK_DATA_ABI, [token, signature]);
-  signSpin.succeed(`Session signed (expires in ${ttl}s)`);
+    hookData = encodeAbiParameters(HOOK_DATA_ABI, [token, signature]);
+    signSpin.succeed(`Session authorization signed (expires in ${ttl}s, one-time nonce)`);
+  }
   const fee         = parseInt(cfg.fee ?? "3000");
   const tickSpacing = parseInt(cfg.tickSpacing ?? "60");
 
   log.section("Gate Checks");
   log.kv("credential", `${fmt.badge("required", "cyan")} issuer ${fmt.addr(cfg.issuer!)}`);
   log.kv("caller", `${fmt.badge("bound", "green")} ${fmt.addr(cfg.router!)}`);
-  log.kv("nonce", `${fmt.badge("fresh", "green")} ${fmt.hash(nonce)}`);
+  log.kv("nonce", `${opts.hookData ? fmt.badge("external", "cyan") : fmt.badge("fresh", "green")} ${fmt.hash(sessionNonce)}`);
   log.kv("fee", feeLabel(fee));
   if (protocolFeePips > 0) {
     log.kv("protocol fee", `${fmt.badge("ILAL", "cyan")} ${pipsToPercent(protocolFeePips)} to ${treasury ? fmt.addr(treasury) : "treasury"}`);

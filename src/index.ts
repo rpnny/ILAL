@@ -8,7 +8,7 @@ import { proofMint, proofRenew } from "./commands/proof.js";
 import { sessionSign } from "./commands/session.js";
 import { poolPolicySet, poolPolicyGet } from "./commands/pool.js";
 import { deploy } from "./commands/deploy.js";
-import { demo, demoCheck, demoFaucet } from "./commands/demo.js";
+import { demo, demoCheck, demoFaucet, demoAttest } from "./commands/demo.js";
 import { init } from "./commands/init.js";
 import { status } from "./commands/status.js";
 import { swap } from "./commands/swap.js";
@@ -21,7 +21,7 @@ const program = new Command();
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.2.3")
+  .version("0.2.4")
   .addHelpText("before", `\n  ${fmt.bold(fmt.cyan("◆"))} ${fmt.bold("ILAL Protocol")}  ${fmt.gray("Uniswap v4 Compliance Hook")}\n`);
 
 // ─── init ─────────────────────────────────────────────────────────────────────
@@ -90,6 +90,16 @@ demoCommand
   .option("-k, --private-key <hex>", "Private key that pays gas")
   .action(async (opts: { wallet?: string; amount?: string; privateKey?: string }) => {
     await demoFaucet(opts).catch(err);
+  });
+
+demoCommand
+  .command("attest")
+  .description("Create a MockEAS test attestation for a wallet (demo issuer owner only)")
+  .requiredOption("-w, --wallet <address>", "Recipient wallet that will mint the CNF")
+  .option("--expires-in-days <days>", "Attestation lifetime in days", "90")
+  .option("-k, --private-key <hex>", "MockEAS owner private key")
+  .action(async (opts: { wallet: string; expiresInDays?: string; privateKey?: string }) => {
+    await demoAttest(opts).catch(err);
   });
 
 const err = (e: unknown) => {
@@ -189,16 +199,16 @@ const session = program.command("session").description("Session token operations
 session
   .command("sign")
   .description("Sign an EIP-712 session token locally — no ILAL API call")
-  .requiredOption("-p, --pool <bytes32>", "Pool ID (bytes32 hex)")
+  .option("-p, --pool <bytes32>", "Pool ID (bytes32 hex, defaults to .ilal.json poolId)")
   .requiredOption("-a, --action <action>", "Action: swap | addLiquidity | removeLiquidity")
-  .requiredOption("-H, --hook <address>", "ComplianceHook contract address")
-  .requiredOption("-i, --issuer <address>", "CNFIssuer contract address")
+  .option("-H, --hook <address>", "ComplianceHook contract address (defaults to .ilal.json hook)")
+  .option("-i, --issuer <address>", "CNFIssuer contract address (defaults to .ilal.json issuer)")
   .option("-u, --user <address>", "Trader address (defaults to key's address)")
-  .option("--caller <address>", "Authorized v4 caller (defaults to user; use ILALRouter address for router flows)")
-  .option("-c, --chain <chainId>", "Chain ID", "8453")
+  .option("--caller <address>", "Authorized v4 caller (defaults to .ilal.json router, then user)")
+  .option("-c, --chain <chainId>", "Chain ID (defaults to .ilal.json chain, then 84532)")
   .option("-t, --ttl <seconds>", "Session lifetime in seconds", "600")
   .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
-  .action(async (opts: { pool: string; action: string; hook: string; issuer: string; user?: string; caller?: string; chain: string; ttl: string; privateKey?: string }) => {
+  .action(async (opts: { pool?: string; action: string; hook?: string; issuer?: string; user?: string; caller?: string; chain?: string; ttl: string; privateKey?: string }) => {
     await sessionSign({ ...opts, ttl: parseInt(opts.ttl, 10) }).catch(err);
   });
 
@@ -309,12 +319,13 @@ program
   .option("-r, --rpc <url>", "Custom RPC URL")
   .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--ttl <seconds>", "Session token lifetime in seconds", "600")
+  .option("--hook-data <hex>", "Use externally signed one-time hookData instead of signing inside swap")
   .option("--simulate", "Sign session without sending tx", false)
   .action(async (opts: {
     amountIn: string; minAmountOut?: string; tokenIn?: string; tokenA?: string; tokenB?: string;
     poolId?: string; router?: string; hook?: string; issuer?: string;
     fee?: string; tickSpacing?: string; chain: string; rpc?: string;
-    privateKey?: string; ttl: string; simulate: boolean;
+    privateKey?: string; ttl: string; hookData?: string; simulate: boolean;
   }) => {
     await swap(opts).catch(err);
   });
