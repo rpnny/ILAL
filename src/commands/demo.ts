@@ -22,10 +22,10 @@ const POOL_MANAGER: Record<string, `0x${string}`> = {
 
 const SAMPLE = {
   wallet: "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
-  issuer: "0x18EF418Ca1C81d37BD3247D34c19Adc42306535F",
-  hook: "0x1623276697B4e6609F8887C9Caa9dB6A6fa08A80",
-  router: "0xf7DBe6721AE935FA25D963076cd202994E0D5e17",
-  pool: "0xf32ae7435348041d4e979a24ce417bfe71d0f6642d2dcb2326e01acfe660fa0d",
+  issuer: "0x108fA8db11616d73ccB67725B44C535Ddcaac5a9",
+  hook: "0xaCD0fccDDd96471f7De9b3f015C5ebFaADe70a80",
+  router: "0xEfB2F179F6Ce44d7af66d3e3FF792563033C9b7e",
+  pool: "0x0decaeb998563be8faf6e6b66d4a0c32025a166e35bae97b8ec62ded1b04be1b",
   proof: "0x91f2b8a0c43e902f7f1a8c0d",
   session: "0x6b84eac5e0db21f8d5d43b7a",
 };
