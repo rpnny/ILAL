@@ -7,7 +7,7 @@
  * Usage:
  *   ilal credential prove \
  *     --wallet  0x1b869... \
- *     --issuer  0x108fA8... \
+ *     --issuer  0x335413... \
  *     --chain   84532 \
  *     --action  mint          # or renew (default: auto-detect)
  *     --circuit-dir ./circuits/build

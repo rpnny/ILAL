@@ -34,7 +34,7 @@ ilal status --wallet 0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58
 ilal demo check --wallet 0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58
 
 # 4. Execute a compliant swap with the seeded reviewer key
-PRIVATE_KEY=0x... ilal swap --amount-in 1 --token-in 0x3a7d58fAc623B4C30D7735B01DcE036EfF46e079 --min-amount-out 0
+PRIVATE_KEY=0x... ilal swap --amount-in 1 --token-in 0x3d5b92a8Cea5BBe1c6f63b73D69DA6457e6436E2 --min-amount-out 0
 ```
 
 For a fully seeded local/testnet demo, deploy mock EAS + demo pool pieces:
@@ -130,10 +130,10 @@ The CLI reads `.ilal.json` in the current directory. Run `ilal init` to create i
 
 ```bash
 ilal swap \
-  --router    0xEfB2F179F6Ce44d7af66d3e3FF792563033C9b7e \
-  --hook      0xaCD0fccDDd96471f7De9b3f015C5ebFaADe70a80 \
-  --issuer    0x108fA8db11616d73ccB67725B44C535Ddcaac5a9 \
-  --pool-id   0x0decaeb998563be8faf6e6b66d4a0c32025a166e35bae97b8ec62ded1b04be1b \
+  --router    0x88125331f169aF4Dc81ADa6E8A189110566E457a \
+  --hook      0x5f1de4376C7a59b5BBC5E5cd766D40995E9e4A80 \
+  --issuer    0x33541301e35d33eDf554c4DFba1e04d04FCc52F4 \
+  --pool-id   0x8b6d21e53673584f192bdad8b65e2002e9e8eea730c62adad5ac1f4a084164a4 \
   --amount-in 0.001
 ```
 
@@ -141,20 +141,22 @@ ilal swap \
 
 | Contract | Address |
 |---|---|
-| CNFIssuer | `0x108fA8db11616d73ccB67725B44C535Ddcaac5a9` |
-| MockEAS | `0xE46d87960b8740585010ae5158193D67da7dd807` |
-| ZKVerifierAdapter | `0xb77BB4566d5D1e81370E159bb0251467e4a2fcfa` |
-| ComplianceHook | `0xaCD0fccDDd96471f7De9b3f015C5ebFaADe70a80` |
-| ILALRouter | `0xEfB2F179F6Ce44d7af66d3e3FF792563033C9b7e` |
-| PolicyRegistry | `0xC2Be4887aF9218b4B617F7125924737413292160` |
-| Currency0 / TOKA | `0x3a7d58fAc623B4C30D7735B01DcE036EfF46e079` |
-| Currency1 / TOKB | `0x7BC67f7Fd3892fBE6AcC4F10bc3df95b64c2eD80` |
-| Pool ID | `0x0decaeb998563be8faf6e6b66d4a0c32025a166e35bae97b8ec62ded1b04be1b` |
+| CNFIssuer | `0x33541301e35d33eDf554c4DFba1e04d04FCc52F4` |
+| MockEAS | `0x6A98096DF6F54DBF40498dC5525d84AEA840663A` |
+| ZKVerifierAdapter | `0x9467ED8d962221e3C1865a387481B862B1b5bE95` |
+| ComplianceHook | `0x5f1de4376C7a59b5BBC5E5cd766D40995E9e4A80` |
+| ILALRouter | `0x88125331f169aF4Dc81ADa6E8A189110566E457a` |
+| PolicyRegistry | `0x83d8111B415E97bA91eaAe717c2D9Ae6f0DD19d4` |
+| Currency0 / TOKA | `0x3d5b92a8Cea5BBe1c6f63b73D69DA6457e6436E2` |
+| Currency1 / TOKB | `0x6145F81e3691d991a4D2033FE25BeB140487B7Ee` |
+| Pool ID | `0x8b6d21e53673584f192bdad8b65e2002e9e8eea730c62adad5ac1f4a084164a4` |
 
 Live proof:
 
-- CNF ZK mint tx: `0x8c0ca35cb666d839b7070ed8103d12379b12ccb399283fcacaf5caa8b86e4542`
-- Current-stack add liquidity / swap: pending re-run after local RPC/TLS instability clears; router happy path is covered by the Solidity integration tests.
+- CNF ZK mint tx: `0xb9aa16c9604a575c8b2281cbfe9ba24fedbf205283a7b05638fbc413ed78de41`
+- Add liquidity tx: `0xc3dba6d488933e1568541ece17ce43307fb173eb747dff303f3631456eccb16a`
+- Swap tx: `0x360461d2a3c19acdc3ba125e55689679fcf809946d8a5092e833eb9e94b0f52f`
+- Router bypass fix verified: `ComplianceHook.authorizedRouter()` returns `0x88125331f169aF4Dc81ADa6E8A189110566E457a`
 
 ## License
 
