@@ -8,6 +8,7 @@ ILAL gates swaps and liquidity operations behind on-chain compliance credentials
 
 ```bash
 npm install -g @ilalv3/cli
+ilal --version   # 0.2.18 or newer
 ```
 
 Or run without installing:
@@ -169,6 +170,29 @@ ilal issuer get
 ```
 
 Profiles are stored in `.ilal-issuer-standards.json`. Pools enforce the returned `standard_id` through `PolicyRegistry.requiredCredentialType`.
+
+## Issuer attestation flow
+
+For issuer pilots, the intended integration is:
+
+```text
+issuer KYC/KYB pipeline -> ilal issuer attest -> user credential mint -> verified swap/liquidity
+```
+
+The issuer owns the attestation key and decides who is eligible. The user mints their own CNF from the returned attestation UID and trades from their own wallet.
+
+```bash
+# Issuer backend
+PRIVATE_KEY=0xIssuerKey ilal issuer attest \
+  --wallet 0xUserWallet \
+  --expires-in-days 365
+
+# User wallet
+PRIVATE_KEY=0xUserKey ilal credential mint --attestation <uid>
+PRIVATE_KEY=0xUserKey ilal swap --amount-in 1 --token-in 0x8C38061e31FB02df445576685975d85F01D8686d --min-amount-out 0
+```
+
+For production, replace MockEAS with the issuer's configured EAS/schema or KYC attestation contract.
 
 ## Configuration
 
