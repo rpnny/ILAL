@@ -1,6 +1,7 @@
 import { createPublicClient, http, isAddress, type Chain } from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { fmt, log, die } from "../ui.js";
+import { withConfig } from "../config.js";
 
 const CNF_ABI = [
   { name: "isValid", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "wallet", type: "address" as const }], outputs: [{ type: "bool" as const }] },
@@ -15,36 +16,44 @@ const CHAINS: Record<string, Chain> = {
 
 export async function credentialStatus(opts: {
   wallet: string;
-  issuer: string;
+  issuer?: string;
   rpc?: string;
-  chain: string;
+  chain?: string;
 }) {
-  if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
-  if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
+  const cfg = withConfig(opts);
+  if (!isAddress(cfg.wallet)) die(`Invalid wallet address: ${cfg.wallet}`);
+  if (!cfg.issuer) die("CNFIssuer address required. Use --issuer or run `ilal init`.");
+  if (!isAddress(cfg.issuer)) die(`Invalid issuer address: ${cfg.issuer}`);
 
-  const chain = CHAINS[opts.chain] ?? baseSepolia;
-  const transport = opts.rpc ? http(opts.rpc) : http();
+  const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
+  const transport = cfg.rpc ? http(cfg.rpc) : http();
   const client = createPublicClient({ chain, transport });
 
   console.log();
   console.log(fmt.bold("  ILAL Credential Status"));
   log.line();
-  log.kv("wallet", opts.wallet);
-  log.kv("issuer", opts.issuer);
+  log.kv("wallet", cfg.wallet);
+  log.kv("issuer", cfg.issuer);
   log.kv("chain", chain.name);
   log.line();
 
   log.step("Querying CNFIssuer on-chain…");
 
   const [valid, tokenId] = await Promise.all([
-    client.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [opts.wallet as `0x${string}`] }),
-    client.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [opts.wallet as `0x${string}`] }),
+    client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [cfg.wallet as `0x${string}`] }),
+    client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [cfg.wallet as `0x${string}`] }),
   ]);
 
   if ((tokenId as bigint) === 0n) {
     log.fail("No credential found for this wallet");
     console.log();
     console.log(fmt.bold("  How to get a CNF credential:"));
+    console.log();
+    console.log(fmt.bold("  Issuer path — issuer-created EAS attestation"));
+    console.log(`  ${fmt.gray("1.")} Ask the issuer/operator to run:`);
+    console.log(`       ${fmt.cyan("PRIVATE_KEY=<issuer-key> ilal issuer attest --wallet " + cfg.wallet)}`);
+    console.log(`  ${fmt.gray("2.")} Then mint with your wallet key:`);
+    console.log(`       ${fmt.cyan("PRIVATE_KEY=<wallet-key> ilal credential mint --attestation <uid>")}`);
     console.log();
     console.log(fmt.bold("  Path A — Coinbase Verifications (EAS)"));
     console.log(`  ${fmt.gray("1.")} Complete KYC at ${fmt.cyan("https://coinbase.com/onchain-verify")}`);
@@ -60,13 +69,13 @@ export async function credentialStatus(opts: {
     console.log(`  ${fmt.gray("1.")} Issuer/operator adds wallet to the Merkle tree`);
     console.log(`  ${fmt.gray("2.")} Operator queues root: ${fmt.cyan("ilal oracle propose-root --root <newMerkleRoot>")}`);
     console.log(`  ${fmt.gray("3.")} After timelock, operator activates: ${fmt.cyan("ilal oracle activate-root")}`);
-    console.log(`  ${fmt.gray("4.")} Trader runs: ${fmt.cyan("ilal credential prove --wallet " + opts.wallet)}`);
+    console.log(`  ${fmt.gray("4.")} Trader runs: ${fmt.cyan("ilal credential prove --wallet " + cfg.wallet)}`);
     console.log();
     return;
   }
 
   const cred = await client.readContract({
-    address: opts.issuer as `0x${string}`,
+    address: cfg.issuer as `0x${string}`,
     abi: CNF_ABI,
     functionName: "getCredential",
     args: [tokenId as bigint],

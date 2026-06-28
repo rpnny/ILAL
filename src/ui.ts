@@ -203,6 +203,9 @@ const CONTRACT_ERRORS: Record<string, string> = {
   "0xfa9f081c": "Schema hash mismatch",
   "0xb7e9429b": "Issuer hash mismatch",
   "0x0e917e64": "Wallet hash mismatch — wrong wallet key",
+  "0x21374865": "Session signature invalid — re-sign hookData with the wallet that owns the CNF",
+  "0xd9b2290c": "Session user mismatch — hookData can only be used by the wallet that signed it",
+  "0x1fb09b80": "Session nonce already used — sign a fresh session",
 };
 
 function parseViemError(e: unknown): string {
@@ -237,6 +240,20 @@ export function die(msg: string): never {
   console.error(`  ${fmt.red("✗")} ${fmt.bold("Error:")} ${msg}`);
   console.error();
   process.exit(1);
+}
+
+export function requirePrivateKey(rawKey?: string): `0x${string}` {
+  const key = rawKey?.trim();
+  if (!key) {
+    die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
+  }
+  if (/^[0-9a-fA-F]{64}$/.test(key)) {
+    die("Private key must include the 0x prefix. Example: PRIVATE_KEY=0x...");
+  }
+  if (!/^0x[0-9a-fA-F]{64}$/.test(key)) {
+    die("Private key must be 32-byte hex and include the 0x prefix. Example: PRIVATE_KEY=0x...");
+  }
+  return key as `0x${string}`;
 }
 
 export function dieOnContract(e: unknown): never {

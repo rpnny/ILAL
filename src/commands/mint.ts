@@ -8,7 +8,8 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, die } from "../ui.js";
+import { fmt, log, die, Spinner, requirePrivateKey } from "../ui.js";
+import { withConfig } from "../config.js";
 import { EAS_ADDRESSES, COINBASE_SCHEMA_UID, COINBASE_ATTESTER } from "../constants.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
@@ -46,23 +47,23 @@ async function sendMintTx(
   mode: "mint" | "renew",
   opts: {
     attestation: string;
-    issuer: string;
-    chain: string;
+    issuer?: string;
+    chain?: string;
     rpc?: string;
     privateKey?: string;
     simulate: boolean;
   }
 ) {
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey) die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
-  if (!isHex(rawKey) || rawKey.length !== 66) die("Invalid private key (expected 0x + 32 bytes).");
-  if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
+  const cfg = withConfig(opts);
+  const rawKey = requirePrivateKey(cfg.privateKey ?? process.env["PRIVATE_KEY"]);
+  if (!cfg.issuer) die("CNFIssuer address required. Use --issuer or run `ilal init`.");
+  if (!isAddress(cfg.issuer)) die(`Invalid issuer address: ${cfg.issuer}`);
   if (!isHex(opts.attestation) || opts.attestation.length !== 66)
     die("Attestation UID must be 0x + 32 bytes (64 hex chars).");
 
-  const chain = CHAINS[opts.chain] ?? baseSepolia;
-  const account = privateKeyToAccount(rawKey as `0x${string}`);
-  const transport = opts.rpc ? http(opts.rpc) : http();
+  const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
+  const account = privateKeyToAccount(rawKey);
+  const transport = cfg.rpc ? http(cfg.rpc) : http();
 
   const publicClient = createPublicClient({ chain, transport });
   const walletClient = createWalletClient({ account, chain, transport });
@@ -71,7 +72,7 @@ async function sendMintTx(
   console.log(fmt.bold(`  ILAL Credential ${mode === "mint" ? "Mint" : "Renew"}`));
   log.line();
   log.kv("wallet", account.address);
-  log.kv("issuer", opts.issuer);
+  log.kv("issuer", cfg.issuer);
   log.kv("attestation", opts.attestation);
   log.kv("chain", chain.name);
   if (opts.simulate) log.kv("mode", fmt.yellow("simulate (no tx sent)"));
@@ -81,9 +82,9 @@ async function sendMintTx(
   log.step("Verifying attestation on EAS…");
 
   const [issuerEAS, issuerSchema, issuerAttester] = await Promise.all([
-    publicClient.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "eas" }) as Promise<string>,
-    publicClient.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "schemaUID" }) as Promise<string>,
-    publicClient.readContract({ address: opts.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "trustedAttester" }) as Promise<string>,
+    publicClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "eas" }) as Promise<string>,
+    publicClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "schemaUID" }) as Promise<string>,
+    publicClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ISSUER_ABI, functionName: "trustedAttester" }) as Promise<string>,
   ]);
 
   const easAddress = issuerEAS !== ZERO_ADDRESS ? issuerEAS : EAS_ADDRESSES[chain.id];
@@ -160,7 +161,7 @@ async function sendMintTx(
   log.step(`Sending ${mode === "mint" ? "mintWithEAS" : "renewWithEAS"} transaction…`);
 
   const hash = await walletClient.writeContract({
-    address: opts.issuer as `0x${string}`,
+    address: cfg.issuer as `0x${string}`,
     abi: CNF_ISSUER_ABI,
     functionName: mode === "mint" ? "mintWithEAS" : "renewWithEAS",
     args: [opts.attestation as `0x${string}`],
@@ -176,13 +177,24 @@ async function sendMintTx(
     log.kv("tx hash", hash);
     log.kv("block", receipt.blockNumber.toString());
 
-    const valid = await publicClient.readContract({
-      address: opts.issuer as `0x${string}`,
-      abi: CNF_ISSUER_ABI,
-      functionName: "isValid",
-      args: [account.address],
-    });
-    log.kv("isValid()", valid ? fmt.green("true ✓") : fmt.red("false"));
+    const validSpin = new Spinner("Waiting for credential validity…").start();
+    let valid = false;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      valid = await publicClient.readContract({
+        address: cfg.issuer as `0x${string}`,
+        abi: CNF_ISSUER_ABI,
+        functionName: "isValid",
+        args: [account.address],
+      }) as boolean;
+      if (valid) break;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    if (valid) validSpin.succeed("Credential active");
+    else {
+      validSpin.succeed("Mint confirmed; credential validity may take a few seconds to appear on this RPC");
+      log.info("Run `ilal credential status <wallet>` if this RPC still shows stale state.");
+    }
+    log.kv("isValid()", valid ? fmt.green("true ✓") : fmt.yellow("pending RPC refresh"));
   } else {
     die(`Transaction reverted. Hash: ${hash}`);
   }

@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import { existsSync } from "fs";
 import { resolve } from "path";
-import { fmt, log, die } from "../ui.js";
+import { fmt, log, die, requirePrivateKey } from "../ui.js";
 import { EAS_ADDRESSES, COINBASE_ATTESTER, COINBASE_SCHEMA_UID } from "../constants.js";
 
 const POOL_MANAGERS: Record<string, string> = {
@@ -24,8 +24,7 @@ export async function deploy(opts: {
   walletToSeed?: string;
   contractsDir?: string;
 }) {
-  const privateKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!privateKey) die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
+  const privateKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
 
   const chainId = opts.chain;
   const poolManager = POOL_MANAGERS[chainId];

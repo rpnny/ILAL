@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, header, Spinner, die } from "../ui.js";
+import { fmt, log, header, Spinner, die, requirePrivateKey } from "../ui.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -56,16 +56,14 @@ export async function poolPolicySet(opts: {
   rpc?: string;
   privateKey?: string;
 }) {
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey) die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
-  if (!isHex(rawKey) || rawKey.length !== 66) die("Invalid private key.");
+  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
   if (!isAddress(opts.registry)) die(`Invalid registry address: ${opts.registry}`);
   if (!isHex(opts.pool) || opts.pool.length !== 66) die("poolId must be 0x + 32 bytes.");
   if (!isHex(opts.credType) || opts.credType.length !== 66) die("credType must be 0x + 32 bytes.");
 
   const chain = CHAINS[opts.chain] ?? baseSepolia;
-  const account = privateKeyToAccount(rawKey as `0x${string}`);
+  const account = privateKeyToAccount(rawKey);
   const transport = opts.rpc ? http(opts.rpc) : http();
   const publicClient = createPublicClient({ chain, transport });
   const walletClient = createWalletClient({ account, chain, transport });

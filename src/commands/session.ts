@@ -9,7 +9,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, header, die } from "../ui.js";
+import { fmt, log, header, die, requirePrivateKey } from "../ui.js";
 import { withConfig } from "../config.js";
 
 const CHAINS: Record<string, Chain> = {
@@ -54,11 +54,9 @@ export async function sessionSign(opts: {
   const cfg = withConfig({ chain: opts.chain, hook: opts.hook, issuer: opts.issuer });
 
   // Resolve private key
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey) die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
-  if (!isHex(rawKey) || rawKey.length !== 66) die("Invalid private key format (expected 0x + 32 bytes).");
+  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
 
-  const account = privateKeyToAccount(rawKey as `0x${string}`);
+  const account = privateKeyToAccount(rawKey);
   const user = (opts.user ?? account.address) as `0x${string}`;
   const pool = opts.pool ?? cfg.poolId;
   const hook = opts.hook ?? cfg.hook;

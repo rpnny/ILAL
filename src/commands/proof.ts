@@ -9,7 +9,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, die } from "../ui.js";
+import { fmt, log, die, requirePrivateKey } from "../ui.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -128,12 +128,11 @@ async function sendProofTx(
     privateKey?: string;
   }
 ) {
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey) die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
+  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
 
   const chain = CHAINS[opts.chain] ?? baseSepolia;
-  const account = privateKeyToAccount(rawKey as `0x${string}`);
+  const account = privateKeyToAccount(rawKey);
   const transport = opts.rpc ? http(opts.rpc) : http();
 
   const publicClient = createPublicClient({ chain, transport });

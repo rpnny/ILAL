@@ -24,6 +24,8 @@ export interface ILALConfig {
   chain?:       string;   // chainId string
   rpc?:         string;   // RPC URL
   circuitDir?:  string;   // path to circuits/build
+  artifactUrl?: string;   // hosted proving artifact base URL
+  artifactCache?: string; // local proving artifact cache directory
   outDir?:      string;   // proof output directory
 }
 
@@ -74,6 +76,10 @@ export function loadConfig(): ILALConfig {
     chain:      process.env["ILAL_CHAIN"]       ?? fileConfig.chain,
     rpc:        process.env["ILAL_RPC"]         ?? fileConfig.rpc,
     circuitDir: process.env["ILAL_CIRCUIT_DIR"] ?? fileConfig.circuitDir,
+    artifactUrl: process.env["ILAL_ARTIFACT_BASE_URL"]
+      ?? process.env["ILAL_ARTIFACT_URL"]
+      ?? fileConfig.artifactUrl,
+    artifactCache: process.env["ILAL_ARTIFACT_CACHE"] ?? fileConfig.artifactCache,
     outDir:     process.env["ILAL_OUT_DIR"]     ?? fileConfig.outDir,
   };
 

@@ -17,8 +17,11 @@
  */
 
 import { execSync } from "child_process";
-import { mkdirSync, writeFileSync, readFileSync } from "fs";
+import { createWriteStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import { homedir } from "os";
 import { resolve, dirname } from "path";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import { fileURLToPath } from "url";
 import {
   createPublicClient,
@@ -35,13 +38,23 @@ import { base, baseSepolia } from "viem/chains";
 // @ts-ignore — no bundled types for this package
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { poseidon2, poseidon4 } from "poseidon-lite";
-import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
+import { fmt, log, header, Spinner, die, dieOnContract, requirePrivateKey } from "../ui.js";
 import { withConfig } from "../config.js";
 import { COINBASE_SCHEMA_UID } from "../constants.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 const DEPTH = 20;
+const DEFAULT_ARTIFACT_URL = "https://unpkg.com/@ilalv3/proving-artifacts@0.1.0";
+const DEFAULT_ARTIFACT_CACHE = resolve(homedir(), ".ilal/artifacts/ilal-v1");
+
+const PROVING_ARTIFACTS = [
+  { asset: "ilal.zkey", rel: "ilal.zkey", minBytes: 50_000_000 },
+  { asset: "ilal_vkey.json", rel: "ilal_vkey.json", minBytes: 1_000 },
+  { asset: "ilal_js/ilal.wasm", rel: "ilal_js/ilal.wasm", minBytes: 1_000_000 },
+  { asset: "ilal_js/generate_witness.js", rel: "ilal_js/generate_witness.js", minBytes: 100 },
+  { asset: "ilal_js/witness_calculator.js", rel: "ilal_js/witness_calculator.js", minBytes: 1_000 },
+] as const;
 
 // ─── ABI ──────────────────────────────────────────────────────────────────────
 
@@ -100,26 +113,99 @@ function schemaHash(schemaUID: string): bigint {
   return poseidon2([schemaLo, schemaHi]);
 }
 
-function findCircuitDir(override?: string): string {
-  if (override) return resolve(override);
+function hasCircuitArtifacts(dir: string): boolean {
+  return PROVING_ARTIFACTS.every((artifact) => {
+    const file = resolve(dir, artifact.rel);
+    try {
+      return existsSync(file) && statSync(file).size >= artifact.minBytes;
+    } catch {
+      return false;
+    }
+  });
+}
+
+function requireCircuitArtifacts(dir: string): string {
+  const resolved = resolve(dir);
+  const missing = PROVING_ARTIFACTS.filter((artifact) => {
+    const file = resolve(resolved, artifact.rel);
+    try {
+      return !existsSync(file) || statSync(file).size < artifact.minBytes;
+    } catch {
+      return true;
+    }
+  });
+  if (missing.length > 0) {
+    die(
+      `Proving artifacts are incomplete in ${resolved}.\n` +
+      `  Missing: ${missing.map((x) => x.rel).join(", ")}\n` +
+      "  Pass --artifact-url <base-url> to download them, or use --circuit-dir <path>."
+    );
+  }
+  return resolved;
+}
+
+async function downloadFile(url: string, target: string): Promise<void> {
+  const res = await fetch(url);
+  if (!res.ok || !res.body) {
+    throw new Error(`download failed ${res.status} ${res.statusText}: ${url}`);
+  }
+  mkdirSync(dirname(target), { recursive: true });
+  await pipeline(Readable.fromWeb(res.body as unknown as Parameters<typeof Readable.fromWeb>[0]), createWriteStream(target));
+}
+
+async function ensureHostedArtifacts(opts: {
+  artifactUrl?: string;
+  artifactCache?: string;
+  offline?: boolean;
+}): Promise<string> {
+  const cacheDir = resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE);
+  if (hasCircuitArtifacts(cacheDir)) return cacheDir;
+
+  if (opts.offline) {
+    die(
+      "Hosted proving artifacts are not cached locally.\n" +
+      `  Cache: ${cacheDir}\n` +
+      "  Re-run without --offline, or pass --circuit-dir <path>."
+    );
+  }
+
+  const baseUrl = (opts.artifactUrl ?? DEFAULT_ARTIFACT_URL).replace(/\/+$/, "");
+  for (const artifact of PROVING_ARTIFACTS) {
+    const target = resolve(cacheDir, artifact.rel);
+    if (existsSync(target) && statSync(target).size >= artifact.minBytes) continue;
+    await downloadFile(`${baseUrl}/${artifact.asset}`, target);
+  }
+
+  return requireCircuitArtifacts(cacheDir);
+}
+
+async function findCircuitDir(opts: {
+  override?: string;
+  artifactUrl?: string;
+  artifactCache?: string;
+  offline?: boolean;
+}): Promise<{ dir: string; source: "local" | "cache" | "download" }> {
+  if (opts.override) {
+    return { dir: requireCircuitArtifacts(opts.override), source: "local" };
+  }
+
   // Look relative to the CLI package root (cli/ → circuits/build)
   const candidates = [
     resolve(__dirname, "../../../../circuits/build"),   // dev: cli/src/commands → circuits/build
     resolve(__dirname, "../../../circuits/build"),
     resolve(process.cwd(), "circuits/build"),
     resolve(process.cwd(), "build"),
+    resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE),
   ];
   for (const p of candidates) {
-    try {
-      readFileSync(resolve(p, "ilal.zkey"));
-      return p;
-    } catch { /* not found */ }
+    if (hasCircuitArtifacts(p)) {
+      const source = resolve(p) === resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE) ? "cache" : "local";
+      return { dir: p, source };
+    }
   }
-  die(
-    "Circuit build directory not found.\n" +
-    "  Run: bash circuits/scripts/compile.sh\n" +
-    "  Or pass: --circuit-dir <path/to/circuits/build>"
-  );
+
+  const dir = await ensureHostedArtifacts(opts);
+  return { dir, source: "download" };
 }
 
 // ─── Core proof generation ─────────────────────────────────────────────────────
@@ -260,21 +346,23 @@ export async function credentialProve(opts: {
   chain?: string;
   action?: string;
   circuitDir?: string;
+  artifactUrl?: string;
+  artifactCache?: string;
+  offline?: boolean;
   outDir?: string;
   rpc?: string;
   privateKey?: string;
   expiresAt?: string;
 }) {
   const cfg    = withConfig(opts);
-  const rawKey = cfg.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey)      die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
+  const rawKey = requirePrivateKey(cfg.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!cfg.wallet)  die("Wallet address required. Use --wallet or set issuer in .ilal.json");
   if (!cfg.issuer)  die("Issuer address required. Use --issuer or run `ilal init`");
   if (!isAddress(cfg.wallet))  die(`Invalid wallet address: ${cfg.wallet}`);
   if (!isAddress(cfg.issuer))  die(`Invalid issuer address: ${cfg.issuer}`);
 
   const chain     = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const account   = privateKeyToAccount(rawKey as `0x${string}`);
+  const account   = privateKeyToAccount(rawKey);
   const transport = cfg.rpc ? http(cfg.rpc) : http();
   const pubClient = createPublicClient({ chain, transport });
   const walClient = createWalletClient({ account, chain, transport });
@@ -298,11 +386,30 @@ export async function credentialProve(opts: {
     spin.succeed(`Action: ${fmt.cyan(action)}${tokenId > 0n ? fmt.gray(` (token #${tokenId})`) : ""}`);
   }
 
-  // ── Find circuit build dir ─────────────────────────────────────────────────
-  const circuitDir = findCircuitDir(cfg.circuitDir);
-  const outDir     = cfg.outDir
-    ? resolve(cfg.outDir)
-    : resolve(circuitDir, "../../outputs");
+  // ── Prepare hosted/local proving artifacts ────────────────────────────────
+  const artifactSpin = new Spinner("Preparing proving artifacts…").start();
+  let circuitDir: string;
+  try {
+    const artifacts = await findCircuitDir({
+      override: cfg.circuitDir,
+      artifactUrl: cfg.artifactUrl,
+      artifactCache: cfg.artifactCache,
+      offline: cfg.offline,
+    });
+    circuitDir = artifacts.dir;
+    const sourceLabel =
+      artifacts.source === "download" ? "downloaded to cache" :
+      artifacts.source === "cache" ? "cache" :
+      "local";
+    artifactSpin.succeed(`Proving artifacts ready (${sourceLabel})`);
+  } catch (e) {
+    artifactSpin.fail("Proving artifacts unavailable");
+    die(e instanceof Error ? e.message : String(e));
+  }
+
+  const outDir = cfg.outDir ? resolve(cfg.outDir) : resolve(process.cwd(), "outputs");
+  log.kv("artifacts", fmt.gray(circuitDir));
+  log.kv("proofOut", fmt.gray(outDir));
 
   log.line();
 

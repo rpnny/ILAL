@@ -12,7 +12,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { loadConfig } from "../config.js";
-import { die, fmt, header, log, Spinner } from "../ui.js";
+import { die, fmt, header, log, Spinner, requirePrivateKey } from "../ui.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 const POOL_MANAGER: Record<string, `0x${string}`> = {
@@ -23,9 +23,9 @@ const POOL_MANAGER: Record<string, `0x${string}`> = {
 const SAMPLE = {
   wallet: "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
   issuer: "0x33541301e35d33eDf554c4DFba1e04d04FCc52F4",
-  hook: "0x5f1de4376C7a59b5BBC5E5cd766D40995E9e4A80",
-  router: "0x88125331f169aF4Dc81ADa6E8A189110566E457a",
-  pool: "0x8b6d21e53673584f192bdad8b65e2002e9e8eea730c62adad5ac1f4a084164a4",
+  hook: "0x4847B222d11938A70073292d97cDB98ff8D64a80",
+  router: "0xA571F7f41c8abC19F20ABAe648e26a75fbe1F434",
+  pool: "0x426925fe1ebecf2da7184f9749622ab1a4b8870c888d75da10332aee2080c86f",
   proof: "0x91f2b8a0c43e902f7f1a8c0d",
   session: "0x6b84eac5e0db21f8d5d43b7a",
 };
@@ -470,6 +470,11 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
   }
   if (wallet) {
     log.command(`ilal status --wallet ${wallet}`);
+    if (!credentialReady) {
+      log.info("Credential missing: the issuer must create an attestation before the wallet can mint CNF.");
+      log.command(`PRIVATE_KEY=<issuer-key> ilal issuer attest --wallet ${wallet}`);
+      log.command("PRIVATE_KEY=<wallet-key> ilal credential mint --attestation <uid>");
+    }
     log.command(`ilal session sign --pool ${cfg.poolId ?? "<poolId>"} --action swap --hook ${cfg.hook ?? "<hook>"} --issuer ${cfg.issuer ?? "<issuer>"} --caller ${cfg.router ?? "<router>"}`);
   } else {
     log.command("ilal demo check --wallet <wallet>");
@@ -482,15 +487,12 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
 export async function demoFaucet(opts: { wallet?: string; amount?: string; privateKey?: string }) {
   const cfg = loadConfig();
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey || !isHex(rawKey) || rawKey.length !== 66) {
-    die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
-  }
+  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!cfg.tokenA || !cfg.tokenB || !isAddress(cfg.tokenA) || !isAddress(cfg.tokenB)) {
     die("tokenA/tokenB required. Run `ilal init` with demo token addresses first.");
   }
 
-  const account = privateKeyToAccount(rawKey as `0x${string}`);
+  const account = privateKeyToAccount(rawKey);
   const wallet = opts.wallet ?? account.address;
   if (!isAddress(wallet)) die(`Invalid wallet address: ${wallet}`);
 
@@ -525,14 +527,11 @@ export async function demoFaucet(opts: { wallet?: string; amount?: string; priva
 export async function demoAttest(opts: { wallet: string; privateKey?: string; expiresInDays?: string }) {
   const cfg = loadConfig();
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey || !isHex(rawKey) || rawKey.length !== 66) {
-    die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
-  }
+  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!cfg.issuer || !isAddress(cfg.issuer)) die("CNFIssuer required. Run `ilal init` first.");
   if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
 
-  const account = privateKeyToAccount(rawKey as `0x${string}`);
+  const account = privateKeyToAccount(rawKey);
   const client = createPublicClient({ chain, transport: http(cfg.rpc) });
   const walletClient = createWalletClient({ account, chain, transport: http(cfg.rpc) });
 
@@ -546,7 +545,7 @@ export async function demoAttest(opts: { wallet: string; privateKey?: string; ex
     ], functionName: "trustedAttester" }) as Promise<string>,
   ]);
 
-  if (eas === ZERO) die("Configured issuer has no EAS/MockEAS path. Use a mock demo issuer or Coinbase EAS attestation.");
+  if (eas === ZERO) die("Configured issuer has no EAS path. Use an issuer with EAS configured or mint through ZK proof.");
 
   const days = BigInt(parseInt(opts.expiresInDays ?? "90", 10));
   const expiration = BigInt(Math.floor(Date.now() / 1000)) + days * 24n * 60n * 60n;

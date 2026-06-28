@@ -32,7 +32,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
+import { fmt, log, header, Spinner, die, dieOnContract, requirePrivateKey } from "../ui.js";
 import { withConfig } from "../config.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
@@ -90,11 +90,10 @@ function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
 }
 
 function makeClients(cfg: ReturnType<typeof withConfig>, opts: { rpc?: string; chain?: string; privateKey?: string }) {
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  if (!rawKey) die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
+  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   const chain     = CHAINS[opts.chain ?? "84532"] ?? baseSepolia;
   const transport = opts.rpc ? http(opts.rpc) : http();
-  const account   = privateKeyToAccount(rawKey as `0x${string}`);
+  const account   = privateKeyToAccount(rawKey);
   return {
     chain,
     account,
