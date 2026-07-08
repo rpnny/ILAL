@@ -22,7 +22,7 @@ const program = new Command();
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.2.17")
+  .version("0.2.20")
   .addHelpText("before", `\n  ${fmt.bold(fmt.cyan("◆"))} ${fmt.bold("ILAL Protocol")}  ${fmt.gray("Uniswap v4 Compliance Hook")}\n`);
 
 // ─── init ─────────────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ ILAL gates swaps and liquidity operations behind on-chain compliance credentials
 
 ```bash
 npm install -g @ilalv3/cli
-ilal --version   # 0.2.18 or newer
+ilal --version   # 0.2.20 or newer
 ```
 
 Or run without installing:
