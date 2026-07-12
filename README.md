@@ -8,7 +8,7 @@ ILAL gates swaps and liquidity operations behind on-chain compliance credentials
 
 ```bash
 npm install -g @ilalv3/cli
-ilal --version   # 0.2.20 or newer
+ilal --version   # 0.2.21 or newer
 ```
 
 Or run without installing:
@@ -35,7 +35,7 @@ ilal status --wallet 0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58
 ilal demo check --wallet 0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58
 
 # 4. Execute a compliant swap with the seeded reviewer key
-PRIVATE_KEY=0x... ilal swap --amount-in 1 --token-in 0x8C38061e31FB02df445576685975d85F01D8686d --min-amount-out 0
+PRIVATE_KEY=0x... ilal swap --amount-in 1 --token-in 0x5F6556DF0260A6Bc3613356CAC3c01f727578774 --min-amount-out 0
 ```
 
 For a fully seeded local/testnet demo, deploy mock EAS + demo pool pieces:
@@ -189,7 +189,7 @@ PRIVATE_KEY=0xIssuerKey ilal issuer attest \
 
 # User wallet
 PRIVATE_KEY=0xUserKey ilal credential mint --attestation <uid>
-PRIVATE_KEY=0xUserKey ilal swap --amount-in 1 --token-in 0x8C38061e31FB02df445576685975d85F01D8686d --min-amount-out 0
+PRIVATE_KEY=0xUserKey ilal swap --amount-in 1 --token-in 0x5F6556DF0260A6Bc3613356CAC3c01f727578774 --min-amount-out 0
 ```
 
 For production, replace MockEAS with the issuer's configured EAS/schema or KYC attestation contract.
@@ -200,10 +200,10 @@ The CLI reads `.ilal.json` in the current directory. Run `ilal init` to create i
 
 ```bash
 ilal swap \
-  --router    0xA571F7f41c8abC19F20ABAe648e26a75fbe1F434 \
-  --hook      0x4847B222d11938A70073292d97cDB98ff8D64a80 \
+  --router    0x805A7654bDCfF1286652de29D2aE906a87e2a912 \
+  --hook      0x604f06000E7424E3AA432aB9378D4839Edeb8A80 \
   --issuer    0x33541301e35d33eDf554c4DFba1e04d04FCc52F4 \
-  --pool-id   0x426925fe1ebecf2da7184f9749622ab1a4b8870c888d75da10332aee2080c86f \
+  --pool-id   0xf3a6493827291a485652ae73e1ef5d673c2ad6f0e8df9ed0f54b3725fc42828e \
   --amount-in 0.001
 ```
 
@@ -214,19 +214,20 @@ ilal swap \
 | CNFIssuer | `0x33541301e35d33eDf554c4DFba1e04d04FCc52F4` |
 | MockEAS | `0x6A98096DF6F54DBF40498dC5525d84AEA840663A` |
 | ZKVerifierAdapter | `0x9467ED8d962221e3C1865a387481B862B1b5bE95` |
-| ComplianceHook | `0x4847B222d11938A70073292d97cDB98ff8D64a80` |
-| ILALRouter | `0xA571F7f41c8abC19F20ABAe648e26a75fbe1F434` |
+| ComplianceHook | `0x604f06000E7424E3AA432aB9378D4839Edeb8A80` |
+| ILALRouter | `0x805A7654bDCfF1286652de29D2aE906a87e2a912` |
 | PolicyRegistry | `0x83d8111B415E97bA91eaAe717c2D9Ae6f0DD19d4` |
-| Currency0 / TOKA | `0x8C38061e31FB02df445576685975d85F01D8686d` |
-| Currency1 / TOKB | `0xD0e6467D562829d215dB48CDfF4C289095D90B6B` |
-| Pool ID | `0x426925fe1ebecf2da7184f9749622ab1a4b8870c888d75da10332aee2080c86f` |
+| Currency0 / TOKA | `0x5F6556DF0260A6Bc3613356CAC3c01f727578774` |
+| Currency1 / TOKB | `0x6Eb54Ee03474d09B98c6bd9a479Ca2d3ec39469A` |
+| Pool ID | `0xf3a6493827291a485652ae73e1ef5d673c2ad6f0e8df9ed0f54b3725fc42828e` |
 
 Live proof:
 
 - CNF ZK mint tx: `0xb9aa16c9604a575c8b2281cbfe9ba24fedbf205283a7b05638fbc413ed78de41`
-- Add liquidity tx: `0x1ffd6b1546b3f3846d8f86fc21ec059a83a02f23130390c1b9343733d3a9776f`
-- Swap tx: `0x36427e232b323e4a8c310286d0312dbf1f4ecde86d58245a81713aafe4df0720`
-- Router bypass fix verified: `ComplianceHook.authorizedRouter()` returns `0xA571F7f41c8abC19F20ABAe648e26a75fbe1F434`
+- Add liquidity tx: `0x8b2b87ca74debf9988e09ee06dccdd3ff73d759a4c5508f36cf53b0c4af12d33`
+- Swap tx: `0xb67dc74b85d40ef23c16e925b33e5959b9f3d467c5c2e06fe3a43f17ce18ddd5`
+- Safe LP exit tx: `0xc1f80cef49d0d256c616d5c567181958592f13a1a32d8af2e3eb2a6870cfe826`
+- Router binding verified: `ComplianceHook.authorizedRouter()` returns `0x805A7654bDCfF1286652de29D2aE906a87e2a912`
 
 ## License
 

@@ -241,19 +241,20 @@ async function executeLiquidity(
   const preflightErrors: string[] = [];
   const hasEASPath = eas !== ZERO_ADDRESS;
   const hasZKPath = verifier !== ZERO_ADDRESS && root !== 0n;
-  if (tokenId === 0n) {
+  if (action === "add" && tokenId === 0n) {
     preflightErrors.push("wallet has no CNF credential; mint one before changing liquidity.");
     if (hasEASPath) preflightErrors.push("issuer supports EAS attestation minting: first ask issuer to run `ilal issuer attest --wallet <wallet>`, then run `ilal credential mint --attestation <uid>`.");
     else if (hasZKPath) preflightErrors.push(`issuer supports ZK minting: run \`ilal credential prove --wallet ${account.address}\`.`);
     else preflightErrors.push("issuer has no active issuance path: EAS is unset and ZK verifier/root are not both configured.");
   }
-  else if (!valid) preflightErrors.push("wallet CNF credential exists but is not valid.");
+  else if (action === "add" && !valid) preflightErrors.push("wallet CNF credential exists but is not valid.");
   if (action === "add" && (bal0 === 0n || bal1 === 0n)) {
     preflightErrors.push(`token balances are not ready for adding liquidity: ${sym0}=${tokenAmount(bal0, dec0, sym0)}, ${sym1}=${tokenAmount(bal1, dec1, sym1)}.`);
   }
 
   log.section("Preflight Checks");
   if (tokenId !== 0n && valid) log.ok(`CNF credential token #${tokenId.toString()}`);
+  else if (action === "remove") log.ok("Exit-only removal permitted without a current CNF");
   else log.fail("CNF credential missing or invalid");
   log.ok(`Issuer config (${hasEASPath ? "EAS" : "no EAS"}${hasZKPath ? " + ZK" : ""})`);
   if (action !== "add" || bal0 > 0n) log.ok(`${sym0} balance ${tokenAmount(bal0, dec0, sym0)}`);
@@ -332,7 +333,12 @@ async function executeLiquidity(
   const hookData = encodeAbiParameters(HOOK_DATA_ABI, [token, signature]);
   signSpin.succeed(`Session authorization signed (expires in ${ttl}s, one-time nonce)`);
   log.section("Gate Checks");
-  log.kv("credential", `${fmt.badge("required", "cyan")} issuer ${fmt.addr(cfg.issuer!)}`);
+  log.kv(
+    "credential",
+    action === "add"
+      ? `${fmt.badge("required", "cyan")} issuer ${fmt.addr(cfg.issuer!)}`
+      : `${fmt.badge("exit-only", "green")} current CNF not required`
+  );
   log.kv("caller", `${fmt.badge("bound", "green")} ${fmt.addr(cfg.router!)}`);
   log.kv("nonce", `${fmt.badge("fresh", "green")} ${fmt.hash(nonce)}`);
   log.line();
@@ -383,7 +389,9 @@ async function executeLiquidity(
   log.line();
   log.callout(
     action === "add" ? "Hook-enforced liquidity add" : "Hook-enforced liquidity removal",
-    "pool policy, credential type, session binding, and nonce all passed on-chain",
+    action === "add"
+      ? "pool policy, credential type, session binding, and nonce all passed on-chain"
+      : "user-scoped position ownership, session binding, and nonce all passed on-chain",
     "green"
   );
   log.kv("tx",    fmt.gray(txHash!));

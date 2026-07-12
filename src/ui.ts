@@ -257,5 +257,6 @@ export function requirePrivateKey(rawKey?: string): `0x${string}` {
 }
 
 export function dieOnContract(e: unknown): never {
+  if (process.env["ILAL_DEBUG"] === "1") console.error(e);
   die(parseViemError(e));
 }

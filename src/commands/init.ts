@@ -13,13 +13,13 @@ import { fmt, log, header, die } from "../ui.js";
 const PRESETS: Record<string, Record<string, string>> = {
   "84532": {
     issuer:      "0x33541301e35d33eDf554c4DFba1e04d04FCc52F4",
-    hook:        "0x4847B222d11938A70073292d97cDB98ff8D64a80",
+    hook:        "0x604f06000E7424E3AA432aB9378D4839Edeb8A80",
     registry:    "0x83d8111B415E97bA91eaAe717c2D9Ae6f0DD19d4",
-    router:      "0xA571F7f41c8abC19F20ABAe648e26a75fbe1F434",
+    router:      "0x805A7654bDCfF1286652de29D2aE906a87e2a912",
     treasury:    "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
-    tokenA:      "0x8C38061e31FB02df445576685975d85F01D8686d",
-    tokenB:      "0xD0e6467D562829d215dB48CDfF4C289095D90B6B",
-    poolId:      "0x426925fe1ebecf2da7184f9749622ab1a4b8870c888d75da10332aee2080c86f",
+    tokenA:      "0x5F6556DF0260A6Bc3613356CAC3c01f727578774",
+    tokenB:      "0x6Eb54Ee03474d09B98c6bd9a479Ca2d3ec39469A",
+    poolId:      "0xf3a6493827291a485652ae73e1ef5d673c2ad6f0e8df9ed0f54b3725fc42828e",
     fee:         "8388608",
     tickSpacing: "60",
     rpc:         "https://sepolia.base.org",
