@@ -2,7 +2,7 @@
 
 ## Current gate
 
-The local software is `0.3.3-rc.1`. There is no active deployment and no public end-to-end demo today. npm `0.3.2` is deprecated; `0.2.21` is a legacy old-ABI release. The archived v0.3.2 Base Sepolia addresses must not be used for authorization or copied into a demo.
+The local software is `0.3.3-rc.2`. There is no active deployment and no public end-to-end demo today. npm `0.3.2` is deprecated; `0.2.21` is a legacy old-ABI release. The archived v0.3.2 Base Sepolia addresses must not be used for authorization or copied into a demo.
 
 Before a live Demo Day run, complete the stable deployment gate with a newly supplied Base Sepolia Safe, fresh encrypted deployer, independent `ADMIN`/`TREASURY` manifest fields, full role handoff, verified code hashes, funded pool, positive/negative swap evidence, and updated active preset.
 
@@ -12,7 +12,7 @@ Before a live Demo Day run, complete the stable deployment gate with a newly sup
 make verify
 
 cd cli
-node dist/index.js --version     # 0.3.3-rc.1
+node dist/index.js --version     # 0.3.3-rc.2
 node dist/index.js init          # network settings only; no stale addresses
 node dist/index.js demo --commands
 ```

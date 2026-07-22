@@ -2,7 +2,7 @@
 
 Date: 2026-07-22
 
-This document supersedes the older `v0.2.5` filenames as the current reviewer entry point. Older reports and v0.3.2 chain transactions are retained as historical evidence, not as an active deployment or current production-readiness claim. This scope covers the local `v0.3.3-rc.1` candidate.
+This document supersedes the older `v0.2.5` filenames as the current reviewer entry point. Older reports and v0.3.2 chain transactions are retained as historical evidence, not as an active deployment or current production-readiness claim. This scope covers the local `v0.3.3-rc.2` candidate.
 
 ## Scope Summary
 
@@ -25,7 +25,7 @@ This document supersedes the older `v0.2.5` filenames as the current reviewer en
 
 See `../RELEASE.md` for the release matrix:
 
-- CLI source: `@ilalv3/cli@0.3.3-rc.1` (not published to npm)
+- CLI source: `@ilalv3/cli@0.3.3-rc.2` (not published to npm)
 - npm stable: `@ilalv3/cli@0.3.2` (deprecated)
 - npm legacy: `@ilalv3/cli@0.2.21` (old Router ABI)
 - SDK: `@ilalv3/sdk@0.2.0`

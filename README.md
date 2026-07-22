@@ -6,7 +6,7 @@ ILAL is an experimental Uniswap v4 access layer that combines compliance credent
 
 | Surface | Current status |
 |---|---|
-| Local source | `v0.3.3-rc.1` release candidate |
+| Local source | `v0.3.3-rc.2` release candidate |
 | npm stable | `@ilalv3/cli@0.3.2`, deprecated; do not use its old Base Sepolia preset |
 | npm legacy | `@ilalv3/cli@0.2.21`, old Router ABI only |
 | Active deployment | None |

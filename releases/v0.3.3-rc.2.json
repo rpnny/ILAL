@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "version": "0.3.3-rc.2",
+  "tag": "v0.3.3-rc.2",
+  "sourceCommit": null,
+  "releaseCommit": null,
+  "softwareStatus": "release candidate",
+  "deploymentStatus": "no active v0.3.3 deployment",
+  "attestationStatus": "MockEAS planned for the next Base Sepolia demo",
+  "zkStatus": "experimental; disabled in the public deployment",
+  "productionReadiness": "not production-ready",
+  "auditStatus": "unaudited",
+  "npmPublication": "not published",
+  "deploymentManifest": null,
+  "baselineTests": {
+    "foundry": 188,
+    "cli": 19,
+    "fuzzRuns": 256
+  },
+  "lastLocalVerification": {
+    "date": "2026-07-22",
+    "foundry": { "passed": 188, "failed": 0, "skipped": 0 },
+    "cli": { "passed": 26, "failed": 0, "skipped": 0 },
+    "sdk": { "passed": 18, "failed": 0 },
+    "circuitOracle": { "passed": 7, "failed": 0 },
+    "circuitV2": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 4 },
+    "minimumFuzzRuns": 256
+  }
+}

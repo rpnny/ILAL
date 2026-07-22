@@ -10,10 +10,10 @@ const cli = readJson("cli/package.json");
 const sdk = readJson("sdk/package.json");
 const circuits = readJson("circuits/package.json");
 const proving = readJson("proving-artifacts/package.json");
-const release = readJson("releases/v0.3.3-rc.1.json");
+const release = readJson(`releases/v${cli.version}.json`);
 const deployments = readJson("deployments/index.json");
 
-if (cli.version !== release.version) fail("CLI and RC release versions differ.");
+if (cli.version !== release.version || release.tag !== `v${cli.version}`) fail("CLI and RC release versions differ.");
 for (const pkg of [cli, sdk, circuits, proving]) {
   if (pkg.license !== "Apache-2.0") fail(`${pkg.name} is not Apache-2.0.`);
   if (!pkg.repository || pkg.repository.url !== "https://github.com/rpnny/ilal" && pkg.repository.url !== "git+https://github.com/rpnny/ilal.git") {

@@ -220,7 +220,7 @@ The v0.3.3 software is a release candidate; the previous Base Sepolia stack is a
 
 We deployed CNFIssuer, ComplianceHook, PolicyRegistry, ILALRouter, demo tokens, and a Uniswap v4 dynamic-fee pool.
 
-The current source is `@ilalv3/cli@0.3.3-rc.1`. npm `0.3.2` is deprecated and must not be presented as an active deployment client.
+The current source is `@ilalv3/cli@0.3.3-rc.2`. npm `0.3.2` is deprecated and must not be presented as an active deployment client.
 
 The SDK is published as `@ilalv3/sdk`.
 
