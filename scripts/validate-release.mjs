@@ -14,6 +14,8 @@ const release = readJson(`releases/v${cli.version}.json`);
 const deployments = readJson("deployments/index.json");
 
 if (cli.version !== release.version || release.tag !== `v${cli.version}`) fail("CLI and RC release versions differ.");
+if (!/^[0-9a-f]{40}$/.test(release.sourceCommit)) fail("RC sourceCommit must be a full Git commit SHA.");
+if (release.releaseCommit !== null) fail("Tracked RC releaseCommit must remain null until the tag workflow resolves it.");
 for (const pkg of [cli, sdk, circuits, proving]) {
   if (pkg.license !== "Apache-2.0") fail(`${pkg.name} is not Apache-2.0.`);
   if (!pkg.repository || pkg.repository.url !== "https://github.com/rpnny/ilal" && pkg.repository.url !== "git+https://github.com/rpnny/ilal.git") {
