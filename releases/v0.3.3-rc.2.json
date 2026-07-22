@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "version": "0.3.3-rc.2",
   "tag": "v0.3.3-rc.2",
-  "sourceCommit": null,
+  "sourceCommit": "285db1bb8d975e425d4b3c18ca41889b624d2309",
   "releaseCommit": null,
   "softwareStatus": "release candidate",
   "deploymentStatus": "no active v0.3.3 deployment",
