@@ -25,7 +25,7 @@ test("reported version matches package version", () => {
   assert.equal(version, packageJson.version);
 });
 
-test("init refuses to advertise the deprecated Base Sepolia deployment", () => {
+test("init selects only the active v0.3.3 Base Sepolia deployment", () => {
   const dir = mkdtempSync(join(tmpdir(), "ilal-cli-init-"));
   try {
     const result = spawnSync(process.execPath, [cli, "init"], {
@@ -37,10 +37,10 @@ test("init refuses to advertise the deprecated Base Sepolia deployment", () => {
     const config = JSON.parse(readFileSync(join(dir, ".ilal.json"), "utf8"));
     assert.equal(config.protocolVersion, "1");
     assert.equal(config.chain, "84532");
-    assert.equal(config.router, undefined);
-    assert.equal(config.hook, undefined);
-    assert.equal(config.poolId, undefined);
-    assert.match(output(result), /No active ILAL deployment is published/);
+    assert.equal(config.router, "0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77");
+    assert.equal(config.hook, "0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80");
+    assert.equal(config.poolId, "0x1a05b49e39c3ed799c4f0f23bb61e647ff9d3c558136f718a2ab2fa87c82d1ad");
+    assert.doesNotMatch(JSON.stringify(config), /0x6C7A1E5AB19706691554529c62a6d4417F55868D/i);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

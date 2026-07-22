@@ -13,19 +13,28 @@ const proving = readJson("proving-artifacts/package.json");
 const release = readJson(`releases/v${cli.version}.json`);
 const deployments = readJson("deployments/index.json");
 
-if (cli.version !== release.version || release.tag !== `v${cli.version}`) fail("CLI and RC release versions differ.");
-if (!/^[0-9a-f]{40}$/.test(release.sourceCommit)) fail("RC sourceCommit must be a full Git commit SHA.");
-if (release.releaseCommit !== null) fail("Tracked RC releaseCommit must remain null until the tag workflow resolves it.");
+if (cli.version !== release.version || release.tag !== `v${cli.version}`) fail("CLI and release versions differ.");
+if (!/^[0-9a-f]{40}$/.test(release.sourceCommit)) fail("sourceCommit must be a full Git commit SHA.");
+if (release.releaseCommit !== null) fail("Tracked releaseCommit must remain null until the tag workflow resolves it.");
 for (const pkg of [cli, sdk, circuits, proving]) {
   if (pkg.license !== "Apache-2.0") fail(`${pkg.name} is not Apache-2.0.`);
   if (!pkg.repository || pkg.repository.url !== "https://github.com/rpnny/ilal" && pkg.repository.url !== "git+https://github.com/rpnny/ilal.git") {
     fail(`${pkg.name} repository metadata does not point to rpnny/ilal.`);
   }
 }
-if (Object.keys(deployments.active ?? {}).length !== 0) fail("RC must not advertise an active deployment before the Safe deployment gate.");
 const legacy = deployments.deployments.find(item => item.version === "0.3.2");
 if (!legacy || legacy.status !== "deprecated") fail("Legacy v0.3.2 deployment must remain explicitly deprecated.");
-if (release.npmPublication !== "not published") fail("RC plan forbids npm publication.");
+const isPrerelease = cli.version.includes("-");
+if (isPrerelease) {
+  if (Object.keys(deployments.active ?? {}).length !== 0) fail("RC must not advertise an active deployment before the Safe deployment gate.");
+  if (release.npmPublication !== "not published") fail("RC plan forbids npm publication.");
+} else {
+  const active = Object.values(deployments.active ?? {}).map(path => readJson(`deployments/${path}`));
+  const deployment = active.find(item => item.version === cli.version);
+  if (!deployment) fail("Stable release must select its active deployment manifest.");
+  if (deployment.sourceCommit !== release.sourceCommit || deployment.releaseCommit !== null) fail("Stable deployment commit linkage is inconsistent.");
+  if (release.softwareStatus !== "stable" || release.npmPublication !== "stable") fail("Stable release publication labels are inconsistent.");
+}
 if (release.productionReadiness !== "not production-ready" || release.auditStatus !== "unaudited") {
   fail("Release readiness labels are incomplete.");
 }

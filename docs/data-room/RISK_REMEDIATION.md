@@ -1,6 +1,6 @@
 # R1–R9 remediation status
 
-| ID | Risk | Status for v0.3.3 RC |
+| ID | Risk | Status for v0.3.3 |
 |---|---|---|
 | R1 | Fragmented repositories and lost CLI history | Implemented locally: external bundle/archive/patch/checksums and non-squash subtree ancestry; public clone verification pending |
 | R2 | Plain environment private-key dependency | Implemented: encrypted keystore, restricted testnet compatibility; production operator validation pending |

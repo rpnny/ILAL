@@ -140,6 +140,23 @@ function allowanceLabel(raw: bigint, decimals: number, symbol: string): string {
   return `${tokenAmount(raw, decimals, symbol)} (${raw.toString()} wei)`;
 }
 
+export async function waitForAllowance(
+  readAllowance: () => Promise<bigint>,
+  required: bigint,
+  options: { attempts?: number; delayMs?: number } = {}
+): Promise<bigint> {
+  const attempts = options.attempts ?? 5;
+  const delayMs = options.delayMs ?? 750;
+  let allowance = 0n;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    allowance = await readAllowance();
+    if (allowance >= required) return allowance;
+    if (attempt < attempts) await new Promise((resolveDelay) => setTimeout(resolveDelay, delayMs));
+  }
+  return allowance;
+}
+
 function secondsSince(startMs: number): string {
   return `${((Date.now() - startMs) / 1000).toFixed(1)}s`;
 }
@@ -371,7 +388,19 @@ async function executeLiquidity(
           address: token, abi: ERC20_ABI, functionName: "approve",
           args: [cfg.router as `0x${string}`, cap],
         });
-        await pubClient.waitForTransactionReceipt({ hash: h });
+        const receipt = await pubClient.waitForTransactionReceipt({ hash: h });
+        if (receipt.status !== "success") {
+          appSpin.fail(`Approval reverted ${fmt.gray(fmt.hash(h))}`);
+          die(`${sym} approval reverted; liquidity was not sent.`);
+        }
+        const reflectedAllowance = await waitForAllowance(async () => pubClient.readContract({
+          address: token, abi: ERC20_ABI, functionName: "allowance",
+          args: [account.address, cfg.router as `0x${string}`],
+        }) as Promise<bigint>, cap);
+        if (reflectedAllowance < cap) {
+          appSpin.fail(`Approval mined but RPC state is not current ${fmt.gray(fmt.hash(h))}`);
+          die(`${sym} approval is not visible after 5 bounded checks; retry after the RPC catches up.`);
+        }
         appSpin.succeed(`Approval capped at ${tokenAmount(cap, decimals, sym)} ${fmt.gray(fmt.hash(h))}`);
       } else {
         log.ok(`${sym} allowance: ${allowanceLabel(allowed, decimals, sym)}`);

@@ -1,0 +1,225 @@
+{
+  "$schema": "../schema/deployment-manifest.schema.json",
+  "schemaVersion": 1,
+  "version": "0.3.3",
+  "status": "active",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "sourceCommit": "9b59827e18c08aeede1136ec102f43f4aa793d3b",
+  "releaseCommit": null,
+  "deployer": "0x34757dA960aFbb5E808531C1540549eC651078fe",
+  "admin": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+  "treasury": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+  "adminTreasuryShared": true,
+  "contracts": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "router": {
+      "address": "0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77",
+      "transactionHash": "0x2b573e20438905c2bb07e8eef7355a37d02b1849c56e94c9e6a3457a25b919bc",
+      "blockNumber": 44485102,
+      "constructorArguments": "[\"0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408\",\"0x67ceEC895B2668d95D79c164437dF4609c26c6cD\",\"50\"]",
+      "creationBytecodeHash": "0x2ddfb9b77c3ec12b67d388f8f033609acd9f7c74f7fbd04a4a0c6c78d5ec55f8",
+      "runtimeBytecodeHash": "0x8aa5c2dea8e612f97681a2b843b34b55b1569dbff386fbd5788e772912d84ec5",
+      "abiHash": "0x1324db2abb38a3e7e7f509231e36017dbed18f13a6c5753481803d1713771e9f",
+      "create2Salt": null
+    },
+    "policyRegistry": {
+      "address": "0xB93fcF91001FeCfaa14B6d7aB6dB57581ce47f52",
+      "transactionHash": "0xdd87226fdd798170ee77e87099b403ea4ed8d28ed07b82aadc396410ff64d850",
+      "blockNumber": 44485103,
+      "constructorArguments": "[]",
+      "creationBytecodeHash": "0xe9a840edde63fcee9fa3c95756740847da038022014f53c4418b9f5e14ca4c6c",
+      "runtimeBytecodeHash": "0x3aa4e3f534fc9fa83d1295f5bdc04450fce6fc7125c8a6502543f90ab2fc4ac4",
+      "abiHash": "0x56b5cdc0171e0c60dfcc0d25223b3c71ff2f45d052f0779661923da74eba19e2",
+      "create2Salt": null
+    },
+    "mockEAS": {
+      "address": "0x33aF6C44d367a9D0301C6382f01307d9436A580c",
+      "transactionHash": "0x4e6f789cfbb2a79988e9e88a5eca44077d55a9e4899a31b08b736aceb008bc60",
+      "blockNumber": 44485104,
+      "constructorArguments": "[]",
+      "creationBytecodeHash": "0x05d35df7c0ffb953f7707f5fc1b4fc0e2030e21b20e5f85a08411a665ce3d728",
+      "runtimeBytecodeHash": "0xa6aaa1c829aa5b41b4dfc0dff71498847a52d2e4bb1bd2be004e551a32f21bd5",
+      "abiHash": "0x5c95e95ae2d5ca66c6975eddc9104754259fecf6e96408a862951cd19655226e",
+      "create2Salt": null
+    },
+    "cnfIssuer": {
+      "address": "0x57d6faea0159C95e96D7a6Ed4e3D416701aA9aEF",
+      "transactionHash": "0x7067a39b4ce715475a6c8784122156165a72819d6d9641d51e261e6cb225af5d",
+      "blockNumber": 44485105,
+      "constructorArguments": "[\"0x33aF6C44d367a9D0301C6382f01307d9436A580c\",\"0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9\",\"0x34757dA960aFbb5E808531C1540549eC651078fe\",\"0\",\"ILAL Demo Issuer / US testnet / Coinbase Account Verification / ILAL CNF / https://www.ilal.tech/demo-issuer\",\"ZK disabled\"]",
+      "creationBytecodeHash": "0xea1c5e301e7e0b853d94e7459df2d630b2c7dcb06d9d7dcf6233574c2d865a50",
+      "runtimeBytecodeHash": "0x2c786c7bb9d4032a52e0bac1acdde7dafe681b4482368a18a99b00367dda8323",
+      "abiHash": "0xe4a3fe6dbeed33751b3818479413fb06b19655e2007e56ad7c11a5d44c735710",
+      "create2Salt": null
+    },
+    "complianceHook": {
+      "address": "0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80",
+      "transactionHash": "0xadd3b94273f2bf238da9d9781d1a776c723b66714744376a69b8aaa92db1427c",
+      "blockNumber": 44485107,
+      "constructorArguments": "[\"0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408\",\"0xB93fcF91001FeCfaa14B6d7aB6dB57581ce47f52\",\"0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77\"]",
+      "creationBytecodeHash": "0x609098f2e64c726db89153f3dee9af02d1841b410f3a3da4bd14314ddf3f281f",
+      "runtimeBytecodeHash": "0xcf150fdea624961d7979c4aef719f3e53a74accb7c564f10e55fca3590e5cd91",
+      "abiHash": "0xca5342cfdb27cebf13a2862debb0f7c73fc86aa8da2631725c6a23c5e7ea7a9d",
+      "create2Salt": "0x00000000000000000000000000000000000000000000000000000000000099e7"
+    },
+    "mockTokenA": {
+      "address": "0x42A0Ce24E84B109cdD22712025bbd0aa31250a3d",
+      "transactionHash": "0xec919cbbd63dd3926547ff44b64c0bef2dead4fea148a92e0fa8bf7b7b73c47f",
+      "blockNumber": 44485098,
+      "constructorArguments": "[\"ILAL Token A\",\"TOKA\",\"18\"]",
+      "creationBytecodeHash": "0x3909a0044f4e9bcb70da2dd6eb6e2b8145c8a586d164bee06be66faaecb24819",
+      "runtimeBytecodeHash": "0x92fa16690c4179d35a4a73feb7289e571bc067b3ab364cc541f94c6bce5d182e",
+      "abiHash": "0xc0ed948f97f825386831f058ddb8f386199b6383986ae290470960a44ff4cf67",
+      "create2Salt": null
+    },
+    "mockTokenB": {
+      "address": "0x56e7DedB151EA5Ff44F72000Bea114EAe62c3678",
+      "transactionHash": "0xef40c7fc73f060743c720412b65807d505396a01957d40a80c9fa51a1d13ab63",
+      "blockNumber": 44485099,
+      "constructorArguments": "[\"ILAL Token B\",\"TOKB\",\"18\"]",
+      "creationBytecodeHash": "0xc0ff32cd4e92aed7cf886907a516c82cdae29d3417b9aa014d446c42107b1abd",
+      "runtimeBytecodeHash": "0x92fa16690c4179d35a4a73feb7289e571bc067b3ab364cc541f94c6bce5d182e",
+      "abiHash": "0xc0ed948f97f825386831f058ddb8f386199b6383986ae290470960a44ff4cf67",
+      "create2Salt": null
+    }
+  },
+  "assets": {
+    "tokenA": "0x42A0Ce24E84B109cdD22712025bbd0aa31250a3d",
+    "tokenB": "0x56e7DedB151EA5Ff44F72000Bea114EAe62c3678"
+  },
+  "pool": {
+    "poolId": "0x1a05b49e39c3ed799c4f0f23bb61e647ff9d3c558136f718a2ab2fa87c82d1ad",
+    "initializationTransactionHash": "0xbdaf227bcd8eb4998cae82b93dc3f82688473b180e30c8bcd9bb6dd0072439d0",
+    "initializationBlockNumber": 44485108,
+    "key": {
+      "currency0": "0x42A0Ce24E84B109cdD22712025bbd0aa31250a3d",
+      "currency1": "0x56e7DedB151EA5Ff44F72000Bea114EAe62c3678",
+      "fee": 8388608,
+      "tickSpacing": 60,
+      "hook": "0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80"
+    },
+    "liquidityEvidence": {
+      "transactionHash": "0x8109f8677bbbef1c68ea4415e508215401a7e5a5969f315c02cc8e6b7db0ee0f",
+      "blockNumber": 44485227,
+      "tickLower": -600,
+      "tickUpper": 600,
+      "liquidity": "1000000000000000000"
+    },
+    "positiveSwap": {
+      "transactionHash": "0x50215347045552e82993f164472d4c575850a254b384381c6bb502565916b7a5",
+      "blockNumber": 44485236,
+      "status": "success"
+    },
+    "negativeSwap": {
+      "transactionHash": "0x72896278739b641eda1b5f709a028d53c129aeb3ee0478bee77d73a7969b356f",
+      "blockNumber": 44485285,
+      "status": "reverted as expected",
+      "error": "CredentialInvalid() / 0x6dfc6cb4"
+    }
+  },
+  "attestationEvidence": {
+    "schemaUID": "0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9",
+    "attestationUID": "0x84190b09c28c96fbd31366cf3ea817d790a5b136840f4fb45b725a34ef6f1a4a",
+    "attestationTransactionHash": "0x729f34c5ff27f355ac712d6bf5fb1dfce1f71952725b16f0c131f70c9357ade6",
+    "credentialMintTransactionHash": "0xaaea4d6b00b84796949d7a0646e08d268a207ca09adb55323c748e052fe0b428"
+  },
+  "governance": {
+    "safe": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+    "safeVersion": "1.4.1",
+    "threshold": 1,
+    "deploymentTransactionHash": "0x3f288e6630a424d989a50434f34887837e85c2cc2177086538a57ffaeceb0d4a",
+    "adminTreasurySharedForDemo": true
+  },
+  "toolchain": {
+    "solc": "0.8.26+commit.8a97fa7a",
+    "optimizerEnabled": true,
+    "optimizerRuns": 200,
+    "viaIR": false,
+    "evmVersion": "cancun",
+    "remappings": [
+      "v4-core/=lib/v4-core/",
+      "v4-periphery/=lib/v4-periphery/",
+      "@openzeppelin/=lib/openzeppelin-contracts/",
+      "forge-std/=lib/forge-std/src/"
+    ],
+    "libraries": {}
+  },
+  "sourceTreeHash": "0xf590f0c205db563eadb58b6e84dc0560cc713e49d8b7b896af48d609c5904fd9",
+  "sourceTreeHashAlgorithm": "sha256(git archive of contracts/src, contracts/script, contracts/foundry.toml, contracts/scripts/install-deps.sh)",
+  "privilegedRoles": [
+    {
+      "capability": "policy manager / owner",
+      "applicable": true,
+      "contract": "0xB93fcF91001FeCfaa14B6d7aB6dB57581ce47f52",
+      "holder": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+      "verificationCall": "PolicyRegistry.owner()",
+      "result": "Safe",
+      "deployerRetained": false
+    },
+    {
+      "capability": "issuer / revoker / ZK configuration owner",
+      "applicable": true,
+      "contract": "0x57d6faea0159C95e96D7a6Ed4e3D416701aA9aEF",
+      "holder": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+      "verificationCall": "CNFIssuer.owner()",
+      "result": "Safe; zkVerifier=0x0 and merkleRoot=0",
+      "deployerRetained": false
+    },
+    {
+      "capability": "MockEAS attestation controller",
+      "applicable": true,
+      "contract": "0x33aF6C44d367a9D0301C6382f01307d9436A580c",
+      "holder": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+      "verificationCall": "MockEAS.owner()",
+      "result": "Safe",
+      "deployerRetained": false
+    },
+    {
+      "capability": "protocol fee recipient",
+      "applicable": true,
+      "contract": "0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77",
+      "holder": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+      "verificationCall": "ILALRouter.treasury()",
+      "result": "Safe; protocolFeePips=50",
+      "deployerRetained": false
+    },
+    {
+      "capability": "authorized execution router",
+      "applicable": true,
+      "contract": "0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80",
+      "holder": "0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77",
+      "verificationCall": "ComplianceHook.authorizedRouter()",
+      "result": "ILALRouter; hook and router both bind PoolManager 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+      "deployerRetained": false
+    },
+    {
+      "capability": "trusted attester identity",
+      "applicable": true,
+      "contract": "0x57d6faea0159C95e96D7a6Ed4e3D416701aA9aEF",
+      "holder": "0x34757dA960aFbb5E808531C1540549eC651078fe",
+      "verificationCall": "CNFIssuer.trustedAttester()",
+      "result": "Immutable demo identity only; MockEAS authorization is controlled by the Safe and does not require this EOA to sign",
+      "deployerRetained": false
+    },
+    {
+      "capability": "default admin / pauser / upgrader / ProxyAdmin",
+      "applicable": false,
+      "contract": null,
+      "holder": null,
+      "verificationCall": "contract architecture review",
+      "result": "not applicable; deployed contracts are non-proxy and define no pauser or AccessControl role",
+      "deployerRetained": false
+    }
+  ],
+  "features": {
+    "attestation": "MockEAS",
+    "zk": "experimental; disabled in public deployment",
+    "audit": "unaudited",
+    "productionReadiness": "not production-ready"
+  },
+  "releaseStatus": {
+    "software": "stable",
+    "deployment": "Base Sepolia demo"
+  }
+}

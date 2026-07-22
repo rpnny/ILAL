@@ -6,21 +6,21 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.3.3-rc.3` | Current local source in this monorepo | Release candidate; no active preset and not published to npm |
-| `0.3.2` | npm stable | Deprecated because it points at a Base Sepolia stack whose owner signer was exposed |
-| `0.2.21` | npm legacy | Historical old Router ABI; do not mix with v0.3 source or manifests |
+| `0.3.3` | Current local source and npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
+| `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
+| `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
 
-The local source and published npm versions are intentionally different. Until `v0.3.3` passes the deployment and release gates, clone this repository for review and do not treat any old address as active.
+The v0.3.3 local source and npm package share the current ABI and active manifest. Published `0.2.21` remains a separate legacy line; copying its commands or addresses into v0.3.3 will fail.
 
 ```bash
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.3.3-rc.3
+node dist/index.js --version  # 0.3.3
 npm test
 ```
 
-`ilal init` writes network settings only when no active deployment exists. Contract addresses must come from a valid active deployment manifest or explicit flags; deprecated presets are never selected automatically.
+`ilal init` selects only the active v0.3.3 manifest on Base Sepolia. Deprecated presets are never selected automatically.
 
 ## Signers
 
@@ -113,7 +113,7 @@ ilal --keystore ./fresh-deployer.json deploy \
 
 Mock deployment also performs ownership handoff. `ADMIN` and `TREASURY` are independent inputs. After deployment, the release process must verify every privileged holder and prove the deployer retains no undeclared role.
 
-There is currently no active public v0.3.3 deployment. Historical v0.3.2 addresses are deliberately omitted from this README.
+The active public v0.3.3 Base Sepolia demo is recorded in `deployments/base-sepolia/v0.3.3.json`. It uses MockEAS, has ZK disabled, is unaudited, and is not production-ready. Historical v0.3.2 addresses are deliberately omitted here.
 
 ## Release policy
 

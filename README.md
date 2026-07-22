@@ -6,16 +6,16 @@ ILAL is an experimental Uniswap v4 access layer that combines compliance credent
 
 | Surface | Current status |
 |---|---|
-| Local source | `v0.3.3-rc.3` release candidate |
-| npm stable | `@ilalv3/cli@0.3.2`, deprecated; do not use its old Base Sepolia preset |
+| Local source | `v0.3.3` stable software |
+| npm stable | `@ilalv3/cli@0.3.3` |
 | npm legacy | `@ilalv3/cli@0.2.21`, old Router ABI only |
-| Active deployment | None |
-| Attestation | MockEAS is planned for the next Base Sepolia demo |
+| Active deployment | Base Sepolia v0.3.3 demo; Safe-controlled |
+| Attestation | MockEAS demo issuance |
 | ZK | Experimental; disabled in the public deployment |
 | Production readiness | Not production-ready |
 | Audit | Unaudited |
 
-The old Base Sepolia v0.3.2 addresses remain in `deployments/base-sepolia/v0.3.2.json` as historical evidence only. Their owner signer was exposed, so the CLI, website, and release material do not select or advertise them as active.
+The active addresses and transaction evidence are in `deployments/base-sepolia/v0.3.3.json`. The old v0.3.2 addresses remain as historical evidence only; their owner signer was exposed and they are never selected by the CLI.
 
 ## What is implemented
 
@@ -97,7 +97,7 @@ A stable release follows this order:
 6. Sign `v0.3.3` at the reviewed tag commit.
 7. Resolve the tracked `releaseCommit: null` self-reference to that tag SHA in release assets, then build GitHub Release, npm, and website from the same tag.
 
-Stable Base Sepolia deployment is blocked until a new Safe address is supplied. Previously disclosed secrets are permanently treated as compromised and are not reused.
+The v0.3.3 Base Sepolia demo uses a newly deployed Safe for both independently modeled `admin` and `treasury` fields. Previously disclosed secrets were not reused.
 
 See [RELEASE.md](RELEASE.md), [docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md), and [docs/data-room/INDEX.md](docs/data-room/INDEX.md).
 

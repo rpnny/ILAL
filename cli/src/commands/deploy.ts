@@ -1,6 +1,6 @@
 import { execFileSync } from "child_process";
-import { existsSync } from "fs";
-import { resolve } from "path";
+import { existsSync, readFileSync } from "fs";
+import { basename, join, resolve } from "path";
 import { isAddress } from "viem";
 import { isHex } from "viem";
 import { base, baseSepolia } from "viem/chains";
@@ -17,6 +17,41 @@ const RPC_URLS: Record<string, string> = {
   "8453":  "https://mainnet.base.org",
   "84532": "https://sepolia.base.org",
 };
+
+const ATTESTATION_CREATED_TOPIC = "0x63f86f3e95d67d75fed996a7db68f9e7eabf0600abbd54fccabf34ec3b5fa4a7";
+
+type BroadcastArtifact = {
+  receipts?: Array<{
+    status?: string;
+    logs?: Array<{ topics?: string[] }>;
+  }>;
+};
+
+/**
+ * Return the attestation UID from the mined broadcast receipt. Forge's simulated
+ * console output is not authoritative when a mock UID includes block.timestamp.
+ */
+export function attestationUidFromBroadcast(artifact: unknown): `0x${string}` | undefined {
+  const receipts = (artifact as BroadcastArtifact | null)?.receipts;
+  if (!Array.isArray(receipts)) return undefined;
+
+  for (const receipt of receipts) {
+    if (receipt.status !== "0x1" || !Array.isArray(receipt.logs)) continue;
+    for (const entry of receipt.logs) {
+      const [topic0, uid] = entry.topics ?? [];
+      if (topic0?.toLowerCase() === ATTESTATION_CREATED_TOPIC && /^0x[0-9a-fA-F]{64}$/.test(uid ?? "")) {
+        return uid as `0x${string}`;
+      }
+    }
+  }
+  return undefined;
+}
+
+function readBroadcastAttestationUid(contractsDir: string, script: string, chainId: string): `0x${string}` | undefined {
+  const artifactPath = join(contractsDir, "broadcast", basename(script), chainId, "run-latest.json");
+  if (!existsSync(artifactPath)) return undefined;
+  return attestationUidFromBroadcast(JSON.parse(readFileSync(artifactPath, "utf8")));
+}
 
 export async function deploy(opts: {
   chain: string;
@@ -149,6 +184,11 @@ export async function deploy(opts: {
     console.log();
     log.ok(fmt.bold(fmt.green("Deployment complete")));
     if (opts.broadcast) {
+      if (isMock) {
+        const uid = readBroadcastAttestationUid(contractsDir, script, chainId);
+        if (uid) log.kv("mined attestation UID", uid);
+        else log.warn("No mined AttestationCreated event was found in the broadcast artifact; do not rely on a simulated UID.");
+      }
       log.step("Update your CLI commands with the deployed addresses:");
       console.log(`  ${fmt.gray("ilal pool policy set --registry <PolicyRegistry> --issuer <CNFIssuer> ...")}`);
     }

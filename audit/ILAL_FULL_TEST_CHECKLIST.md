@@ -1,6 +1,6 @@
 # ILAL Full Product & Security Test Checklist
 
-> Status notice (2026-07-22): there is no active public deployment. References to the former Base Sepolia demo are historical; run them only after a new Safe-controlled deployment manifest is activated.
+> Status notice (2026-07-22): v0.3.3 has an active Safe-controlled Base Sepolia demo manifest. References to v0.3.2 remain historical and must not be reused.
 
 Version: v0.2.x  
 Network: Base Sepolia / local fork  

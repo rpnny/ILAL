@@ -2,9 +2,9 @@
 
 ## Current gate
 
-The local software is `0.3.3-rc.3`. There is no active deployment and no public end-to-end demo today. npm `0.3.2` is deprecated; `0.2.21` is a legacy old-ABI release. The archived v0.3.2 Base Sepolia addresses must not be used for authorization or copied into a demo.
+The software is `0.3.3` and the Safe-controlled Base Sepolia demo is active. npm `0.3.2` is deprecated; `0.2.21` is a legacy old-ABI release. The archived v0.3.2 addresses must not be used or copied into a demo.
 
-Before a live Demo Day run, complete the stable deployment gate with a newly supplied Base Sepolia Safe, fresh encrypted deployer, independent `ADMIN`/`TREASURY` manifest fields, full role handoff, verified code hashes, funded pool, positive/negative swap evidence, and updated active preset.
+The active manifest records the Safe, independent `ADMIN`/`TREASURY` fields, role handoff, code hashes, funded pool, and positive/negative swap evidence. This remains a MockEAS, unaudited, non-production testnet demo.
 
 ## Local source verification
 
@@ -12,12 +12,12 @@ Before a live Demo Day run, complete the stable deployment gate with a newly sup
 make verify
 
 cd cli
-node dist/index.js --version     # 0.3.3-rc.3
-node dist/index.js init          # network settings only; no stale addresses
+node dist/index.js --version     # 0.3.3
+node dist/index.js init          # selects the v0.3.3 Base Sepolia preset
 node dist/index.js demo --commands
 ```
 
-`demo --commands` is a presentation preview, not proof of an active chain deployment.
+`demo --commands` is a presentation preview; the versioned manifest and explorer transactions are the chain evidence.
 
 ## Deployment rehearsal
 
@@ -53,9 +53,7 @@ node cli/dist/index.js \
 
 Review the JSON target, calldata, value, operation, nonce, threshold, owners, and Safe transaction hash. Offline proposal is the default; execution and additional confirmations remain in the Safe workflow.
 
-## Demo sequence after activation
-
-Only after the deployment manifest becomes active:
+## Demo sequence
 
 1. `ilal init` selects the new manifest.
 2. Show the release status: Base Sepolia demo, MockEAS, ZK experimental/disabled, unaudited, not production-ready.

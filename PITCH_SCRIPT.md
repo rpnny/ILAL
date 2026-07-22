@@ -216,11 +216,11 @@ Over time, ILAL becomes the place where verified flow knows which liquidity it i
 
 We are early, but we ship.
 
-The v0.3.3 software is a release candidate; the previous Base Sepolia stack is archived and deprecated, and the Safe-controlled replacement is not yet active.
+The v0.3.3 software is stable and the Safe-controlled Base Sepolia demo is active; the previous stack remains archived and deprecated. The demo is unaudited and not production-ready.
 
 We deployed CNFIssuer, ComplianceHook, PolicyRegistry, ILALRouter, demo tokens, and a Uniswap v4 dynamic-fee pool.
 
-The current source is `@ilalv3/cli@0.3.3-rc.3`. npm `0.3.2` is deprecated and must not be presented as an active deployment client.
+The current source and stable package are `@ilalv3/cli@0.3.3`. npm `0.3.2` is deprecated and must not be presented as an active deployment client.
 
 The SDK is published as `@ilalv3/sdk`.
 

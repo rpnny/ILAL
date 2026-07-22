@@ -1,6 +1,6 @@
 # ILAL Enterprise Cybersecurity Test Plan
 
-> Status notice (2026-07-22): the v0.3.2 Base Sepolia deployment referenced in historical test cases is deprecated and must not be treated as active. Execute chain scenarios only against a newly approved manifest; otherwise use deterministic local Anvil tests.
+> Status notice (2026-07-22): the v0.2/v0.3.2 Base Sepolia deployments referenced in historical test cases are deprecated. Execute chain scenarios against the active v0.3.3 manifest or use deterministic local Anvil tests.
 
 Date: 2026-07-08  
 Scope: Base Sepolia controlled PoC, local fork, and CLI/SDK integration  

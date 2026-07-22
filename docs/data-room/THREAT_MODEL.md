@@ -22,12 +22,12 @@ The configured PoolManager, immutable Router/Hook bindings, credential or policy
 | EOA signature malleability | 65-byte, low-s, recovery-id validation | Wallet implementation risk |
 | Contract-wallet signature rejection/bypass | On-chain ERC-1271 `isValidSignature` | Wallet-specific semantics require integration tests |
 | Swap/LP price bounds omitted | CLI requires output/spend/receipt bounds | Low-level integrations can choose unsafe bounds |
-| Admin key compromise | Safe proposal path and release role verification | Safe address/owners not yet supplied for v0.3.3 |
+| Admin key compromise | Safe proposal path and release role verification | v0.3.3 demo uses a new Safe; production threshold/governance remains pending |
 | RPC account mismatch | Chain and `eth_accounts` capability checks | RPC-managed signing remains operator trust |
 | Malicious Safe proposal | Offline JSON shows full fields; on-chain hash comparison | Owners must independently review calldata |
 | Supply-chain substitution | Pinned contract deps, lockfiles, SHA-pinned Actions, SBOM/checksums plan | Toolchain dependencies remain a review surface |
 | ZK toxic waste or witness disclosure | No witness publication; provenance hashes and non-production ceremony label | Current setup is not production ceremony |
-| Stale deployment copied by users | No active preset; v0.3.2 explicitly deprecated | Historical third-party copies cannot be revoked |
+| Stale deployment copied by users | Only v0.3.3 is active; v0.3.2 explicitly deprecated | Historical third-party copies cannot be revoked |
 
 ## Out of scope for v0.3.3
 

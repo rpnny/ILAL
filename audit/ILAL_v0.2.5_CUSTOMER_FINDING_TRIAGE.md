@@ -1,6 +1,6 @@
 # ILAL v0.2.5 Customer Finding Triage
 
-> Historical evidence notice (2026-07-22): addresses and “current deployment” statements below refer to a deprecated test stack. Use the versioned deployment index for current status; it presently contains no active deployment.
+> Historical evidence notice (2026-07-22): addresses and “current deployment” statements below refer to a deprecated test stack. Use the versioned deployment index for the active v0.3.3 Base Sepolia demo.
 
 Date: 2026-05-25  
 Scope checked: `/Users/ronny/ilal/contracts/src` current v0.2.5 contracts  
