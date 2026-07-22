@@ -3,6 +3,12 @@ name: release candidate
 on:
   push:
     tags: ["v*-rc.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing signed RC tag to publish
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -14,18 +20,37 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@1e60f620b9541dca1515400b05c3b78521a866c
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: "24.13.0"
+      - name: Resolve release identity
+        id: release
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: |
+          tag="${REQUESTED_TAG:-$GITHUB_REF_NAME}"
+          case "$tag" in
+            v*-rc.*) ;;
+            *) echo "Not an RC tag: $tag" >&2; exit 1 ;;
+          esac
+          tag_commit="$(git rev-parse "refs/tags/$tag^{commit}")"
+          checkout_commit="$(git rev-parse HEAD)"
+          test "$checkout_commit" = "$tag_commit"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "release_commit=$tag_commit" >> "$GITHUB_OUTPUT"
       - name: Validate tag and release manifest
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.release.outputs.tag }}
         run: |
           node -e 'const fs=require("fs"); const tag=process.env.TAG; const pkg=require("./cli/package.json"); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); if (tag !== `v${pkg.version}` || release.npmPublication !== "not published" || release.releaseCommit !== null || !/^[0-9a-f]{40}$/.test(release.sourceCommit)) process.exit(1)'
       - name: Build prerelease assets
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_COMMIT: ${{ steps.release.outputs.release_commit }}
         run: |
           mkdir -p artifacts
-          node -e 'const fs=require("fs"); const path=`releases/${process.env.GITHUB_REF_NAME}.json`; const value=JSON.parse(fs.readFileSync(path)); value.releaseCommit=process.env.GITHUB_SHA; fs.writeFileSync(`artifacts/${process.env.GITHUB_REF_NAME}.json`, JSON.stringify(value,null,2)+"\n")'
+          node -e 'const fs=require("fs"); const tag=process.env.TAG; const path=`releases/${tag}.json`; const value=JSON.parse(fs.readFileSync(path)); value.releaseCommit=process.env.RELEASE_COMMIT; fs.writeFileSync(`artifacts/${tag}.json`, JSON.stringify(value,null,2)+"\n")'
           cp proving-artifacts/PROVENANCE.json artifacts/
           cp THIRD_PARTY_LICENSES.md artifacts/
           npm ci --prefix cli
@@ -38,4 +63,5 @@ jobs:
       - name: Create GitHub prerelease
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" artifacts/* --prerelease --verify-tag --title "$GITHUB_REF_NAME" --notes-file RELEASE.md
+          TAG: ${{ steps.release.outputs.tag }}
+        run: gh release create "$TAG" artifacts/* --prerelease --verify-tag --title "$TAG" --notes-file RELEASE.md
