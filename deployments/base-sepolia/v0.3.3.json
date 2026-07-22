@@ -147,6 +147,20 @@
   },
   "sourceTreeHash": "0xf590f0c205db563eadb58b6e84dc0560cc713e49d8b7b896af48d609c5904fd9",
   "sourceTreeHashAlgorithm": "sha256(git archive of contracts/src, contracts/script, contracts/foundry.toml, contracts/scripts/install-deps.sh)",
+  "sourceVerification": {
+    "verifier": "Sourcify",
+    "verifiedAt": "2026-07-22",
+    "status": "exact_match",
+    "jobs": {
+      "mockTokenA": "cb0a3f89-8310-40c9-b24e-78d0a6ce7a09",
+      "mockTokenB": "342d43ee-aa74-4a72-855e-496beea882ce",
+      "router": "f8d54266-808e-44af-becd-1629ecadd448",
+      "policyRegistry": "dbd5f79e-040f-47d6-b058-458e04603e55",
+      "mockEAS": "12552f09-e52c-483f-bb64-c53b595f463d",
+      "cnfIssuer": "82a42190-181d-430c-b998-4a30dbe00b00",
+      "complianceHook": "c0880377-cc0a-46c9-82d9-47964df0ec2b"
+    }
+  },
   "privilegedRoles": [
     {
       "capability": "policy manager / owner",

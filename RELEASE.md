@@ -48,7 +48,7 @@ RC publication does not authorize deployment, npm publication, website activatio
 ## Remaining production blockers
 
 - The Base Sepolia demo Safe is live; `admin` and `treasury` remain separate manifest fields even though this demo shares one address.
-- Fresh encrypted deployment, role handoff, positive/negative swaps, and code hashes are recorded in the v0.3.3 manifest.
+- Fresh encrypted deployment, role handoff, positive/negative swaps, code hashes, and Sourcify exact-match verification are recorded in the v0.3.3 manifest.
 - Production use still requires independent audit, production attestation/proving, hardened governance and monitoring.
 - npm Trusted Publisher and GitHub protected-environment configuration must be verified before revoking old automation credentials.
 - Production remains blocked by independent audit, production ceremony/proving review, governance, monitoring, real attestation integration, incorporation/IP assignment, and customer/legal evidence.

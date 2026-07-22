@@ -15,7 +15,7 @@ ILAL is an experimental Uniswap v4 access layer that combines compliance credent
 | Production readiness | Not production-ready |
 | Audit | Unaudited |
 
-The active addresses and transaction evidence are in `deployments/base-sepolia/v0.3.3.json`. The old v0.3.2 addresses remain as historical evidence only; their owner signer was exposed and they are never selected by the CLI.
+The active addresses, transactions, bytecode hashes, and Sourcify exact-match source verification are in `deployments/base-sepolia/v0.3.3.json`. The old v0.3.2 addresses remain as historical evidence only; their owner signer was exposed and they are never selected by the CLI.
 
 ## What is implemented
 
