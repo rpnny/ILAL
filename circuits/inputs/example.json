@@ -1,0 +1,48 @@
+{
+  "_comment": "Example witness input for the ILAL circuit. Generate real inputs with: npx tsx oracle/generate_witness.ts",
+  "_placeholders": {
+    "walletField":  "YOUR_WALLET_ADDRESS as decimal BigInt (e.g. uint160(0xYourAddr))",
+    "issuerHash":   "Poseidon([uint160(CNFIssuer_address), 0]) — computed by generate_witness.ts",
+    "schemaHash":   "Poseidon([schemaUID_lo, schemaUID_hi])   — computed by generate_witness.ts",
+    "merkleRoot":   "output of build_tree.ts, queued via proposeMerkleRoot then activated after ROOT_DELAY"
+  },
+  "walletField": "1234567890123456789012345678901234567890",
+  "walletBits": [
+    "0","1","0","1","0","1","0","1",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0"
+  ],
+  "kycLevel": "2",
+  "countryCode": "840",
+  "merklePathElements": [
+    "0","0","0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0","0","0"
+  ],
+  "merklePathIndices": [
+    "0","0","0","0","0","0","0","0","0","0",
+    "0","0","0","0","0","0","0","0","0","0"
+  ],
+  "walletHash":  "COMPUTED_BY_CIRCUIT_from_walletBits",
+  "issuerHash":  "FILL_FROM_DEPLOYMENT",
+  "schemaHash":  "FILL_FROM_DEPLOYMENT",
+  "expiresAt":   "1800000000",
+  "revealFlags": "0",
+  "merkleRoot":  "FILL_FROM_build_tree_output"
+}

@@ -1,14 +1,14 @@
 import {
   createPublicClient,
-  createWalletClient,
   http,
   isAddress,
   isHex,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, header, Spinner, die, requirePrivateKey } from "../ui.js";
+import { fmt, log, header, Spinner, die } from "../ui.js";
+import { createExecutionClients } from "../signer.js";
+import { proposeConfiguredSafeContractCall } from "../safe.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -56,21 +56,29 @@ export async function poolPolicySet(opts: {
   rpc?: string;
   privateKey?: string;
 }) {
-  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
   if (!isAddress(opts.registry)) die(`Invalid registry address: ${opts.registry}`);
   if (!isHex(opts.pool) || opts.pool.length !== 66) die("poolId must be 0x + 32 bytes.");
   if (!isHex(opts.credType) || opts.credType.length !== 66) die("credType must be 0x + 32 bytes.");
 
   const chain = CHAINS[opts.chain] ?? baseSepolia;
-  const account = privateKeyToAccount(rawKey);
-  const transport = opts.rpc ? http(opts.rpc) : http();
-  const publicClient = createPublicClient({ chain, transport });
-  const walletClient = createWalletClient({ account, chain, transport });
+  if (await proposeConfiguredSafeContractCall({
+    chain,
+    rpc: opts.rpc,
+    address: opts.registry as `0x${string}`,
+    abi: REGISTRY_ABI,
+    functionName: "setPolicy",
+    args: [opts.pool as `0x${string}`, opts.issuer as `0x${string}`, opts.credType as `0x${string}`],
+  })) return;
+  const { account, address, publicClient, walletClient } = await createExecutionClients({
+    chain,
+    rpc: opts.rpc,
+    legacyPrivateKey: opts.privateKey,
+  });
 
   header("Pool Policy Set", chain.name);
   log.section("Request");
-  log.kv("operator", fmt.addr(account.address));
+  log.kv("operator", fmt.addr(address));
   log.kv("registry", fmt.addr(opts.registry));
   log.kv("pool", fmt.hash(opts.pool));
   log.kv("issuer", fmt.addr(opts.issuer));

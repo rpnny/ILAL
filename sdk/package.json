@@ -1,0 +1,55 @@
+{
+  "name": "@ilalv3/sdk",
+  "version": "0.2.0",
+  "description": "ILAL Protocol SDK — session signing and hookData encoding for Uniswap v4 compliance pools",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "uniswap",
+    "uniswap-v4",
+    "hook",
+    "compliance",
+    "kyc",
+    "zk-proof",
+    "session",
+    "eip712",
+    "defi",
+    "rwa"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rpnny/ilal",
+    "directory": "sdk"
+  },
+  "homepage": "https://github.com/rpnny/ilal/tree/main/sdk#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc",
+    "test": "vitest run src"
+  },
+  "dependencies": {
+    "viem": "^2.52.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "ws": "^8.21.0"
+  }
+}

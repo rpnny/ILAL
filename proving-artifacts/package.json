@@ -1,0 +1,17 @@
+{
+  "name": "@ilalv3/proving-artifacts",
+  "version": "0.1.0",
+  "description": "Hosted Groth16 proving artifacts for ILAL credential proofs",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rpnny/ilal",
+    "directory": "proving-artifacts"
+  },
+  "files": [
+    "ilal.zkey",
+    "ilal_vkey.json",
+    "ilal_js"
+  ]
+}

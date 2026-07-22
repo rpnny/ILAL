@@ -1,0 +1,55 @@
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@1e60f620b9541dca1515400b05c3b78521a866c
+        with:
+          node-version: "24.13.0"
+          cache: npm
+          cache-dependency-path: |
+            cli/package-lock.json
+            sdk/package-lock.json
+            circuits/package-lock.json
+      - uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
+        with:
+          version: v1.5.1
+      - name: Install JavaScript dependencies
+        run: |
+          npm ci --prefix cli
+          npm ci --prefix sdk
+          npm ci --prefix circuits
+      - name: Install pinned contract dependencies
+        run: contracts/scripts/install-deps.sh
+      - name: Install circom 2.2.3
+        run: cargo install --locked --git https://github.com/iden3/circom --tag v2.2.3 --root "$RUNNER_TEMP/circom" circom
+      - name: Verify repository
+        run: |
+          mkdir -p artifacts
+          PATH="$RUNNER_TEMP/circom/bin:$PATH" make verify 2>&1 | tee artifacts/verify.log
+          node scripts/summarize-tests.mjs artifacts/verify.log artifacts/test-summary.json
+      - name: Generate SBOMs
+        run: |
+          cd cli && npm sbom --sbom-format cyclonedx > ../artifacts/cli.cdx.json
+          cd ../sdk && npm sbom --sbom-format cyclonedx > ../artifacts/sdk.cdx.json
+          cd ../circuits && npm sbom --sbom-format cyclonedx > ../artifacts/circuits.cdx.json
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        with:
+          name: verification-evidence
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30

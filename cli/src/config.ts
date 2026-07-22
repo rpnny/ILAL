@@ -11,9 +11,11 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 
 export interface ILALConfig {
+  protocolVersion?: string;   // "1" (CNF) or "2" (policy grant)
   issuer?:      string;   // CNFIssuer address
   hook?:        string;   // ComplianceHook address
   registry?:    string;   // PolicyRegistry address
+  grantManager?: string;  // PolicyGrantManagerV2 address
   router?:      string;   // ILALRouter address
   treasury?:    string;   // ILAL protocol fee receiver
   tokenA?:      string;   // Default currency0 token address
@@ -63,9 +65,11 @@ export function loadConfig(): ILALConfig {
 
   // Overlay env vars
   _config = {
+    protocolVersion: process.env["ILAL_PROTOCOL_VERSION"] ?? fileConfig.protocolVersion,
     issuer:     process.env["ILAL_ISSUER"]      ?? fileConfig.issuer,
     hook:       process.env["ILAL_HOOK"]        ?? fileConfig.hook,
     registry:   process.env["ILAL_REGISTRY"]    ?? fileConfig.registry,
+    grantManager: process.env["ILAL_GRANT_MANAGER"] ?? fileConfig.grantManager,
     router:     process.env["ILAL_ROUTER"]      ?? fileConfig.router,
     treasury:   process.env["ILAL_TREASURY"]    ?? fileConfig.treasury,
     tokenA:     process.env["ILAL_TOKEN_A"]     ?? fileConfig.tokenA,

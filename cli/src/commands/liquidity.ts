@@ -10,26 +10,25 @@
  *   ilal pool add-liquidity \
  *     --tick-lower -600 --tick-upper 600 \
  *     --liquidity  1000000000000 \
+ *     --max-amount-0 1000000000000000000 \
+ *     --max-amount-1 1000000000000000000 \
  *     --router 0xROUTER --hook 0xHOOK --issuer 0xISSUER \
  *     --pool-id 0xPOOLID --token-a 0xTOKA --token-b 0xTOKB
  */
 
 import {
-  createPublicClient,
-  createWalletClient,
-  encodeAbiParameters,
   formatEther,
   formatUnits,
-  http,
   isAddress,
   isHex,
-  parseAbiParameters,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, header, Spinner, die, dieOnContract, requirePrivateKey } from "../ui.js";
+import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
 import { withConfig } from "../config.js";
+import { protocolVersion, signSessionAuthorization } from "../sessionProtocol.js";
+import { readEligibilityPolicyV2 } from "./policyV2.js";
+import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -68,6 +67,8 @@ const ROUTER_LIQUIDITY_ABI = [
         { name: "liquidityDelta", type: "int256" as const  },
         { name: "salt",           type: "bytes32" as const },
       ]},
+      { name: "maxAmount0", type: "uint256" as const },
+      { name: "maxAmount1", type: "uint256" as const },
       { name: "hookData", type: "bytes" as const },
     ],
     outputs: [
@@ -91,6 +92,8 @@ const ROUTER_LIQUIDITY_ABI = [
         { name: "liquidityDelta", type: "int256" as const  },
         { name: "salt",           type: "bytes32" as const },
       ]},
+      { name: "minAmount0", type: "uint256" as const },
+      { name: "minAmount1", type: "uint256" as const },
       { name: "hookData", type: "bytes" as const },
     ],
     outputs: [
@@ -102,22 +105,16 @@ const ROUTER_LIQUIDITY_ABI = [
 
 // ─── Session helpers ──────────────────────────────────────────────────────────
 
-const SESSION_TOKEN_TYPE = [
-  { name: "user",          type: "address" },
-  { name: "authorizedCaller", type: "address" },
-  { name: "cnfIssuer",     type: "address" },
-  { name: "chainId",       type: "uint256" },
-  { name: "verifyingHook", type: "address" },
-  { name: "poolId",        type: "bytes32" },
-  { name: "action",        type: "uint8"   },
-  { name: "deadline",      type: "uint64"  },
-  { name: "nonce",         type: "bytes32" },
-] as const;
-
-const HOOK_DATA_ABI = parseAbiParameters([
-  "(address user, address authorizedCaller, address cnfIssuer, uint256 chainId, address verifyingHook, bytes32 poolId, uint8 action, uint64 deadline, bytes32 nonce) token",
-  "bytes signature",
-]);
+const GRANT_MANAGER_V2_ABI = [{
+  name: "isPolicyGrantValid",
+  type: "function" as const,
+  stateMutability: "view" as const,
+  inputs: [
+    { name: "poolId", type: "bytes32" as const },
+    { name: "user", type: "address" as const },
+  ],
+  outputs: [{ type: "bool" as const }],
+}] as const;
 
 function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
   const baseUrl = chain.blockExplorers?.default?.url;
@@ -164,6 +161,9 @@ async function executeLiquidity(
     router?:     string;
     hook?:       string;
     issuer?:     string;
+    registry?:   string;
+    grantManager?: string;
+    protocolVersion?: string;
     tokenA?:     string;
     tokenB?:     string;
     fee?:        string;
@@ -172,18 +172,53 @@ async function executeLiquidity(
     rpc?:        string;
     privateKey?: string;
     ttl?:        string;
+    maxAmount0?: string;
+    maxAmount1?: string;
+    minAmount0?: string;
+    minAmount1?: string;
+    unsafeNoAmountLimits?: boolean;
   }
 ) {
   const cfg    = withConfig(opts);
-  const rawKey = requirePrivateKey(cfg.privateKey ?? process.env["PRIVATE_KEY"]);
+  let version: "1" | "2";
+  try {
+    version = protocolVersion(cfg.protocolVersion);
+  } catch (error) {
+    die(error instanceof Error ? error.message : String(error));
+  }
+  const unsafeNoAmountLimits = opts.unsafeNoAmountLimits ?? false;
+  const rawAmount0Limit = action === "add" ? opts.maxAmount0 : opts.minAmount0;
+  const rawAmount1Limit = action === "add" ? opts.maxAmount1 : opts.minAmount1;
+  if (!unsafeNoAmountLimits && (rawAmount0Limit === undefined || rawAmount1Limit === undefined)) {
+    die(
+      action === "add"
+        ? "Live add-liquidity requires --max-amount-0 and --max-amount-1 (raw units). Use --unsafe-no-amount-limits only for test environments."
+        : "Live remove-liquidity requires --min-amount-0 and --min-amount-1 (raw units). Use --unsafe-no-amount-limits only for test environments."
+    );
+  }
+  const amount0Limit = unsafeNoAmountLimits
+    ? (action === "add" ? MAX_UINT256 : 0n)
+    : BigInt(rawAmount0Limit!);
+  const amount1Limit = unsafeNoAmountLimits
+    ? (action === "add" ? MAX_UINT256 : 0n)
+    : BigInt(rawAmount1Limit!);
+  if (amount0Limit < 0n || amount1Limit < 0n) die("Liquidity amount limits cannot be negative");
+  if (!unsafeNoAmountLimits && amount0Limit === 0n && amount1Limit === 0n) {
+    die("At least one liquidity amount limit must be greater than zero");
+  }
+
   if (!cfg.router)   die("ILALRouter address required. Use --router or set in .ilal.json");
   if (!cfg.hook)     die("ComplianceHook address required. Use --hook or set in .ilal.json");
-  if (!cfg.issuer)   die("CNFIssuer address required. Use --issuer or set in .ilal.json");
+  if (version === "1" && !cfg.issuer) die("CNFIssuer address required. Use --issuer or set in .ilal.json");
+  if (version === "2" && !cfg.registry) die("EligibilityPolicyRegistryV2 address required. Set registry in .ilal.json");
+  if (version === "2" && !cfg.grantManager) die("PolicyGrantManagerV2 address required. Set grantManager in .ilal.json");
   if (!cfg.poolId)   die("Pool ID required. Use --pool-id or set in .ilal.json");
 
   if (!isAddress(cfg.router!)) die(`Invalid router address: ${cfg.router}`);
   if (!isAddress(cfg.hook!))   die(`Invalid hook address: ${cfg.hook}`);
-  if (!isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
+  if (version === "1" && !isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
+  if (version === "2" && !isAddress(cfg.registry!)) die(`Invalid v2 registry address: ${cfg.registry}`);
+  if (version === "2" && !isAddress(cfg.grantManager!)) die(`Invalid v2 grant manager address: ${cfg.grantManager}`);
   if (!isHex(cfg.poolId!) || cfg.poolId!.length !== 66) die("poolId must be 0x + 64 hex chars");
 
   const tokenA = (cfg.tokenA ?? opts.tokenA) as `0x${string}` | undefined;
@@ -191,10 +226,11 @@ async function executeLiquidity(
   if (!tokenA || !tokenB) die("Token addresses required. Use --token-a/--token-b or set in .ilal.json");
 
   const chain     = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const account   = privateKeyToAccount(rawKey);
-  const transport = cfg.rpc ? http(cfg.rpc) : http();
-  const pubClient = createPublicClient({ chain, transport });
-  const walClient = createWalletClient({ account, chain, transport });
+  const { account, publicClient: pubClient, walletClient: walClient } = await createExecutionClients({
+    chain,
+    rpc: cfg.rpc,
+    legacyPrivateKey: cfg.privateKey,
+  });
 
   // Ensure currency0 < currency1
   const c0 = tokenA.toLowerCase() < tokenB.toLowerCase() ? tokenA : tokenB;
@@ -212,9 +248,16 @@ async function executeLiquidity(
   log.kv("router",      fmt.cyan(cfg.router!));
   log.kv("hook",        fmt.cyan(cfg.hook!));
   log.kv("pool",        fmt.gray(cfg.poolId!.slice(0, 18) + "…"));
+  log.kv("protocol",    `v${version}`);
   log.kv("tickLower",   tickLower.toString());
   log.kv("tickUpper",   tickUpper.toString());
   log.kv("liquidity",   liquidity.toString());
+  log.kv(
+    action === "add" ? "max token spend" : "min token receive",
+    unsafeNoAmountLimits
+      ? fmt.yellow("disabled (unsafe test mode)")
+      : `${amount0Limit.toString()} / ${amount1Limit.toString()} raw`
+  );
   log.kv("salt",        opts.salt ? fmt.hash(salt) : `${fmt.hash(salt)} ${fmt.gray("user-scoped default")}`);
   log.line();
 
@@ -223,12 +266,7 @@ async function executeLiquidity(
   }
 
   const preflightSpin = new Spinner("Running preflight checks…").start();
-  const [root, verifier, eas, valid, tokenId, sym0, sym1, dec0, dec1, bal0, bal1] = await Promise.all([
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [account.address] }) as Promise<boolean>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [account.address] }) as Promise<bigint>,
+  const [sym0, sym1, dec0, dec1, bal0, bal1] = await Promise.all([
     pubClient.readContract({ address: c0, abi: ERC20_ABI, functionName: "symbol" }) as Promise<string>,
     pubClient.readContract({ address: c1, abi: ERC20_ABI, functionName: "symbol" }) as Promise<string>,
     pubClient.readContract({ address: c0, abi: ERC20_ABI, functionName: "decimals" }) as Promise<number>,
@@ -236,30 +274,70 @@ async function executeLiquidity(
     pubClient.readContract({ address: c0, abi: ERC20_ABI, functionName: "balanceOf", args: [account.address] }) as Promise<bigint>,
     pubClient.readContract({ address: c1, abi: ERC20_ABI, functionName: "balanceOf", args: [account.address] }) as Promise<bigint>,
   ]);
+  const preflightErrors: string[] = [];
+  let accessValid = action === "remove";
+  let accessDescription = action === "remove" ? "Exit-only removal permitted without current eligibility" : "";
+  let policyHash: bigint | undefined;
+  let policyRevision: bigint | undefined;
+
+  if (version === "1") {
+    const [root, verifier, eas, valid, tokenId] = await Promise.all([
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [account.address] }) as Promise<boolean>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [account.address] }) as Promise<bigint>,
+    ]);
+    if (action === "add") {
+      accessValid = tokenId !== 0n && valid;
+      accessDescription = accessValid ? `CNF credential token #${tokenId.toString()}` : "CNF credential missing or invalid";
+      const hasEASPath = eas !== ZERO_ADDRESS;
+      const hasZKPath = verifier !== ZERO_ADDRESS && root !== 0n;
+      if (tokenId === 0n) {
+        preflightErrors.push("wallet has no CNF credential; mint one before changing liquidity.");
+        if (hasEASPath) preflightErrors.push("first ask the issuer to attest, then run `ilal credential mint --attestation <uid>`.");
+        else if (hasZKPath) preflightErrors.push(`run \`ilal credential prove --wallet ${account.address}\`.`);
+        else preflightErrors.push("issuer has no active EAS or ZK issuance path.");
+      } else if (!valid) {
+        preflightErrors.push("wallet CNF credential exists but is not valid.");
+      }
+    }
+  } else {
+    const policy = await readEligibilityPolicyV2(
+      pubClient,
+      cfg.registry as `0x${string}`,
+      cfg.poolId as `0x${string}`
+    );
+    policyHash = policy.policyHash;
+    policyRevision = policy.revision;
+    if (action === "add") {
+      const grantValid = await pubClient.readContract({
+        address: cfg.grantManager as `0x${string}`,
+        abi: GRANT_MANAGER_V2_ABI,
+        functionName: "isPolicyGrantValid",
+        args: [cfg.poolId as `0x${string}`, account.address],
+      }) as boolean;
+      accessValid = policy.enabled && policy.revision > 0n && grantValid;
+      accessDescription = accessValid
+        ? `Policy grant valid (revision ${policy.revision.toString()})`
+        : "Policy grant missing, expired, revoked, or stale";
+      if (!policy.enabled || policy.revision === 0n) preflightErrors.push("pool eligibility policy is not enabled.");
+      else if (!grantValid) preflightErrors.push("wallet has no current v2 policy grant; activate one before adding liquidity.");
+    }
+  }
   preflightSpin.stop();
 
-  const preflightErrors: string[] = [];
-  const hasEASPath = eas !== ZERO_ADDRESS;
-  const hasZKPath = verifier !== ZERO_ADDRESS && root !== 0n;
-  if (action === "add" && tokenId === 0n) {
-    preflightErrors.push("wallet has no CNF credential; mint one before changing liquidity.");
-    if (hasEASPath) preflightErrors.push("issuer supports EAS attestation minting: first ask issuer to run `ilal issuer attest --wallet <wallet>`, then run `ilal credential mint --attestation <uid>`.");
-    else if (hasZKPath) preflightErrors.push(`issuer supports ZK minting: run \`ilal credential prove --wallet ${account.address}\`.`);
-    else preflightErrors.push("issuer has no active issuance path: EAS is unset and ZK verifier/root are not both configured.");
-  }
-  else if (action === "add" && !valid) preflightErrors.push("wallet CNF credential exists but is not valid.");
-  if (action === "add" && (bal0 === 0n || bal1 === 0n)) {
+  if (action === "add" && ((amount0Limit > 0n && bal0 === 0n) || (amount1Limit > 0n && bal1 === 0n))) {
     preflightErrors.push(`token balances are not ready for adding liquidity: ${sym0}=${tokenAmount(bal0, dec0, sym0)}, ${sym1}=${tokenAmount(bal1, dec1, sym1)}.`);
   }
 
   log.section("Preflight Checks");
-  if (tokenId !== 0n && valid) log.ok(`CNF credential token #${tokenId.toString()}`);
-  else if (action === "remove") log.ok("Exit-only removal permitted without a current CNF");
-  else log.fail("CNF credential missing or invalid");
-  log.ok(`Issuer config (${hasEASPath ? "EAS" : "no EAS"}${hasZKPath ? " + ZK" : ""})`);
-  if (action !== "add" || bal0 > 0n) log.ok(`${sym0} balance ${tokenAmount(bal0, dec0, sym0)}`);
+  if (accessValid) log.ok(accessDescription);
+  else log.fail(accessDescription);
+  if (version === "2") log.ok(`Policy ${policyHash!.toString()} at revision ${policyRevision!.toString()}`);
+  if (action !== "add" || amount0Limit === 0n || bal0 > 0n) log.ok(`${sym0} balance ${tokenAmount(bal0, dec0, sym0)}`);
   else log.fail(`${sym0} balance ${tokenAmount(bal0, dec0, sym0)}`);
-  if (action !== "add" || bal1 > 0n) log.ok(`${sym1} balance ${tokenAmount(bal1, dec1, sym1)}`);
+  if (action !== "add" || amount1Limit === 0n || bal1 > 0n) log.ok(`${sym1} balance ${tokenAmount(bal1, dec1, sym1)}`);
   else log.fail(`${sym1} balance ${tokenAmount(bal1, dec1, sym1)}`);
   log.ok(`Route bound to router ${fmt.addr(cfg.router!)} and hook ${fmt.addr(cfg.hook!)}`);
   log.line();
@@ -273,23 +351,28 @@ async function executeLiquidity(
 
   // Approve both tokens if adding liquidity
   if (action === "add") {
-    const MAX = MAX_UINT256;
-    for (const token of [c0, c1] as `0x${string}`[]) {
-      const sym = token.toLowerCase() === c0.toLowerCase() ? sym0 : sym1;
-      const decimals = token.toLowerCase() === c0.toLowerCase() ? dec0 : dec1;
+    const approvals = [
+      { token: c0, symbol: sym0, decimals: dec0, cap: unsafeNoAmountLimits ? bal0 : amount0Limit },
+      { token: c1, symbol: sym1, decimals: dec1, cap: unsafeNoAmountLimits ? bal1 : amount1Limit },
+    ] as const;
+    for (const { token, symbol: sym, decimals, cap } of approvals) {
+      if (cap === 0n) {
+        log.ok(`${sym} approval not required (maximum spend is zero)`);
+        continue;
+      }
       const allowed = await pubClient.readContract({
         address: token, abi: ERC20_ABI, functionName: "allowance",
         args: [account.address, cfg.router as `0x${string}`],
       }) as bigint;
 
-      if (allowed < MAX / 2n) {
+      if (allowed < cap) {
         const appSpin = new Spinner(`Approving ${sym}…`).start();
         const h = await walClient.writeContract({
           address: token, abi: ERC20_ABI, functionName: "approve",
-          args: [cfg.router as `0x${string}`, MAX],
+          args: [cfg.router as `0x${string}`, cap],
         });
         await pubClient.waitForTransactionReceipt({ hash: h });
-        appSpin.succeed(`Approved ${sym} ${fmt.gray(fmt.hash(h))}`);
+        appSpin.succeed(`Approval capped at ${tokenAmount(cap, decimals, sym)} ${fmt.gray(fmt.hash(h))}`);
       } else {
         log.ok(`${sym} allowance: ${allowanceLabel(allowed, decimals, sym)}`);
       }
@@ -298,49 +381,38 @@ async function executeLiquidity(
 
   // Sign session token
   const signSpin = new Spinner("Signing session token…").start();
-  const ttl      = parseInt(opts.ttl ?? "600");
-  const deadline = BigInt(Math.floor(Date.now() / 1000) + ttl);
-  const nonce    = `0x${Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("hex")}` as `0x${string}`;
+  const ttl = parseInt(opts.ttl ?? "600");
 
   // action: 2 = ADD_LIQUIDITY, 3 = REMOVE_LIQUIDITY
   const actionCode = action === "add" ? 2 : 3;
 
-  const token = {
-    user:          account.address as `0x${string}`,
-    authorizedCaller: cfg.router as `0x${string}`,
-    cnfIssuer:     cfg.issuer as `0x${string}`,
-    chainId:       BigInt(chain.id),
-    verifyingHook: cfg.hook as `0x${string}`,
-    poolId:        cfg.poolId as `0x${string}`,
-    action:        actionCode as 2 | 3,
-    deadline,
-    nonce,
-  };
-
-  const signature = await walClient.signTypedData({
+  const signed = await signSessionAuthorization({
+    walletClient: walClient,
     account,
-    domain: {
-      name:              "ILAL ComplianceHook",
-      version:           "1",
-      chainId:           BigInt(chain.id),
-      verifyingContract: cfg.hook as `0x${string}`,
-    },
-    types:       { SessionToken: SESSION_TOKEN_TYPE },
-    primaryType: "SessionToken",
-    message:     token,
+    version,
+    authorizedCaller: cfg.router as `0x${string}`,
+    issuer: cfg.issuer as `0x${string}` | undefined,
+    policyHash,
+    policyRevision,
+    chainId: BigInt(chain.id),
+    hook: cfg.hook as `0x${string}`,
+    poolId: cfg.poolId as `0x${string}`,
+    action: actionCode,
+    ttl,
   });
-
-  const hookData = encodeAbiParameters(HOOK_DATA_ABI, [token, signature]);
+  const hookData = signed.hookData;
   signSpin.succeed(`Session authorization signed (expires in ${ttl}s, one-time nonce)`);
   log.section("Gate Checks");
   log.kv(
-    "credential",
+    version === "2" ? "policy grant" : "credential",
     action === "add"
-      ? `${fmt.badge("required", "cyan")} issuer ${fmt.addr(cfg.issuer!)}`
-      : `${fmt.badge("exit-only", "green")} current CNF not required`
+      ? version === "2"
+        ? `${fmt.badge("required", "cyan")} revision ${policyRevision!.toString()}`
+        : `${fmt.badge("required", "cyan")} issuer ${fmt.addr(cfg.issuer!)}`
+      : `${fmt.badge("exit-only", "green")} current eligibility not required`
   );
   log.kv("caller", `${fmt.badge("bound", "green")} ${fmt.addr(cfg.router!)}`);
-  log.kv("nonce", `${fmt.badge("fresh", "green")} ${fmt.hash(nonce)}`);
+  log.kv("nonce", `${fmt.badge("fresh", "green")} ${fmt.hash(signed.token.nonce)}`);
   log.line();
 
   // Build PoolKey + params
@@ -362,7 +434,7 @@ async function executeLiquidity(
   let receipt: Awaited<ReturnType<typeof pubClient.waitForTransactionReceipt>> | undefined;
   try {
     const startMs = Date.now();
-    const baseArgs = [poolKey, liquidityParams, hookData] as const;
+    const baseArgs = [poolKey, liquidityParams, amount0Limit, amount1Limit, hookData] as const;
     txHash = await (action === "add"
       ? walClient.writeContract({ address: cfg.router as `0x${string}`, abi: ROUTER_LIQUIDITY_ABI, functionName: "addLiquidity",    args: baseArgs, value: 0n })
       : walClient.writeContract({ address: cfg.router as `0x${string}`, abi: ROUTER_LIQUIDITY_ABI, functionName: "removeLiquidity", args: baseArgs }));
@@ -420,6 +492,9 @@ export async function addLiquidity(opts: {
   rpc?:        string;
   privateKey?: string;
   ttl?:        string;
+  maxAmount0?: string;
+  maxAmount1?: string;
+  unsafeNoAmountLimits?: boolean;
 }) {
   await executeLiquidity("add", opts);
 }
@@ -441,6 +516,9 @@ export async function removeLiquidity(opts: {
   rpc?:        string;
   privateKey?: string;
   ttl?:        string;
+  minAmount0?: string;
+  minAmount1?: string;
+  unsafeNoAmountLimits?: boolean;
 }) {
   await executeLiquidity("remove", opts);
 }

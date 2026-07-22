@@ -1,6 +1,5 @@
 import {
   createPublicClient,
-  createWalletClient,
   decodeEventLog,
   formatUnits,
   http,
@@ -9,10 +8,10 @@ import {
   parseUnits,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { loadConfig } from "../config.js";
-import { die, fmt, header, log, Spinner, requirePrivateKey } from "../ui.js";
+import { die, fmt, header, log, Spinner } from "../ui.js";
+import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 const POOL_MANAGER: Record<string, `0x${string}`> = {
@@ -21,11 +20,11 @@ const POOL_MANAGER: Record<string, `0x${string}`> = {
 };
 
 const SAMPLE = {
-  wallet: "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
-  issuer: "0x33541301e35d33eDf554c4DFba1e04d04FCc52F4",
-  hook: "0x604f06000E7424E3AA432aB9378D4839Edeb8A80",
-  router: "0x805A7654bDCfF1286652de29D2aE906a87e2a912",
-  pool: "0xf3a6493827291a485652ae73e1ef5d673c2ad6f0e8df9ed0f54b3725fc42828e",
+  wallet: "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+  issuer: "0x7801b24B78f21819E0172a194A34C7C94e75782C",
+  hook: "0xF06977eB72d769662F786F107663887Eb1440a80",
+  router: "0x6C7A1E5AB19706691554529c62a6d4417F55868D",
+  pool: "0x162ba27d7d920b42bdb48a8caf62c8bef96143d73f1aa8d27e5460626e37fd27",
   proof: "0x91f2b8a0c43e902f7f1a8c0d",
   session: "0x6b84eac5e0db21f8d5d43b7a",
 };
@@ -157,7 +156,8 @@ export async function demo(opts: { commands?: boolean }) {
     log.command("ilal status --wallet <wallet>");
     log.command("ilal credential prove --wallet <wallet>");
     log.command("ilal session sign --pool <poolId> --action swap --hook <hook> --issuer <issuer> --caller <router>");
-    log.command("ilal swap --amount-in 100 --token-in <token> --pool-id <poolId> --min-amount-out 0");
+    log.command("ilal swap --amount-in 100 --token-in <token> --pool-id <poolId> --min-amount-out <quotedMinRaw>");
+    log.info("For a controlled Base Sepolia walkthrough only, replace the output floor with --unsafe-no-slippage.");
   }
 
   console.log();
@@ -202,9 +202,7 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
   const cfg = loadConfig();
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
   const client = createPublicClient({ chain, transport: http(cfg.rpc) });
-  const rawKey = opts.privateKey ?? process.env["PRIVATE_KEY"];
-  const wallet = opts.wallet
-    ?? (rawKey && isHex(rawKey) && rawKey.length === 66 ? privateKeyToAccount(rawKey as `0x${string}`).address : undefined);
+  const wallet = opts.wallet;
 
   header("Live Demo Preflight", chain.name);
   log.deal([
@@ -341,6 +339,9 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
       else ok("merkleRoot", root.toString().slice(0, 24) + "...");
       if (verifier === ZERO) warn("zkVerifier", fmt.badge("not set", "yellow"));
       else ok("zkVerifier", fmt.addr(verifier));
+      if (hasEASPath && !hasZKPath) {
+        log.info("This public stack demonstrates MockEAS/CNF issuance; local ZK proving requires a separate ZK-enabled issuer.");
+      }
       pass(issuerPathReady);
     } catch (e) {
       bad("issuer reads", e instanceof Error ? e.message.split("\n")[0]! : String(e));
@@ -362,7 +363,7 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
         pass(false);
       }
     } else {
-      warn("wallet", "pass --wallet or set PRIVATE_KEY for credential checks");
+      warn("wallet", "pass --wallet or configure --keystore/--rpc-account for credential checks");
     }
     log.line();
   }
@@ -472,32 +473,34 @@ export async function demoCheck(opts: { wallet?: string; privateKey?: string }) 
     log.command(`ilal status --wallet ${wallet}`);
     if (!credentialReady) {
       log.info("Credential missing: the issuer must create an attestation before the wallet can mint CNF.");
-      log.command(`PRIVATE_KEY=<issuer-key> ilal issuer attest --wallet ${wallet}`);
-      log.command("PRIVATE_KEY=<wallet-key> ilal credential mint --attestation <uid>");
+      log.command(`ilal --keystore <issuer.json> issuer attest --wallet ${wallet}`);
+      log.command("ilal --keystore <wallet.json> credential mint --attestation <uid>");
     }
     log.command(`ilal session sign --pool ${cfg.poolId ?? "<poolId>"} --action swap --hook ${cfg.hook ?? "<hook>"} --issuer ${cfg.issuer ?? "<issuer>"} --caller ${cfg.router ?? "<router>"}`);
   } else {
     log.command("ilal demo check --wallet <wallet>");
   }
   const suggestedTokenIn = cfg.tokenB ?? "<token>";
-  log.command(`ilal swap --amount-in 0.001 --token-in ${suggestedTokenIn}`);
+  log.command(cfg.chain === "84532"
+    ? `ilal swap --amount-in 0.001 --token-in ${suggestedTokenIn} --unsafe-no-slippage # Base Sepolia demo only`
+    : `ilal swap --amount-in 0.001 --token-in ${suggestedTokenIn} --min-amount-out <quotedMinRaw>`);
   console.log();
 }
 
 export async function demoFaucet(opts: { wallet?: string; amount?: string; privateKey?: string }) {
   const cfg = loadConfig();
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!cfg.tokenA || !cfg.tokenB || !isAddress(cfg.tokenA) || !isAddress(cfg.tokenB)) {
     die("tokenA/tokenB required. Run `ilal init` with demo token addresses first.");
   }
 
-  const account = privateKeyToAccount(rawKey);
+  const { account, publicClient: client, walletClient } = await createExecutionClients({
+    chain,
+    rpc: cfg.rpc,
+    legacyPrivateKey: opts.privateKey,
+  });
   const wallet = opts.wallet ?? account.address;
   if (!isAddress(wallet)) die(`Invalid wallet address: ${wallet}`);
-
-  const client = createPublicClient({ chain, transport: http(cfg.rpc) });
-  const walletClient = createWalletClient({ account, chain, transport: http(cfg.rpc) });
 
   header("ILAL Demo Faucet", chain.name);
   log.kv("recipient", fmt.addr(wallet));
@@ -527,13 +530,14 @@ export async function demoFaucet(opts: { wallet?: string; amount?: string; priva
 export async function demoAttest(opts: { wallet: string; privateKey?: string; expiresInDays?: string }) {
   const cfg = loadConfig();
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!cfg.issuer || !isAddress(cfg.issuer)) die("CNFIssuer required. Run `ilal init` first.");
   if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
 
-  const account = privateKeyToAccount(rawKey);
-  const client = createPublicClient({ chain, transport: http(cfg.rpc) });
-  const walletClient = createWalletClient({ account, chain, transport: http(cfg.rpc) });
+  const { account, publicClient: client, walletClient } = await createExecutionClients({
+    chain,
+    rpc: cfg.rpc,
+    legacyPrivateKey: opts.privateKey,
+  });
 
   const [eas, schemaUID, trustedAttester] = await Promise.all([
     client.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
@@ -591,7 +595,7 @@ export async function demoAttest(opts: { wallet: string; privateKey?: string; ex
   log.callout("CNF mint path ready", "the recipient wallet can now run `ilal credential mint --attestation <uid>`", "green");
   if (uid) {
     console.log();
-    log.command(`PRIVATE_KEY=0x... ilal credential mint --issuer ${cfg.issuer} --attestation ${uid} --chain ${chain.id}`);
+    log.command(`ilal --keystore <wallet.json> credential mint --issuer ${cfg.issuer} --attestation ${uid} --chain ${chain.id}`);
   }
   console.log();
 }

@@ -1,0 +1,41 @@
+name: release candidate
+
+on:
+  push:
+    tags: ["v*-rc.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@1e60f620b9541dca1515400b05c3b78521a866c
+        with:
+          node-version: "24.13.0"
+      - name: Validate tag and release manifest
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          node -e 'const fs=require("fs"); const tag=process.env.TAG; const pkg=require("./cli/package.json"); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); if (tag !== `v${pkg.version}` || release.npmPublication !== "not published" || release.releaseCommit !== null || !/^[0-9a-f]{40}$/.test(release.sourceCommit)) process.exit(1)'
+      - name: Build prerelease assets
+        run: |
+          mkdir -p artifacts
+          node -e 'const fs=require("fs"); const path=`releases/${process.env.GITHUB_REF_NAME}.json`; const value=JSON.parse(fs.readFileSync(path)); value.releaseCommit=process.env.GITHUB_SHA; fs.writeFileSync(`artifacts/${process.env.GITHUB_REF_NAME}.json`, JSON.stringify(value,null,2)+"\n")'
+          cp proving-artifacts/PROVENANCE.json artifacts/
+          cp THIRD_PARTY_LICENSES.md artifacts/
+          npm ci --prefix cli
+          npm run build --prefix cli
+          cd cli
+          npm sbom --sbom-format cyclonedx > ../artifacts/cli.cdx.json
+          npm pack --pack-destination ../artifacts
+          cd ..
+          cd artifacts && sha256sum * > SHA256SUMS
+      - name: Create GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/* --prerelease --verify-tag --title "$GITHUB_REF_NAME" --notes-file RELEASE.md

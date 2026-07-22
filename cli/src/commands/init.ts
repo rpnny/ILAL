@@ -8,20 +8,11 @@
 import { isAddress } from "viem";
 import { writeConfig, configFilePath } from "../config.js";
 import { fmt, log, header, die } from "../ui.js";
+import { ACTIVE_PRESETS } from "../generated/deployments.js";
 
-// Known testnet / mainnet addresses for quick init
+// Network defaults. Contract presets are generated only from active deployment manifests.
 const PRESETS: Record<string, Record<string, string>> = {
   "84532": {
-    issuer:      "0x33541301e35d33eDf554c4DFba1e04d04FCc52F4",
-    hook:        "0x604f06000E7424E3AA432aB9378D4839Edeb8A80",
-    registry:    "0x83d8111B415E97bA91eaAe717c2D9Ae6f0DD19d4",
-    router:      "0x805A7654bDCfF1286652de29D2aE906a87e2a912",
-    treasury:    "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
-    tokenA:      "0x5F6556DF0260A6Bc3613356CAC3c01f727578774",
-    tokenB:      "0x6Eb54Ee03474d09B98c6bd9a479Ca2d3ec39469A",
-    poolId:      "0xf3a6493827291a485652ae73e1ef5d673c2ad6f0e8df9ed0f54b3725fc42828e",
-    fee:         "8388608",
-    tickSpacing: "60",
     rpc:         "https://sepolia.base.org",
   },
   "8453": {
@@ -30,9 +21,11 @@ const PRESETS: Record<string, Record<string, string>> = {
 };
 
 export async function init(opts: {
+  protocolVersion: string;
   issuer?:    string;
   hook?:      string;
   registry?:  string;
+  grantManager?: string;
   router?:    string;
   treasury?:  string;
   tokenA?:    string;
@@ -58,13 +51,15 @@ export async function init(opts: {
   }
 
   // Start with preset for the chain
-  const preset = PRESETS[opts.chain] ?? {};
+  const preset = { ...(PRESETS[opts.chain] ?? {}), ...(ACTIVE_PRESETS[opts.chain] ?? {}) };
 
   const config = {
+    protocolVersion: opts.protocolVersion,
     chain:      opts.chain,
     issuer:     opts.issuer     ?? preset["issuer"],
     hook:       opts.hook       ?? preset["hook"],
     registry:   opts.registry   ?? preset["registry"],
+    grantManager: opts.grantManager ?? preset["grantManager"],
     router:     opts.router     ?? preset["router"],
     treasury:   opts.treasury   ?? preset["treasury"],
     tokenA:     opts.tokenA     ?? preset["tokenA"],
@@ -80,7 +75,7 @@ export async function init(opts: {
 
   // Validate addresses
   for (const [key, val] of Object.entries(config)) {
-    if (val && (key === "issuer" || key === "hook" || key === "registry" || key === "router" || key === "treasury" || key === "tokenA" || key === "tokenB")) {
+    if (val && (key === "issuer" || key === "hook" || key === "registry" || key === "grantManager" || key === "router" || key === "treasury" || key === "tokenA" || key === "tokenB")) {
       if (!isAddress(val)) die(`Invalid ${key} address: ${val}`);
     }
   }
@@ -88,12 +83,18 @@ export async function init(opts: {
   const path = writeConfig(config);
 
   log.ok(`Created ${fmt.cyan(path)}`);
+  if (!ACTIVE_PRESETS[opts.chain]) {
+    log.warn("No active ILAL deployment is published for this chain. Only network settings were written.");
+    log.info("Supply explicit contract addresses after deploying a stack; deprecated demo addresses are never selected automatically.");
+  }
   log.line();
 
   if (config.chain)    log.kv("chain",    config.chain === "84532" ? "Base Sepolia" : "Base");
+  log.kv("protocol", `v${config.protocolVersion}`);
   if (config.issuer)   log.kv("issuer",   fmt.cyan(config.issuer));
   if (config.hook)     log.kv("hook",     fmt.cyan(config.hook));
   if (config.registry) log.kv("registry", fmt.cyan(config.registry));
+  if (config.grantManager) log.kv("grantManager", fmt.cyan(config.grantManager));
   if (config.router)   log.kv("router",   fmt.cyan(config.router));
   if (config.treasury) log.kv("treasury", fmt.cyan(config.treasury));
   if (config.tokenA)   log.kv("tokenA",   fmt.cyan(config.tokenA));

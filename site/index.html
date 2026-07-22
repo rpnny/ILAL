@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="ILAL — ZK compliance layer for Uniswap v4. Verified institutions get better fees. Just prove it." />
+  <title>ILAL — Compliance is the hook.</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,700;1,700&amp;family=Fragment+Mono&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <filter id="pixel-mosh" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise" seed="2"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="noise-dither" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+        <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blend"/>
+        <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+      </filter>
+    </defs>
+  </svg>
+</head>
+<body>
+
+  <!-- ── FIXED UI ── -->
+  <button class="corner corner--tl" id="cornerI" aria-label="Toggle nav">I</button>
+  <button class="corner corner--tr" id="cornerL1" aria-label="Toggle nav">L</button>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+    <span class="theme-toggle__dark">◐</span>
+    <span class="theme-toggle__light">◑</span>
+  </button>
+
+  <!-- ── NAV OVERLAY ── -->
+  <div class="nav-overlay" id="navOverlay" aria-hidden="true">
+    <nav class="nav-overlay__inner">
+      <ul class="nav-list" role="list">
+        <li><a class="nav-item" href="#proof"     data-close>Evidence<span class="nav-item__sub">Archived testnet txs · local verification</span></a></li>
+        <li><a class="nav-item" href="#customers" data-close>Customers<span class="nav-item__sub">Institutions · makers · RWA issuers</span></a></li>
+        <li><a class="nav-item" href="#product"   data-close>Product<span class="nav-item__sub">Hook · Router · CNF · CLI</span></a></li>
+        <li><a class="nav-item" href="#problem"   data-close>Problem<span class="nav-item__sub">The compliance triangle</span></a></li>
+        <li><a class="nav-item" href="#how"        data-close>How it works<span class="nav-item__sub">4 steps · EAS/ZK → CNF → Session → Swap</span></a></li>
+        <li><a class="nav-item" href="#issuers"    data-close>RWA Issuers<span class="nav-item__sub">Deploy your own compliance pool</span></a></li>
+        <li><a class="nav-item" href="#cli"        data-close>Integrate<span class="nav-item__sub">npm CLI · SDK · 5 commands</span></a></li>
+        <li><a class="nav-item" href="#deployments" data-close>On-chain<span class="nav-item__sub">No active deployment · archived evidence</span></a></li>
+      </ul>
+      <div class="nav-overlay__foot">
+        <span>ILAL — Institutional Liquidity Access Layer</span>
+        <span>UHI10 · Base Sepolia · 2026</span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       HERO — ASCII canvas
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="hero-section" id="top">
+    <canvas id="asciiCanvas" aria-hidden="true"></canvas>
+
+    <div class="hero-text">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        v0.3.3 release candidate · no active deployment
+        &nbsp;&nbsp;
+        <span class="uni-badge"><span class="uni-badge__dot"></span>Uniswap v4 Hook</span>
+      </div>
+      <h1 class="hero-h1" id="heroH1">
+        <span>Compliance</span>
+        <em>is the <span class="hero-hook">hook.</span></em>
+      </h1>
+      <p class="hero-product-line">The verified-flow liquidity layer for institutional DeFi.</p>
+      <p class="hero-sub">PROVE ELIGIBILITY · TRADE PRIVATELY · GET A BETTER DEAL ON UNISWAP V4</p>
+      <div class="hero-actions">
+        <a class="btn btn--primary" href="#proof">Review evidence</a>
+        <a class="btn btn--ghost"   href="#cli">Build locally</a>
+      </div>
+
+      <div class="hero-console" aria-label="ILAL release candidate status">
+        <div class="hero-console__top">
+          <span>ILAL RELEASE STATUS</span>
+          <strong>v0.3.3-rc.1</strong>
+        </div>
+        <div class="hero-console__grid">
+          <div><span>deployment</span><strong>none active</strong></div>
+          <div><span>attestation</span><strong>MockEAS planned</strong></div>
+          <div><span>ZK</span><strong>experimental</strong></div>
+          <div><span>tests</span><strong>188</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-foot">
+      <span class="canvas-clock" id="liveClock"></span>
+      <div class="hero-scroll-hint" aria-hidden="true">
+        scroll <span class="scroll-line"></span>
+      </div>
+      <span class="canvas-pool-status">
+        <span class="pool-dot"></span>software RC · deployment pending
+      </span>
+    </div>
+  </section>
+
+  <!-- ── TICKER STRIP ── -->
+  <div class="ticker-strip" aria-hidden="true">
+    <div class="ticker-track" id="tickerTrack">
+      <span class="ticker-item"><span class="ticker-item__dot"></span>verified LP fee <span class="ticker-item__val">0.05%</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>ILAL protocol fee <span class="ticker-item__val">0.005%</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>verified flow <span class="ticker-item__val">better liquidity</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>demo attestation <span class="ticker-item__val">MockEAS planned</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>session gas <span class="ticker-item__val">0</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>tests passing <span class="ticker-item__val">188</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>vs 30bps pool <span class="ticker-item__val">5.45× lower</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CNF valid <span class="ticker-item__val">90 days</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>deployment <span class="ticker-item__val">pending Safe</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>hook checks per swap <span class="ticker-item__val">6</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>UHI10 <span class="ticker-item__val">July 2026</span></span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-item"><span class="ticker-item__dot"></span>verified LP fee <span class="ticker-item__val">0.05%</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>ILAL protocol fee <span class="ticker-item__val">0.005%</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>verified flow <span class="ticker-item__val">better liquidity</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>demo attestation <span class="ticker-item__val">MockEAS planned</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>session gas <span class="ticker-item__val">0</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>tests passing <span class="ticker-item__val">188</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>vs 30bps pool <span class="ticker-item__val">5.45× lower</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CNF valid <span class="ticker-item__val">90 days</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>deployment <span class="ticker-item__val">pending Safe</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>hook checks per swap <span class="ticker-item__val">6</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>UHI10 <span class="ticker-item__val">July 2026</span></span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       LIVE PROOF — customer-visible validation
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section content-section--proof" id="proof">
+    <div class="section-inner">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="eyebrow">Historical testnet evidence</p>
+          <h2>Reproducible source.<br/><em>Honest deployment status.</em></h2>
+        </div>
+        <p class="section-lead">
+          The transactions below show earlier Base Sepolia behavior, but the v0.3.2 stack is deprecated because its owner signer was exposed.
+          There is no active ILAL deployment today. The local v0.3.3 candidate removes the preset, adds institutional signer paths, and must pass a new Safe-controlled deployment gate.
+        </p>
+      </div>
+
+      <div class="proof-console">
+        <div class="proof-console__rail">
+          <span class="rail-dot rail-dot--on"></span>
+          <span></span>
+          <span class="rail-dot rail-dot--on"></span>
+          <span></span>
+          <span class="rail-dot rail-dot--on"></span>
+          <span></span>
+          <span class="rail-dot rail-dot--blocked"></span>
+        </div>
+        <div class="proof-grid">
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0xd71da0e6f29d3379c67bb4ed0b4c627bb36800d175843460f28517f0f3ebd00d" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">01 · Credential</span>
+            <strong>CNF minted</strong>
+            <span class="proof-card__meta">MockEAS attestation verified on-chain</span>
+            <code>0xd71da0…bd00d ↗</code>
+          </a>
+          <a class="proof-card" href="https://sepolia.basescan.org/address/0xF06977eB72d769662F786F107663887Eb1440a80#readContract" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">02 · Channel</span>
+            <strong>Router bound</strong>
+            <span class="proof-card__meta">direct PoolManager bypass patched</span>
+            <code>authorizedRouter() ↗</code>
+          </a>
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0xf809dc68aa53b3a99ed3ab0963128cb2dd2671c0dd075b9479b27b5e0679e781" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">03 · Liquidity</span>
+            <strong>Add liquidity passed</strong>
+            <span class="proof-card__meta">bounded spend · block 44431282</span>
+            <code>0xf809dc…79e781 ↗</code>
+          </a>
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0xcae5c69d1420c4a29e0be23ef1ca4fa128056c39ce4bfb8b169468a757aae695" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">04 · Swap</span>
+            <strong>Verified swap passed</strong>
+            <span class="proof-card__meta">0.05% LP fee + 0.005% ILAL fee</span>
+            <code>0xcae5c6…aae695 ↗</code>
+          </a>
+          <div class="proof-card proof-card--blocked">
+            <span class="proof-card__label">05 · Control</span>
+            <strong>Fresh wallet blocked</strong>
+            <span class="proof-card__meta">no CNF · no approve · no tx broadcast</span>
+            <code>preflight failed ✓</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="proof-verdict">
+        <span>Final acceptance</span>
+        <strong>Compliant institution allowed. Non-compliant wallet blocked.</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       CUSTOMERS — who buys this
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section" id="customers">
+    <div class="section-inner">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="eyebrow">Customers</p>
+          <h2>Built for the desks<br/><em>that cannot trade naked.</em></h2>
+        </div>
+        <p class="section-lead">
+          ILAL is not another whitelist UI. It is an execution layer for regulated flow:
+          private eligibility, lower cost per trade, and an on-chain route that market makers can integrate into existing systems.
+        </p>
+      </div>
+
+      <div class="customer-grid">
+        <div class="customer-card">
+          <span class="customer-card__type">Institutional trader</span>
+          <h3>Enter DeFi without exposing identity.</h3>
+          <p>Prove eligibility once, hold a CNF, then sign short-lived sessions locally. Compliance status is binary; identity and KYC documents never touch the pool.</p>
+          <div class="customer-card__outcome">Outcome: private access + 0.055% verified path</div>
+        </div>
+        <div class="customer-card">
+          <span class="customer-card__type">Market maker</span>
+          <h3>Quote compliant flow as better flow.</h3>
+          <p>Integrate the ILALRouter into internal trading infrastructure. Valid sessions unlock a lower LP fee path while rejected wallets never reach execution.</p>
+          <div class="customer-card__outcome">Outcome: better spreads without leaking strategy</div>
+        </div>
+        <div class="customer-card">
+          <span class="customer-card__type">RWA issuer</span>
+          <h3>Launch compliant liquidity without rebuilding KYC.</h3>
+          <p>Deploy your own CNFIssuer, bind a pool policy, and manage eligible wallets through EAS or ZK roots. Your credential controls your pool.</p>
+          <div class="customer-card__outcome">Outcome: issuer-owned compliance perimeter</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PRODUCT — what ILAL actually ships
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section content-section--alt" id="product">
+    <div class="section-inner">
+      <div class="section-head">
+        <p class="eyebrow">Product suite</p>
+        <h2>Protocol, tools,<br/><em>and proof surface.</em></h2>
+      </div>
+
+      <div class="product-grid">
+        <div class="product-card product-card--wide">
+          <span class="product-card__tag">Protocol</span>
+          <h3>ComplianceHook</h3>
+          <p>Uniswap v4 hook that enforces CNF validity, pool policy, router binding, action binding, deadline, signature, and nonce replay protection.</p>
+          <ul>
+            <li>beforeSwap fee override → 0.05%</li>
+            <li>beforeAddLiquidity / beforeRemoveLiquidity gated</li>
+            <li>authorizedRouter immutable on current stack</li>
+          </ul>
+        </div>
+        <div class="product-card">
+          <span class="product-card__tag">Credential</span>
+          <h3>CNFIssuer</h3>
+          <p>Soulbound ERC-721 compliance credential with EAS or ZK issuance, timelocked root/verifier updates, revocation, expiry, and on-chain issuer metadata.</p>
+        </div>
+        <div class="product-card">
+          <span class="product-card__tag">Execution</span>
+          <h3>ILALRouter</h3>
+          <p>User-facing Uniswap v4 IUnlockCallback router. Current source supports bounded swap output, LP maximum spends, LP minimum receipts, and fees on actual consumed input.</p>
+        </div>
+        <div class="product-card">
+          <span class="product-card__tag">Developer</span>
+          <h3>CLI + npm</h3>
+          <p>Local v0.3.3 candidate for proof, CNF, sessions, liquidity, swaps, encrypted keystores, RPC-managed accounts, and Safe proposals. npm 0.3.2 is deprecated.</p>
+          <code>git clone github.com/rpnny/ilal</code>
+        </div>
+        <div class="product-card">
+          <span class="product-card__tag">Audit</span>
+          <h3>Security package</h3>
+          <p>188 Solidity tests plus an expanded CLI suite above the 19-test baseline, 256 fuzz runs, archived chain evidence, and regression coverage for signer, Safe, ERC-1271, policy, expiry, fees, and amount bounds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PROBLEM — The compliance triangle
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section" id="problem">
+    <div class="section-inner">
+      <div class="section-head">
+        <p class="eyebrow">The problem</p>
+        <h2>Compliance. Cost. Privacy.<br/><em>Pick two.</em></h2>
+      </div>
+
+      <div class="problem-grid">
+        <div class="problem-card problem-card--bad">
+          <div class="problem-card__label">CEX</div>
+          <p>Centralized exchange → defeats the purpose of on-chain settlement. You don't own the liquidity.</p>
+        </div>
+        <div class="problem-card problem-card--bad">
+          <div class="problem-card__label">Vanilla Uniswap</div>
+          <p>No restrictions → non-compliant wallets can interact. Regulators say no.</p>
+        </div>
+        <div class="problem-card problem-card--bad">
+          <div class="problem-card__label">Custom restrictions</div>
+          <p>Fragmented liquidity, high dev cost, every RWA issuer reinvents the same wheel.</p>
+        </div>
+        <div class="problem-card problem-card--bad">
+          <div class="problem-card__label">Full KYC on-chain</div>
+          <p>Institutions and market makers leak identity. Competitive positions exposed publicly.</p>
+        </div>
+      </div>
+
+      <div class="problem-solution">
+        <p class="eyebrow">ILAL's answer</p>
+        <p class="solution-text">
+          Users prove eligibility through an issuer attestation or a <strong>privacy-preserving ZK proof</strong>. A soulbound credential mints once.
+          A Uniswap v4 hook verifies on every swap. Verified flow becomes a liquidity signal and gets <strong>0.05% LP fee</strong>.
+          The hook enforces everything — no hosted API, no custody, no KYC leak. Old KYC hooks decide who can pass; ILAL decides who can pass <strong>and gives that flow a better deal</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       HOW IT WORKS — 4 steps
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section content-section--alt" id="how">
+    <div class="section-inner">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2>Four steps.<br/><em>One issuer-backed credential.</em></h2>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step__num">01</div>
+          <div class="step__content">
+            <div class="step__head">
+              <h3>Prove issuer eligibility</h3>
+              <span class="step__badge step__badge--off">EAS OR ZK</span>
+            </div>
+            <p>The public demo uses a MockEAS attestation. ZK-enabled issuers can instead run the Groth16 circuit locally and prove Merkle membership without revealing the full eligibility record.</p>
+            <div class="step__cmd"><span class="prompt">$</span> ilal credential mint --attestation 0xUID</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step__num">02</div>
+          <div class="step__content">
+            <div class="step__head">
+              <h3>Mint soulbound credential (CNF)</h3>
+              <span class="step__badge step__badge--on">ON-CHAIN · ~350k gas</span>
+            </div>
+            <p>The issuer's configured EAS or ZK trust path is checked on-chain. If valid, a soulbound ERC-721 credential mints to the wallet. One credential, valid for 90 days. No re-KYC needed for every trade.</p>
+            <div class="step__cmd"><span class="prompt">✓</span> CNF minted · token #3 · expires 2026-08-14</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step__num">03</div>
+          <div class="step__content">
+            <div class="step__head">
+              <h3>Sign a session token</h3>
+              <span class="step__badge step__badge--local">LOCAL · 0 gas</span>
+            </div>
+            <p>Before each trade, sign a 10-minute EIP-712 SessionToken locally. It binds caller identity, the specific pool, the router address, and a one-time nonce — all without touching the chain.</p>
+            <div class="step__cmd"><span class="prompt">✓</span> Session signed · expires in 600s · nonce consumed on swap</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step__num">04</div>
+          <div class="step__content">
+            <div class="step__head">
+              <h3>Swap with verified fee path</h3>
+              <span class="step__badge step__badge--hook">HOOK · beforeSwap()</span>
+            </div>
+            <p>The ComplianceHook runs six checks before every swap: session signature, deadline, caller binding, pool policy match, CNF validity, and one-time nonce. Pass all six → LP fee drops to <strong>0.05%</strong>. Fail any → revert.</p>
+            <div class="step__cmd"><span class="prompt">✓</span> Swap executed via ILAL channel · fair flow · verified swap fee 0.05%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Uniswap v4 hook diagram -->
+      <div class="hook-diagram">
+        <div class="hook-diagram__title">
+          <span class="uni-dot"></span>
+          ComplianceHook.sol — beforeSwap() execution path · Uniswap v4
+        </div>
+        <div class="hook-diagram__body">
+          <div class="hd-col">
+            <div class="hd-label">Institution</div>
+            <div class="hd-name">ILALRouter<br/>.swap()</div>
+          </div>
+          <div class="hd-arrow">→</div>
+          <div class="hd-col hd-col--center">
+            <div class="hd-label">Uniswap v4 Hook</div>
+            <div class="hd-name">beforeSwap()</div>
+            <div class="hd-check">
+              <span>✓ session signature</span>
+              <span>✓ authorizedCaller</span>
+              <span>✓ CNF credential</span>
+              <span>✓ pool policy match</span>
+              <span>✓ nonce consumed</span>
+            </div>
+            <div class="hd-fee">LP fee override → 0.05%</div>
+          </div>
+          <div class="hd-arrow">→</div>
+          <div class="hd-col">
+            <div class="hd-label">PoolManager</div>
+            <div class="hd-name">Swap<br/>executes ✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fee-callout">
+        <div class="fee-callout__row">
+          <span>Standard 30bps pool (Uniswap v4)</span>
+          <strong class="fee-callout__val fee-callout__val--dim">0.30%</strong>
+        </div>
+        <div class="fee-callout__row fee-callout__row--active">
+          <span>ILAL verified LP fee &nbsp;<span class="uni-badge"><span class="uni-badge__dot"></span>hook-enforced</span></span>
+          <strong class="fee-callout__val">0.05%</strong>
+        </div>
+        <div class="fee-callout__row">
+          <span>ILAL protocol fee</span>
+          <strong class="fee-callout__val fee-callout__val--dim">0.005%</strong>
+        </div>
+        <div class="fee-callout__total">
+          <span>Total verified path</span>
+          <strong>0.055%</strong>
+          <span class="savings-chip">5.45× lower than standard</span>
+        </div>
+        <div style="padding:1rem 1.5rem; border-top:1px solid var(--border)">
+          <div class="fee-bar-wrap">
+            <div class="fee-bar-label"><span>Standard 30bps pool</span><span>0.30%</span></div>
+            <div class="fee-bar"><div class="fee-bar__fill fee-bar__fill--standard" id="feeBarStd"></div></div>
+          </div>
+          <div class="fee-bar-wrap" style="margin-top:.8rem">
+            <div class="fee-bar-label"><span>ILAL verified path</span><span style="color:var(--uni)">0.055%</span></div>
+            <div class="fee-bar"><div class="fee-bar__fill fee-bar__fill--ilal" id="feeBarIlal"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       RWA ISSUERS — Primary customer flow
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section" id="issuers">
+    <div class="section-inner">
+      <div class="section-head">
+        <p class="eyebrow">For RWA issuers</p>
+        <h2>Your pool.<br/><em>Your credential. Your rules.</em></h2>
+      </div>
+
+      <p class="section-lead">
+        Each RWA issuer deploys their own <code>CNFIssuer</code> with their own <code>schemaUID</code>.
+        The pool policy binds to that specific issuer and credential type.
+        Other issuers' credentials cannot enter your pool. Full isolation, composable with any Uniswap v4 pool.
+      </p>
+
+      <div class="flow-diagram">
+        <div class="flow-step">
+          <div class="flow-step__icon">01</div>
+          <div class="flow-step__text">
+            <strong>Deploy CNFIssuer</strong>
+            <span>Your own ERC-721 credential registry with your schemaUID</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step__icon">02</div>
+          <div class="flow-step__text">
+            <strong>Register pool policy</strong>
+            <span>Bind poolId → (cnfIssuer, credentialType)</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step__icon">03</div>
+          <div class="flow-step__text">
+            <strong>Approve wallets</strong>
+            <span>Add KYC'd wallets to Merkle tree, update root on-chain</span>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step__icon">04</div>
+          <div class="flow-step__text">
+            <strong>Institutions trade</strong>
+            <span>Credentialed wallets get 0.05% fee. Others are excluded by the hook.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="issuer-cmd-block">
+        <div class="cmd-block__label">Deploy your stack</div>
+        <pre class="cmd-block__pre"><code><span class="c-dim"># Deploy CNFIssuer + ComplianceHook + ILALRouter + pool</span>
+forge script script/DeployDemo.s.sol \
+  --rpc-url https://sepolia.base.org \
+  --broadcast
+
+<span class="c-dim"># Operator queues the updated Merkle root, then activates after timelock</span>
+node dist/index.js oracle propose-root --root &lt;newMerkleRoot&gt;
+node dist/index.js oracle activate-root
+
+<span class="c-dim"># Bind proofs to this issuer and schema (72h timelock)</span>
+node dist/index.js credential zk-root --wallet &lt;wallet&gt; --expires-at &lt;unix&gt; --issuer &lt;cnfIssuer&gt;
+node dist/index.js oracle propose-domain --issuer-hash &lt;issuerHash&gt; --schema-hash &lt;schemaHash&gt;
+node dist/index.js oracle activate-domain
+
+<span class="c-dim"># Set pool policy to require your credential type</span>
+node dist/index.js pool policy set \
+  --pool-id  0xYourPoolId \
+  --issuer   0xYourCNFIssuer</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       CLI / INTEGRATION
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section content-section--alt" id="cli">
+    <div class="section-inner">
+      <div class="section-head">
+        <p class="eyebrow">Integration</p>
+        <h2>Build the candidate.<br/><em>Verify before trust.</em></h2>
+      </div>
+
+      <div class="cli-steps">
+
+        <div class="cli-step" id="cliStep0">
+          <div class="cli-step__meta">
+            <span class="cli-step__num">Step 01</span>
+            <h3>Build the release candidate</h3>
+            <p>The v0.3.3 candidate is local source only. npm 0.3.2 and 0.2.21 are legacy/deprecated and no active contract preset is selected.</p>
+          </div>
+          <pre class="cli-step__pre"><code>git clone https://github.com/rpnny/ilal
+cd ilal/cli &amp;&amp; npm ci &amp;&amp; npm run build
+node dist/index.js init
+node dist/index.js --version <span class="c-comment"># 0.3.3-rc.1</span>
+
+<span class="c-comment"># Public testnet prototype.
+# Production use requires audited contracts
+# and a real KYC/KYB attester.</span></code></pre>
+        </div>
+
+        <div class="cli-step" id="cliStep1">
+          <div class="cli-step__meta">
+            <span class="cli-step__num">Step 02</span>
+            <h3>Check credential status</h3>
+            <p>New wallets can inspect whether they already hold a CNF credential. If not, the CLI routes them to the ZK proof path or the EAS attestation path.</p>
+          </div>
+          <pre class="cli-step__pre"><code>ilal credential status \
+  --wallet 0xYourInstitutionWallet
+
+<span class="c-comment"># Output:
+# credential: none
+# Path A: generate ZK proof
+# Path B: mint from EAS attestation</span></code></pre>
+        </div>
+
+        <div class="cli-step" id="cliStep2">
+          <div class="cli-step__meta">
+            <span class="cli-step__num">Step 03</span>
+            <h3>Optional: configure the ZK path</h3>
+            <p>ZK is experimental and disabled in the planned public demo. Local proof generation requires separately configured verifier, root, domain, and non-production proving artifacts.</p>
+          </div>
+          <pre class="cli-step__pre"><code>ilal credential zk-root \
+  --wallet 0xYourInstitutionWallet \
+  --expires-at 1800000000
+
+ilal --keystore ./wallet.json credential prove \
+  --wallet 0xYourInstitutionWallet \
+  --expires-at 1800000000
+
+<span class="c-comment"># Output:
+# ✓ Proof generated &amp; verified locally
+# mintWithProof()
+# active root and proof expiry match</span></code></pre>
+        </div>
+
+        <div class="cli-step" id="cliStep3">
+          <div class="cli-step__meta">
+            <span class="cli-step__num">Step 04</span>
+            <h3>Sign a zero-gas session</h3>
+            <p>Signs a fresh 10-minute EIP-712 SessionToken locally with an encrypted keystore or a capability-checked RPC account. Safe administrative proposals are separate; native custody-vendor adapters are not claimed.</p>
+          </div>
+<pre class="cli-step__pre"><code>ilal --keystore ./wallet.json session sign \
+  --pool 0xYourPoolId \
+  --action swap \
+  --hook 0xF06977...440a80 \
+  --caller 0x6C7A1E...5868D
+
+<span class="c-comment"># Output:
+# ✓ Session signed locally
+# hookData ready
+# gas spent: 0</span></code></pre>
+        </div>
+
+        <div class="cli-step" id="cliStep4">
+          <div class="cli-step__meta">
+            <span class="cli-step__num">Step 05</span>
+            <h3>Simulate or execute swap</h3>
+            <p>Simulate the verified-flow path first, then send a real transaction once the wallet holds a valid CNF. Production scripts must pass a positive quoted output floor; this public testnet walkthrough uses an explicit unsafe opt-out.</p>
+          </div>
+<pre class="cli-step__pre"><code>ilal --keystore ./wallet.json swap \
+  --amount-in 1 \
+  --token-in  0xToken \
+  --min-amount-out &lt;quotedMinRaw&gt;
+
+<span class="c-comment"># Output:
+# ✓ Allowance ok
+# ✓ Session signed (expires in 600s)
+# ✓ Gate checks ready
+# LP fee: 0.05%
+# ILAL fee: 0.005%</span></code></pre>
+        </div>
+
+      </div><!-- /cli-steps -->
+
+      <div class="cli-ref">
+        <p class="eyebrow">Full CLI reference</p>
+        <table class="ref-table">
+          <tbody>
+            <tr><td><code>ilal status</code></td><td>Dashboard: credential · issuer config · pool policy</td></tr>
+            <tr><td><code>ilal credential status</code></td><td>Check whether a wallet holds a valid CNF credential</td></tr>
+            <tr><td><code>ilal credential zk-root</code></td><td>Compute the ZK Merkle root for a wallet and expiry</td></tr>
+            <tr><td><code>ilal credential prove</code></td><td>Trader flow: local ZK proof → mint or renew CNF</td></tr>
+            <tr><td><code>ilal swap</code></td><td>Compliant swap via ILALRouter with a required slippage floor</td></tr>
+            <tr><td><code>ilal oracle</code></td><td>Timelocked root, verifier, and proof-domain updates</td></tr>
+            <tr><td><code>ilal pool add-liquidity</code></td><td>Add liquidity with maximum token spend bounds</td></tr>
+            <tr><td><code>ilal pool remove-liquidity</code></td><td>Remove liquidity with minimum token receive bounds</td></tr>
+            <tr><td><code>ilal pool policy set</code></td><td>Register compliance policy for a pool</td></tr>
+            <tr><td><code>ilal session sign</code></td><td>Sign a standalone SessionToken</td></tr>
+            <tr><td><code>ilal deploy --admin 0xSafe</code></td><td>Deploy an issuer-owned stack with custom EAS trust domain</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       DEPLOYMENTS
+  ══════════════════════════════════════════════════════════════════════ -->
+  <section class="content-section" id="deployments">
+    <div class="section-inner">
+      <div class="section-head">
+        <p class="eyebrow">Archived · Base Sepolia v0.3.2</p>
+        <h2>No active deployment.<br/><em>Historical evidence only.</em></h2>
+      </div>
+
+      <!-- Uniswap v4 powered banner -->
+      <div class="uni-banner">
+        <div class="uni-banner__left">
+          <div class="uni-logo">
+            <span class="uni-logo__mark">🦄</span>
+            Uniswap v4
+          </div>
+          <span class="uni-badge"><span class="uni-badge__dot"></span>UHI10 · July 2026</span>
+        </div>
+        <div class="uni-banner__right">
+          <div class="uni-stat">
+            <span class="uni-stat__val">beforeSwap()</span>
+            <span class="uni-stat__label">hook entry point</span>
+          </div>
+          <div class="uni-stat">
+            <span class="uni-stat__val">dynamic fee</span>
+            <span class="uni-stat__label">flag 0x800000</span>
+          </div>
+          <div class="uni-stat">
+            <span class="uni-stat__val">IUnlockCallback</span>
+            <span class="uni-stat__label">router pattern</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="deploy-grid">
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x7801b24B78f21819E0172a194A34C7C94e75782C" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">CNFIssuer</span>
+          <span class="deploy-card__desc">ERC-721 soulbound compliance credential</span>
+          <code class="deploy-card__addr">0x7801b2…75782C ↗</code>
+        </a>
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xdFA9e815BD86e97bb1F67c1392A7A696Fd0CF8db" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">PolicyRegistry</span>
+          <span class="deploy-card__desc">Per-pool compliance policy registry</span>
+          <code class="deploy-card__addr">0xdFA9e8…0CF8db ↗</code>
+        </a>
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xF06977eB72d769662F786F107663887Eb1440a80" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">ComplianceHook</span>
+          <span class="deploy-card__desc">Uniswap v4 beforeSwap hook — 6 checks per swap</span>
+          <code class="deploy-card__addr">0xF06977…440a80 ↗</code>
+        </a>
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x6C7A1E5AB19706691554529c62a6d4417F55868D" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">ILALRouter</span>
+          <span class="deploy-card__desc">IUnlockCallback execution channel</span>
+          <code class="deploy-card__addr">0x6C7A1E…5868D ↗</code>
+        </a>
+      </div>
+
+      <div class="tx-list">
+        <p class="eyebrow">Deprecated stack verification — do not use for authorization</p>
+        <a class="tx-row" href="https://sepolia.basescan.org/address/0x7801b24B78f21819E0172a194A34C7C94e75782C" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Archived issuer trust metadata</span>
+          <span class="tx-row__hash">name · jurisdiction · standard ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/address/0xcE19816Fc3A1cdb7514D3EF3331B7C66af30e5C1" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Archived MockEAS demo attester</span>
+          <span class="tx-row__hash">testnet trust source ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x80eb71301be793181b32d5c083e9ca359e506dde5e9f440e0c5079b811306bce" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Pool policy registered</span>
+          <span class="tx-row__hash">enabled=true ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/address/0x36B428CE686269ECab2f834365fc56147a9A2b89" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Demo tokens funded</span>
+          <span class="tx-row__hash">1,000,000 TOKA/TOKB ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0xd71da0e6f29d3379c67bb4ed0b4c627bb36800d175843460f28517f0f3ebd00d" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Real EAS credential mint</span>
+          <span class="tx-row__hash">mintWithEAS tx ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0xf809dc68aa53b3a99ed3ab0963128cb2dd2671c0dd075b9479b27b5e0679e781" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Real add liquidity</span>
+          <span class="tx-row__hash">router + hook tx ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0xcae5c69d1420c4a29e0be23ef1ca4fa128056c39ce4bfb8b169468a757aae695" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Real verified swap</span>
+          <span class="tx-row__hash">0.05% fee path ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/address/0xF06977eB72d769662F786F107663887Eb1440a80#readContract" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Router bypass patched</span>
+          <span class="tx-row__hash">authorizedRouter bound ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/address/0x7801b24B78f21819E0172a194A34C7C94e75782C" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Soulbound approvals disabled</span>
+          <span class="tx-row__hash">approve/setApprovalForAll revert ↗</span>
+        </a>
+      </div>
+
+      <div class="pool-info">
+        <p class="eyebrow">Pool</p>
+        <div class="pool-info__row">
+          <span>Pool ID (dynamic fee, verified flow 0.05%)</span>
+          <code>0x162ba2…37fd27</code>
+        </div>
+        <div class="pool-info__row">
+          <span>PoolManager (Base Sepolia)</span>
+          <code>0x05E733…3408</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="footer-brand__mark">◆</span>
+        <span class="footer-brand__name">ILAL</span>
+        <span class="footer-brand__tag">Compliance is the hook. Just prove it.</span>
+      </div>
+      <div class="footer-stats">
+        <div class="fstat"><span class="fstat__val">0.05%</span><span class="fstat__l">verified LP fee</span></div>
+        <div class="fstat"><span class="fstat__val">MockEAS</span><span class="fstat__l">planned demo issuance</span></div>
+        <div class="fstat"><span class="fstat__val">0 gas</span><span class="fstat__l">session signing</span></div>
+        <div class="fstat"><span class="fstat__val">188</span><span class="fstat__l">Solidity tests</span></div>
+      </div>
+      <div class="footer-meta">
+        <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>
+        <span>Selected · <a href="https://atrium.academy/uniswap" target="_blank" rel="noreferrer">UHI10</a> · July 2026</span>
+        <span>v0.3.3-rc.1 · no active deployment · unaudited</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "@ilal/circuits",
+  "version": "0.1.0",
+  "description": "ILAL Protocol Circom circuits — ZK eligibility proof",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rpnny/ilal",
+    "directory": "circuits"
+  },
+  "scripts": {
+    "compile": "bash scripts/compile.sh",
+    "build:tree": "npx tsx oracle/build_tree.ts",
+    "build:witness": "npx tsx oracle/generate_witness.ts",
+    "test:oracle": "npx --no-install tsx --test oracle/*.test.ts",
+    "test:v2": "bash scripts/test_v2.sh"
+  },
+  "dependencies": {
+    "@zk-kit/incremental-merkle-tree": "^1.1.0",
+    "circomlib": "^2.0.5",
+    "keccak256-circom": "github:vocdoni/keccak256-circom#master",
+    "poseidon-lite": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.6",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

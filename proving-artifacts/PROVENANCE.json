@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "status": "development-only",
+  "productionApproved": false,
+  "circuitSourceCommit": null,
+  "circuits": {
+    "v1": {
+      "path": "circuits/ilal.circom",
+      "sha256": "d5e065a7c90523cb6ff49babe3afb8cc5703158e6492af9d3c026ec4740cf59b"
+    },
+    "v2": {
+      "path": "circuits/v2/ilal_policy.circom",
+      "sha256": "b8d8ba72951653810ffc2ba8d7af39fc379b703ebe9f587bdca8f2b6e0323118"
+    }
+  },
+  "toolchain": {
+    "circom": "2.2.3",
+    "snarkjs": "0.7.6",
+    "node": "24.13.0"
+  },
+  "ptau": {
+    "file": "pot18_final.ptau",
+    "sha256": "e970efa7774da80101e0ac336d083ef3339855c98112539338d706b2b89ac694",
+    "source": "Local development artifact; origin has not been independently documented. Do not use for production."
+  },
+  "ceremony": {
+    "type": "development/test ceremony",
+    "transcript": null,
+    "warning": "No production ceremony or independent transcript is available."
+  },
+  "artifacts": {
+    "zkey": {
+      "file": "ilal.zkey",
+      "sha256": "92cdd796e4e06bb0ea0b2d1f3b99b73c0fa2512b747aeee1b50e6c9430899666"
+    },
+    "verificationKey": {
+      "file": "ilal_vkey.json",
+      "sha256": "806c5b4c7cea5f4b9bf4e7943f06d14c88006be5847ea338ea156fea131a68de"
+    },
+    "wasm": {
+      "file": "ilal_js/ilal.wasm",
+      "sha256": "e36eadb8a8957a69e45932575959fbf9a76da018791e5c9ab16fb9dc2a69df32"
+    }
+  },
+  "reproduction": [
+    "cd circuits && npm ci",
+    "npm run compile",
+    "sha256sum build/ilal.zkey build/ilal_vkey.json build/ilal_js/ilal.wasm"
+  ],
+  "forbiddenReleaseContent": [
+    "witness files",
+    "user inputs",
+    "ceremony private entropy",
+    "identity or customer compliance data"
+  ]
+}

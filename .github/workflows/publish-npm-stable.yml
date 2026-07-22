@@ -1,0 +1,34 @@
+name: publish npm stable
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    environment: npm-production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@1e60f620b9541dca1515400b05c3b78521a866c
+        with:
+          node-version: "24.13.0"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+      - name: Install and build exact release
+        run: |
+          npm ci --prefix cli
+          npm run build --prefix cli
+          node scripts/validate-stable-publish.mjs "$GITHUB_REF_NAME"
+          node scripts/secret-scan.mjs
+      - name: Publish with npm Trusted Publishing provenance
+        working-directory: cli
+        run: npm publish --access public --provenance

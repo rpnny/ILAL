@@ -16,31 +16,38 @@
  * `ilal oracle activate-root`.
  */
 
-import { execSync } from "child_process";
-import { createWriteStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import { execFileSync } from "child_process";
+import { createHash } from "crypto";
+import {
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from "fs";
 import { homedir } from "os";
 import { resolve, dirname } from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import { fileURLToPath } from "url";
 import {
-  createPublicClient,
-  createWalletClient,
   encodeAbiParameters,
-  http,
   isAddress,
   keccak256,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — no bundled types for this package
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { poseidon2, poseidon4 } from "poseidon-lite";
-import { fmt, log, header, Spinner, die, dieOnContract, requirePrivateKey } from "../ui.js";
+import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
 import { withConfig } from "../config.js";
 import { COINBASE_SCHEMA_UID } from "../constants.js";
+import { createExecutionClients } from "../signer.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
@@ -49,11 +56,36 @@ const DEFAULT_ARTIFACT_URL = "https://unpkg.com/@ilalv3/proving-artifacts@0.1.0"
 const DEFAULT_ARTIFACT_CACHE = resolve(homedir(), ".ilal/artifacts/ilal-v1");
 
 const PROVING_ARTIFACTS = [
-  { asset: "ilal.zkey", rel: "ilal.zkey", minBytes: 50_000_000 },
-  { asset: "ilal_vkey.json", rel: "ilal_vkey.json", minBytes: 1_000 },
-  { asset: "ilal_js/ilal.wasm", rel: "ilal_js/ilal.wasm", minBytes: 1_000_000 },
-  { asset: "ilal_js/generate_witness.js", rel: "ilal_js/generate_witness.js", minBytes: 100 },
-  { asset: "ilal_js/witness_calculator.js", rel: "ilal_js/witness_calculator.js", minBytes: 1_000 },
+  {
+    asset: "ilal.zkey",
+    rel: "ilal.zkey",
+    minBytes: 50_000_000,
+    sha256: "92cdd796e4e06bb0ea0b2d1f3b99b73c0fa2512b747aeee1b50e6c9430899666",
+  },
+  {
+    asset: "ilal_vkey.json",
+    rel: "ilal_vkey.json",
+    minBytes: 1_000,
+    sha256: "806c5b4c7cea5f4b9bf4e7943f06d14c88006be5847ea338ea156fea131a68de",
+  },
+  {
+    asset: "ilal_js/ilal.wasm",
+    rel: "ilal_js/ilal.wasm",
+    minBytes: 1_000_000,
+    sha256: "e36eadb8a8957a69e45932575959fbf9a76da018791e5c9ab16fb9dc2a69df32",
+  },
+  {
+    asset: "ilal_js/generate_witness.js",
+    rel: "ilal_js/generate_witness.js",
+    minBytes: 100,
+    sha256: "4995a2e6b01432f76182abec6a831fdaf7f840384035072002ccaa43101b14d4",
+  },
+  {
+    asset: "ilal_js/witness_calculator.js",
+    rel: "ilal_js/witness_calculator.js",
+    minBytes: 1_000,
+    sha256: "cc2d37b2cff2a589dd86f8636f1a1dc9fe4a854550b021aa0cea2e235d14e942",
+  },
 ] as const;
 
 // ─── ABI ──────────────────────────────────────────────────────────────────────
@@ -113,26 +145,38 @@ function schemaHash(schemaUID: string): bigint {
   return poseidon2([schemaLo, schemaHi]);
 }
 
+function artifactHasMinimumSize(dir: string, artifact: typeof PROVING_ARTIFACTS[number]): boolean {
+  const file = resolve(dir, artifact.rel);
+  try {
+    return existsSync(file) && statSync(file).size >= artifact.minBytes;
+  } catch {
+    return false;
+  }
+}
+
+function sha256File(file: string): string {
+  return createHash("sha256").update(readFileSync(file)).digest("hex");
+}
+
+function artifactMatchesManifest(dir: string, artifact: typeof PROVING_ARTIFACTS[number]): boolean {
+  if (!artifactHasMinimumSize(dir, artifact)) return false;
+  return sha256File(resolve(dir, artifact.rel)) === artifact.sha256;
+}
+
 function hasCircuitArtifacts(dir: string): boolean {
   return PROVING_ARTIFACTS.every((artifact) => {
-    const file = resolve(dir, artifact.rel);
-    try {
-      return existsSync(file) && statSync(file).size >= artifact.minBytes;
-    } catch {
-      return false;
-    }
+    return artifactHasMinimumSize(dir, artifact);
   });
 }
 
-function requireCircuitArtifacts(dir: string): string {
+function hasTrustedHostedArtifacts(dir: string): boolean {
+  return PROVING_ARTIFACTS.every((artifact) => artifactMatchesManifest(dir, artifact));
+}
+
+function requireCircuitArtifacts(dir: string, verifyManifest = false): string {
   const resolved = resolve(dir);
   const missing = PROVING_ARTIFACTS.filter((artifact) => {
-    const file = resolve(resolved, artifact.rel);
-    try {
-      return !existsSync(file) || statSync(file).size < artifact.minBytes;
-    } catch {
-      return true;
-    }
+    return !artifactHasMinimumSize(resolved, artifact);
   });
   if (missing.length > 0) {
     die(
@@ -140,6 +184,16 @@ function requireCircuitArtifacts(dir: string): string {
       `  Missing: ${missing.map((x) => x.rel).join(", ")}\n` +
       "  Pass --artifact-url <base-url> to download them, or use --circuit-dir <path>."
     );
+  }
+  if (verifyManifest) {
+    const mismatched = PROVING_ARTIFACTS.filter((artifact) => !artifactMatchesManifest(resolved, artifact));
+    if (mismatched.length > 0) {
+      die(
+        `Proving artifact integrity check failed in ${resolved}.\n` +
+        `  SHA-256 mismatch: ${mismatched.map((x) => x.rel).join(", ")}\n` +
+        "  Refusing to execute untrusted proving code. Clear the cache and retry."
+      );
+    }
   }
   return resolved;
 }
@@ -159,9 +213,12 @@ async function ensureHostedArtifacts(opts: {
   offline?: boolean;
 }): Promise<string> {
   const cacheDir = resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE);
-  if (hasCircuitArtifacts(cacheDir)) return cacheDir;
+  if (hasTrustedHostedArtifacts(cacheDir)) return cacheDir;
 
   if (opts.offline) {
+    if (hasCircuitArtifacts(cacheDir)) {
+      return requireCircuitArtifacts(cacheDir, true);
+    }
     die(
       "Hosted proving artifacts are not cached locally.\n" +
       `  Cache: ${cacheDir}\n` +
@@ -172,11 +229,24 @@ async function ensureHostedArtifacts(opts: {
   const baseUrl = (opts.artifactUrl ?? DEFAULT_ARTIFACT_URL).replace(/\/+$/, "");
   for (const artifact of PROVING_ARTIFACTS) {
     const target = resolve(cacheDir, artifact.rel);
-    if (existsSync(target) && statSync(target).size >= artifact.minBytes) continue;
-    await downloadFile(`${baseUrl}/${artifact.asset}`, target);
+    if (artifactMatchesManifest(cacheDir, artifact)) continue;
+
+    const temporary = `${target}.download`;
+    if (existsSync(temporary)) unlinkSync(temporary);
+    await downloadFile(`${baseUrl}/${artifact.asset}`, temporary);
+    if (!existsSync(temporary) || statSync(temporary).size < artifact.minBytes) {
+      unlinkSync(temporary);
+      throw new Error(`downloaded artifact is incomplete: ${artifact.asset}`);
+    }
+    const digest = sha256File(temporary);
+    if (digest !== artifact.sha256) {
+      unlinkSync(temporary);
+      throw new Error(`SHA-256 mismatch for ${artifact.asset}; refusing untrusted artifact`);
+    }
+    renameSync(temporary, target);
   }
 
-  return requireCircuitArtifacts(cacheDir);
+  return requireCircuitArtifacts(cacheDir, true);
 }
 
 async function findCircuitDir(opts: {
@@ -198,8 +268,9 @@ async function findCircuitDir(opts: {
     resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE),
   ];
   for (const p of candidates) {
-    if (hasCircuitArtifacts(p)) {
-      const source = resolve(p) === resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE) ? "cache" : "local";
+    const isCache = resolve(p) === resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE);
+    if ((isCache && hasTrustedHostedArtifacts(p)) || (!isCache && hasCircuitArtifacts(p))) {
+      const source = isCache ? "cache" : "local";
       return { dir: p, source };
     }
   }
@@ -282,19 +353,19 @@ function generateProof(opts: {
   writeFileSync(inputPath, JSON.stringify(input, null, 2));
 
   // Generate witness
-  execSync(`node "${witnessJs}" "${wasmPath}" "${inputPath}" "${wtnsPath}"`, {
+  execFileSync(process.execPath, [witnessJs, wasmPath, inputPath, wtnsPath], {
     stdio: "pipe",
     cwd: dirname(witnessJs),
   });
 
   // Generate proof
-  execSync(`npx snarkjs groth16 prove "${zkeyPath}" "${wtnsPath}" "${proofPath}" "${publicPath}"`, {
+  execFileSync("npx", ["--no-install", "snarkjs", "groth16", "prove", zkeyPath, wtnsPath, proofPath, publicPath], {
     stdio: "pipe",
   });
 
   // Verify locally
   const vkeyPath = resolve(circuitDir, "ilal_vkey.json");
-  execSync(`npx snarkjs groth16 verify "${vkeyPath}" "${publicPath}" "${proofPath}"`, {
+  execFileSync("npx", ["--no-install", "snarkjs", "groth16", "verify", vkeyPath, publicPath, proofPath], {
     stdio: "pipe",
   });
 
@@ -355,17 +426,17 @@ export async function credentialProve(opts: {
   expiresAt?: string;
 }) {
   const cfg    = withConfig(opts);
-  const rawKey = requirePrivateKey(cfg.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!cfg.wallet)  die("Wallet address required. Use --wallet or set issuer in .ilal.json");
   if (!cfg.issuer)  die("Issuer address required. Use --issuer or run `ilal init`");
   if (!isAddress(cfg.wallet))  die(`Invalid wallet address: ${cfg.wallet}`);
   if (!isAddress(cfg.issuer))  die(`Invalid issuer address: ${cfg.issuer}`);
 
   const chain     = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const account   = privateKeyToAccount(rawKey);
-  const transport = cfg.rpc ? http(cfg.rpc) : http();
-  const pubClient = createPublicClient({ chain, transport });
-  const walClient = createWalletClient({ account, chain, transport });
+  const { account, publicClient: pubClient, walletClient: walClient } = await createExecutionClients({
+    chain,
+    rpc: cfg.rpc,
+    legacyPrivateKey: cfg.privateKey,
+  });
 
   header("ILAL Credential ZK Prove", chain.name);
   log.kv("wallet",  fmt.cyan(cfg.wallet));
@@ -502,6 +573,6 @@ export async function credentialRoot(opts: {
 
   log.line();
   log.command(`INITIAL_MERKLE_ROOT=${merkleRoot.toString()} forge script contracts/script/DeployDemo.s.sol ...`);
-  log.command(`PRIVATE_KEY=0x... ilal credential prove --wallet ${opts.wallet} --expires-at ${expiresAt.toString()}`);
+  log.command(`ilal --keystore <wallet.json> credential prove --wallet ${opts.wallet} --expires-at ${expiresAt.toString()}`);
   console.log();
 }

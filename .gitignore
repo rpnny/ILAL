@@ -28,6 +28,7 @@
 *.tsbuildinfo
 
 # Foundry output and broadcast state
+contracts/lib/
 **/out/
 **/cache/
 **/broadcast/
@@ -51,3 +52,5 @@ proving-artifacts/*_js/
 # Confidential diligence material
 data-room-private/
 
+# Locally generated verification evidence
+artifacts/

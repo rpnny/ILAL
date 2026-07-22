@@ -1,6 +1,6 @@
 {
   "name": "@ilalv3/cli",
-  "version": "0.2.21",
+  "version": "0.3.3-rc.1",
   "description": "ILAL Protocol CLI — compliant swaps and credential management for Uniswap v4",
   "type": "module",
   "bin": {
@@ -10,7 +10,7 @@
     "dist",
     "README.md"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": [
     "uniswap",
     "uniswap-v4",
@@ -23,16 +23,18 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rpnny/ilal-cli.git"
+    "url": "git+https://github.com/rpnny/ilal.git",
+    "directory": "cli"
   },
-  "homepage": "https://github.com/rpnny/ilal-cli#readme",
+  "homepage": "https://github.com/rpnny/ilal/tree/main/cli#readme",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "build": "tsc",
     "dev": "node --loader ts-node/esm src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "npm run build && node --test test/*.test.mjs"
   },
   "dependencies": {
     "@zk-kit/incremental-merkle-tree": "^1.1.0",

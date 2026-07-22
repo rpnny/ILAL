@@ -1,16 +1,13 @@
 import {
-  createPublicClient,
-  createWalletClient,
-  http,
   isAddress,
   isHex,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, die, Spinner, requirePrivateKey } from "../ui.js";
+import { fmt, log, die, Spinner } from "../ui.js";
 import { withConfig } from "../config.js";
 import { EAS_ADDRESSES, COINBASE_SCHEMA_UID, COINBASE_ATTESTER } from "../constants.js";
+import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -55,18 +52,17 @@ async function sendMintTx(
   }
 ) {
   const cfg = withConfig(opts);
-  const rawKey = requirePrivateKey(cfg.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!cfg.issuer) die("CNFIssuer address required. Use --issuer or run `ilal init`.");
   if (!isAddress(cfg.issuer)) die(`Invalid issuer address: ${cfg.issuer}`);
   if (!isHex(opts.attestation) || opts.attestation.length !== 66)
     die("Attestation UID must be 0x + 32 bytes (64 hex chars).");
 
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const account = privateKeyToAccount(rawKey);
-  const transport = cfg.rpc ? http(cfg.rpc) : http();
-
-  const publicClient = createPublicClient({ chain, transport });
-  const walletClient = createWalletClient({ account, chain, transport });
+  const { account, publicClient, walletClient } = await createExecutionClients({
+    chain,
+    rpc: cfg.rpc,
+    legacyPrivateKey: cfg.privateKey,
+  });
 
   console.log();
   console.log(fmt.bold(`  ILAL Credential ${mode === "mint" ? "Mint" : "Renew"}`));

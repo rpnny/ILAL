@@ -144,11 +144,14 @@ export async function status(opts: {
           ? fmt.badge("ZK", "green")
           : fmt.badge("not ready", "red"));
       log.kv("zkVerifier", verifier === ZERO_ADDRESS
-        ? fmt.badge("not set", "red")
+        ? fmt.badge(hasEASPath ? "not configured" : "not set", hasEASPath ? "yellow" : "red")
         : fmt.green(fmt.addr(verifier)));
       log.kv("merkleRoot", root === 0n
-        ? fmt.badge("not set", "red")
+        ? fmt.badge(hasEASPath ? "not configured" : "not set", hasEASPath ? "yellow" : "red")
         : fmt.gray(root.toString().slice(0, 20) + "…"));
+      if (hasEASPath && !hasZKPath) {
+        log.info("This deployment uses EAS issuance. Run the local ZK proof flow only against a separate issuer with an active verifier and Merkle root.");
+      }
       issuerReady = hasEASPath || hasZKPath;
     } catch (e) {
       spin.stop();

@@ -20,24 +20,27 @@
  */
 
 import {
-  createPublicClient,
-  createWalletClient,
-  decodeAbiParameters,
-  encodeAbiParameters,
   formatEther,
   formatUnits,
-  http,
   isAddress,
   isHex,
-  parseAbiParameters,
   parseUnits,
-  recoverTypedDataAddress,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, header, Spinner, die, dieOnContract, requirePrivateKey } from "../ui.js";
+import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
 import { withConfig } from "../config.js";
+import {
+  decodeSessionAuthorization,
+  hashSessionAuthorization,
+  protocolVersion,
+  recoverSessionAuthorization,
+  signSessionAuthorization,
+  type SessionTokenV1,
+  type SessionTokenV2,
+} from "../sessionProtocol.js";
+import { readEligibilityPolicyV2 } from "./policyV2.js";
+import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -86,34 +89,25 @@ const CNF_ABI = [
 
 // ─── Session helpers ──────────────────────────────────────────────────────────
 
-const SESSION_TOKEN_TYPE = [
-  { name: "user",          type: "address" },
-  { name: "authorizedCaller", type: "address" },
-  { name: "cnfIssuer",     type: "address" },
-  { name: "chainId",       type: "uint256" },
-  { name: "verifyingHook", type: "address" },
-  { name: "poolId",        type: "bytes32" },
-  { name: "action",        type: "uint8"   },
-  { name: "deadline",      type: "uint64"  },
-  { name: "nonce",         type: "bytes32" },
-] as const;
+const GRANT_MANAGER_V2_ABI = [{
+  name: "isPolicyGrantValid",
+  type: "function" as const,
+  stateMutability: "view" as const,
+  inputs: [
+    { name: "poolId", type: "bytes32" as const },
+    { name: "user", type: "address" as const },
+  ],
+  outputs: [{ type: "bool" as const }],
+}] as const;
 
-const HOOK_DATA_ABI = parseAbiParameters([
-  "(address user, address authorizedCaller, address cnfIssuer, uint256 chainId, address verifyingHook, bytes32 poolId, uint8 action, uint64 deadline, bytes32 nonce) token",
-  "bytes signature",
-]);
-
-type DecodedSessionToken = {
-  user: `0x${string}`;
-  authorizedCaller: `0x${string}`;
-  cnfIssuer: `0x${string}`;
-  chainId: bigint;
-  verifyingHook: `0x${string}`;
-  poolId: `0x${string}`;
-  action: number;
-  deadline: bigint;
-  nonce: `0x${string}`;
-};
+const ERC1271_ABI = [{
+  name: "isValidSignature",
+  type: "function" as const,
+  stateMutability: "view" as const,
+  inputs: [{ name: "hash", type: "bytes32" as const }, { name: "signature", type: "bytes" as const }],
+  outputs: [{ type: "bytes4" as const }],
+}] as const;
+const ERC1271_MAGIC = "0x1626ba7e";
 
 // sqrtPriceLimitX96 — use min/max to let the swap fill fully
 const MIN_SQRT_PRICE = 4295128740n;        // TickMath.MIN_SQRT_PRICE + 1
@@ -181,13 +175,17 @@ function validateEcdsaSignature(sig: `0x${string}`): string | undefined {
 
 export async function swap(opts: {
   amountIn:      string;
-  minAmountOut?: string;  // optional slippage floor in token-out human units
+  minAmountOut?: string;  // slippage floor in raw token-out units
+  unsafeNoSlippage?: boolean;
   tokenIn?:      string;
   zeroForOne?:   boolean;
   poolId?:       string;
   router?:       string;
   hook?:         string;
   issuer?:       string;
+  registry?:     string;
+  grantManager?: string;
+  protocolVersion?: string;
   tokenA?:       string;
   tokenB?:       string;
   fee?:          string;
@@ -200,23 +198,53 @@ export async function swap(opts: {
   simulate?:     boolean;
   explain?:      boolean;
 }) {
+  let minAmountOut = 0n;
+  if (opts.minAmountOut !== undefined) {
+    try {
+      minAmountOut = BigInt(opts.minAmountOut);
+    } catch {
+      die("--min-amount-out must be a non-negative integer in raw token-out units.");
+    }
+    if (minAmountOut < 0n) die("--min-amount-out must not be negative.");
+  }
+  if (opts.minAmountOut !== undefined && opts.unsafeNoSlippage) {
+    die("Choose either --min-amount-out or --unsafe-no-slippage, not both.");
+  }
+  if (!opts.simulate && minAmountOut === 0n && !opts.unsafeNoSlippage) {
+    die(
+      "A positive --min-amount-out is required for a live swap.\n" +
+      "  Quote the trade in your execution system and pass the minimum acceptable raw output.\n" +
+      "  Testnet demos may explicitly opt out with --unsafe-no-slippage."
+    );
+  }
+
   const cfg    = withConfig(opts);
-  const rawKey = requirePrivateKey(cfg.privateKey ?? process.env["PRIVATE_KEY"]);
+  let version: "1" | "2";
+  try {
+    version = protocolVersion(cfg.protocolVersion);
+  } catch (error) {
+    die(error instanceof Error ? error.message : String(error));
+  }
   if (!cfg.router)   die("ILALRouter address required. Use --router or set in .ilal.json");
   if (!cfg.hook)     die("ComplianceHook address required. Use --hook or set in .ilal.json");
-  if (!cfg.issuer)   die("CNFIssuer address required. Use --issuer or set in .ilal.json");
+  if (version === "1" && !cfg.issuer) die("CNFIssuer address required. Use --issuer or set in .ilal.json");
+  if (version === "2" && !cfg.registry) die("EligibilityPolicyRegistryV2 address required. Set registry in .ilal.json");
+  if (version === "2" && !cfg.grantManager) die("PolicyGrantManagerV2 address required. Set grantManager in .ilal.json");
   if (!cfg.poolId)   die("Pool ID required. Use --pool-id or set in .ilal.json");
 
   if (!isAddress(cfg.router!))  die(`Invalid router address: ${cfg.router}`);
   if (!isAddress(cfg.hook!))    die(`Invalid hook address: ${cfg.hook}`);
-  if (!isAddress(cfg.issuer!))  die(`Invalid issuer address: ${cfg.issuer}`);
+  if (version === "1" && !isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
+  if (version === "2" && !isAddress(cfg.registry!)) die(`Invalid v2 registry address: ${cfg.registry}`);
+  if (version === "2" && !isAddress(cfg.grantManager!)) die(`Invalid v2 grant manager address: ${cfg.grantManager}`);
   if (!isHex(cfg.poolId!) || cfg.poolId!.length !== 66) die("poolId must be 0x + 64 hex chars");
 
   const chain     = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const account   = privateKeyToAccount(rawKey);
-  const transport = cfg.rpc ? http(cfg.rpc) : http();
-  const pubClient = createPublicClient({ chain, transport });
-  const walClient = createWalletClient({ account, chain, transport });
+  const { account, publicClient: pubClient, walletClient: walClient } = await createExecutionClients({
+    chain,
+    rpc: cfg.rpc,
+    legacyPrivateKey: cfg.privateKey,
+  });
 
   // Determine token order
   const tokenA = (cfg.tokenA ?? opts.tokenA) as `0x${string}` | undefined;
@@ -236,6 +264,7 @@ export async function swap(opts: {
   log.kv("router",  fmt.cyan(cfg.router!));
   log.kv("hook",    fmt.cyan(cfg.hook!));
   log.kv("pool",    fmt.gray(cfg.poolId!.slice(0, 18) + "…"));
+  log.kv("protocol", `v${version}`);
   log.kv("tokenIn", fmt.cyan(tokenIn));
   log.kv("direction", zeroForOne ? "currency0 → currency1" : "currency1 → currency0");
   log.line();
@@ -267,37 +296,72 @@ export async function swap(opts: {
   const totalDebit = amountIn + protocolFeeAmount;
 
   const preflightSpin = new Spinner("Running preflight checks…").start();
-  const [root, verifier, eas, valid, tokenId, balance] = await Promise.all([
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [account.address] }) as Promise<boolean>,
-    pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [account.address] }) as Promise<bigint>,
-    pubClient.readContract({ address: tokenIn, abi: ERC20_ABI, functionName: "balanceOf", args: [account.address] }) as Promise<bigint>,
-  ]);
+  const balance = await pubClient.readContract({
+    address: tokenIn,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: [account.address],
+  }) as bigint;
+  let accessValid = false;
+  let accessDescription = "";
+  let policyHash: bigint | undefined;
+  let policyRevision: bigint | undefined;
+  const preflightErrors: string[] = [];
+
+  if (version === "1") {
+    const [root, verifier, eas, valid, tokenId] = await Promise.all([
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "merkleRoot" }) as Promise<bigint>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "zkVerifier" }) as Promise<string>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "eas" }) as Promise<string>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "isValid", args: [account.address] }) as Promise<boolean>,
+      pubClient.readContract({ address: cfg.issuer as `0x${string}`, abi: CNF_ABI, functionName: "credentialOf", args: [account.address] }) as Promise<bigint>,
+    ]);
+    accessValid = tokenId !== 0n && valid;
+    accessDescription = accessValid ? `CNF credential token #${tokenId.toString()}` : "CNF credential missing or invalid";
+    const hasEASPath = eas !== ZERO_ADDRESS;
+    const hasZKPath = verifier !== ZERO_ADDRESS && root !== 0n;
+    if (tokenId === 0n) {
+      preflightErrors.push("wallet has no CNF credential; mint one before trading.");
+      if (hasEASPath) preflightErrors.push("first ask the issuer to attest, then run `ilal credential mint --attestation <uid>`.");
+      else if (hasZKPath) preflightErrors.push(`run \`ilal credential prove --wallet ${account.address}\`.`);
+      else preflightErrors.push("issuer has no active EAS or ZK issuance path.");
+    } else if (!valid) {
+      preflightErrors.push("wallet CNF credential exists but is not valid.");
+    }
+  } else {
+    const [policy, grantValid] = await Promise.all([
+      readEligibilityPolicyV2(pubClient, cfg.registry as `0x${string}`, cfg.poolId as `0x${string}`),
+      pubClient.readContract({
+        address: cfg.grantManager as `0x${string}`,
+        abi: GRANT_MANAGER_V2_ABI,
+        functionName: "isPolicyGrantValid",
+        args: [cfg.poolId as `0x${string}`, account.address],
+      }) as Promise<boolean>,
+    ]);
+    policyHash = policy.policyHash;
+    policyRevision = policy.revision;
+    accessValid = policy.enabled && policy.revision > 0n && grantValid;
+    accessDescription = accessValid
+      ? `Policy grant valid (revision ${policy.revision.toString()})`
+      : "Policy grant missing, expired, revoked, or stale";
+    if (!policy.enabled || policy.revision === 0n) preflightErrors.push("pool eligibility policy is not enabled.");
+    else if (!grantValid) preflightErrors.push("wallet has no current v2 policy grant; run `ilal policy grant activate --proof <proof.json> --public <public.json>`.");
+  }
   preflightSpin.stop();
 
-  const preflightErrors: string[] = [];
-  const hasEASPath = eas !== ZERO_ADDRESS;
-  const hasZKPath = verifier !== ZERO_ADDRESS && root !== 0n;
-  if (tokenId === 0n) {
-    preflightErrors.push(`wallet has no CNF credential; mint one before trading.`);
-    if (hasEASPath) preflightErrors.push("issuer supports EAS attestation minting: first ask issuer to run `ilal issuer attest --wallet <wallet>`, then run `ilal credential mint --attestation <uid>`.");
-    else if (hasZKPath) preflightErrors.push(`issuer supports ZK minting: run \`ilal credential prove --wallet ${account.address}\`.`);
-    else preflightErrors.push("issuer has no active issuance path: EAS is unset and ZK verifier/root are not both configured.");
-  }
-  else if (!valid) preflightErrors.push("wallet CNF credential exists but is not valid.");
   if (balance < totalDebit) preflightErrors.push(`insufficient ${symbol} balance: need ${tokenAmountWithWei(totalDebit, decimals, symbol)} including ILAL fee, have ${tokenAmountWithWei(balance, decimals, symbol)}.`);
 
   log.section("Preflight Checks");
-  if (tokenId !== 0n && valid) log.ok(`CNF credential token #${tokenId.toString()}`);
-  else log.fail("CNF credential missing or invalid");
-  log.ok(`Issuer config (${hasEASPath ? "EAS" : "no EAS"}${hasZKPath ? " + ZK" : ""})`);
+  if (accessValid) log.ok(accessDescription);
+  else log.fail(accessDescription);
+  if (version === "2") log.ok(`Policy ${policyHash!.toString()} at revision ${policyRevision!.toString()}`);
   if (balance >= totalDebit) log.ok(`Wallet balance ${tokenAmount(balance, decimals, symbol)}`);
   else log.fail(`Wallet balance ${tokenAmount(balance, decimals, symbol)}`);
   log.ok(`Route bound to router ${fmt.addr(cfg.router!)} and hook ${fmt.addr(cfg.hook!)}`);
   if (opts.explain) {
-    log.info("CNF proves this wallet is allowed to access the pool without revealing identity data.");
+    log.info(version === "2"
+      ? "A policy grant proves this wallet met the current issuer, KYC-tier, and jurisdiction policy without exposing those private attributes."
+      : "CNF proves this wallet is allowed to access the pool without revealing identity data.");
     log.info("Caller binding means the signed authorization can only be used through the ILALRouter.");
   }
   log.line();
@@ -318,43 +382,62 @@ export async function swap(opts: {
   ]);
   log.line();
 
-  const ttl      = parseInt(opts.ttl ?? "600");
-  const deadline = BigInt(Math.floor(Date.now() / 1000) + ttl);
-  const nonce    = `0x${Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("hex")}` as `0x${string}`;
+  const ttl = parseInt(opts.ttl ?? "600");
   let hookData: `0x${string}`;
-  let sessionNonce = nonce;
+  let sessionNonce: `0x${string}`;
 
   if (opts.hookData) {
     if (!isHex(opts.hookData)) die("--hook-data must be 0x-prefixed ABI-encoded hookData.");
     try {
-      const [externalToken, externalSig] = decodeAbiParameters(HOOK_DATA_ABI, opts.hookData as `0x${string}`) as readonly [DecodedSessionToken, `0x${string}`];
+      const { token: externalToken, signature: externalSig } = decodeSessionAuthorization(opts.hookData as `0x${string}`, version);
       const issues: string[] = [];
       if (externalToken.user.toLowerCase() !== account.address.toLowerCase()) issues.push("user does not match signer wallet");
       if (externalToken.authorizedCaller.toLowerCase() !== cfg.router!.toLowerCase()) issues.push("authorizedCaller does not match router");
-      if (externalToken.cnfIssuer.toLowerCase() !== cfg.issuer!.toLowerCase()) issues.push("cnfIssuer does not match config");
+      if (version === "1" && (externalToken as SessionTokenV1).cnfIssuer.toLowerCase() !== cfg.issuer!.toLowerCase()) issues.push("cnfIssuer does not match config");
+      if (version === "2") {
+        const v2Token = externalToken as SessionTokenV2;
+        if (v2Token.policyHash !== policyHash) issues.push("policyHash does not match the current pool policy");
+        if (v2Token.policyRevision !== policyRevision) issues.push("policyRevision does not match the current pool policy");
+      }
       if (externalToken.chainId !== BigInt(chain.id)) issues.push(`chainId mismatch: hookData=${externalToken.chainId.toString()} config=${chain.id}`);
       if (externalToken.verifyingHook.toLowerCase() !== cfg.hook!.toLowerCase()) issues.push("verifyingHook does not match config");
       if (externalToken.poolId.toLowerCase() !== cfg.poolId!.toLowerCase()) issues.push("poolId does not match config");
       if (externalToken.action !== 1) issues.push("action is not swap");
       if (externalToken.deadline < BigInt(Math.floor(Date.now() / 1000))) issues.push("session deadline has expired");
-      const sigIssue = validateEcdsaSignature(externalSig);
-      if (sigIssue) {
-        issues.push(sigIssue);
-      } else {
-        const recovered = await recoverTypedDataAddress({
-          domain: {
-            name:              "ILAL ComplianceHook",
-            version:           "1",
-            chainId:           BigInt(chain.id),
-            verifyingContract: cfg.hook as `0x${string}`,
-          },
-          types:       { SessionToken: SESSION_TOKEN_TYPE },
-          primaryType: "SessionToken",
-          message:     externalToken,
-          signature:   externalSig,
+      const userCode = await pubClient.getCode({ address: externalToken.user });
+      if (userCode && userCode !== "0x") {
+        const digest = hashSessionAuthorization({
+          token: externalToken,
+          version,
+          chainId: BigInt(chain.id),
+          hook: cfg.hook as `0x${string}`,
         });
-        if (recovered.toLowerCase() !== externalToken.user.toLowerCase()) {
-          issues.push(`signature does not recover to session user ${fmt.addr(externalToken.user)}`);
+        try {
+          const magic = await pubClient.readContract({
+            address: externalToken.user,
+            abi: ERC1271_ABI,
+            functionName: "isValidSignature",
+            args: [digest, externalSig],
+          });
+          if (magic.toLowerCase() !== ERC1271_MAGIC) issues.push("ERC-1271 wallet rejected the session signature");
+        } catch {
+          issues.push("ERC-1271 session signature validation failed");
+        }
+      } else {
+        const sigIssue = validateEcdsaSignature(externalSig);
+        if (sigIssue) {
+          issues.push(sigIssue);
+        } else {
+          const recovered = await recoverSessionAuthorization({
+            token: externalToken,
+            signature: externalSig,
+            version,
+            chainId: BigInt(chain.id),
+            hook: cfg.hook as `0x${string}`,
+          });
+          if (recovered.toLowerCase() !== externalToken.user.toLowerCase()) {
+            issues.push(`signature does not recover to session user ${fmt.addr(externalToken.user)}`);
+          }
         }
       }
       if (issues.length > 0) die(`Invalid --hook-data for this swap: ${issues.join("; ")}`);
@@ -367,39 +450,34 @@ export async function swap(opts: {
   } else {
     // Sign session token
     const signSpin = new Spinner("Signing one-time session authorization…").start();
-    const token = {
-      user:          account.address as `0x${string}`,
-      authorizedCaller: cfg.router as `0x${string}`,
-      cnfIssuer:     cfg.issuer as `0x${string}`,
-      chainId:       BigInt(chain.id),
-      verifyingHook: cfg.hook as `0x${string}`,
-      poolId:        cfg.poolId as `0x${string}`,
-      action:        1 as const, // ACTION_SWAP
-      deadline,
-      nonce,
-    };
-
-    const signature = await walClient.signTypedData({
+    const signed = await signSessionAuthorization({
+      walletClient: walClient,
       account,
-      domain: {
-        name:              "ILAL ComplianceHook",
-        version:           "1",
-        chainId:           BigInt(chain.id),
-        verifyingContract: cfg.hook as `0x${string}`,
-      },
-      types:       { SessionToken: SESSION_TOKEN_TYPE },
-      primaryType: "SessionToken",
-      message:     token,
+      version,
+      authorizedCaller: cfg.router as `0x${string}`,
+      issuer: cfg.issuer as `0x${string}` | undefined,
+      policyHash,
+      policyRevision,
+      chainId: BigInt(chain.id),
+      hook: cfg.hook as `0x${string}`,
+      poolId: cfg.poolId as `0x${string}`,
+      action: 1,
+      ttl,
     });
-
-    hookData = encodeAbiParameters(HOOK_DATA_ABI, [token, signature]);
+    hookData = signed.hookData;
+    sessionNonce = signed.token.nonce;
     signSpin.succeed(`Session authorization signed (expires in ${ttl}s, one-time nonce)`);
   }
   const fee         = parseInt(cfg.fee ?? "3000");
   const tickSpacing = parseInt(cfg.tickSpacing ?? "60");
 
   log.section("Gate Checks");
-  log.kv("credential", `${fmt.badge("required", "cyan")} issuer ${fmt.addr(cfg.issuer!)}`);
+  log.kv(
+    version === "2" ? "policy grant" : "credential",
+    version === "2"
+      ? `${fmt.badge("required", "cyan")} revision ${policyRevision!.toString()}`
+      : `${fmt.badge("required", "cyan")} issuer ${fmt.addr(cfg.issuer!)}`
+  );
   log.kv("caller", `${fmt.badge("bound", "green")} ${fmt.addr(cfg.router!)}`);
   log.kv("nonce", `${opts.hookData ? fmt.badge("external", "cyan") : fmt.badge("fresh", "green")} ${fmt.hash(sessionNonce)}`);
   if (opts.explain) log.kvdim("", "↳ unique one-time session ID; prevents replay attacks");
@@ -409,6 +487,12 @@ export async function swap(opts: {
     log.kv("total debit", `${tokenAmountWithWei(totalDebit, decimals, symbol)} input + ILAL fee`);
   }
   log.line();
+
+  if (minAmountOut > 0n) {
+    log.kv("min-amount-out", `${fmt.cyan(minAmountOut.toString())} raw units (slippage protection on)`);
+  } else if (opts.unsafeNoSlippage) {
+    log.warn("Slippage protection explicitly disabled; use only in controlled test environments.");
+  }
 
   if (opts.simulate) {
     log.ok("Simulation mode — skipping approval and on-chain tx");
@@ -432,10 +516,10 @@ export async function swap(opts: {
       address:      tokenIn,
       abi:          ERC20_ABI,
       functionName: "approve",
-      args:         [cfg.router as `0x${string}`, totalDebit * 10n], // approve 10× for future swaps
+      args:         [cfg.router as `0x${string}`, totalDebit],
     });
     await pubClient.waitForTransactionReceipt({ hash: approveHash });
-    approveSpin.succeed(`Approved ${tokenAmount(totalDebit * 10n, decimals, symbol)} ${fmt.gray(fmt.hash(approveHash))}`);
+    approveSpin.succeed(`Approved exact debit ${tokenAmount(totalDebit, decimals, symbol)} ${fmt.gray(fmt.hash(approveHash))}`);
   } else {
     approveSpin.succeed(`Allowance: ${allowanceLabel(allowed, decimals, symbol)}`);
   }
@@ -454,14 +538,6 @@ export async function swap(opts: {
     amountSpecified:   -amountIn,   // negative = exactIn
     sqrtPriceLimitX96: zeroForOne ? MIN_SQRT_PRICE : MAX_SQRT_PRICE,
   };
-
-  // Slippage: parse --min-amount-out if provided (0 = disabled)
-  // We don't know the tokenOut decimals here without another RPC call,
-  // so we accept wei (raw bigint) from the flag.  The CLI documents this.
-  const minAmountOut = opts.minAmountOut ? BigInt(opts.minAmountOut) : 0n;
-  if (minAmountOut > 0n) {
-    log.kv("min-amount-out", `${fmt.cyan(minAmountOut.toString())} wei (slippage protection on)`);
-  }
 
   // Execute swap
   const txSpin = new Spinner("Submitting swap tx…").start();

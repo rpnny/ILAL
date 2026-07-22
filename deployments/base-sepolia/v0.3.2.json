@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "version": "0.3.2",
+  "status": "deprecated",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "sourceCommit": null,
+  "releaseCommit": null,
+  "deployer": null,
+  "admin": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+  "treasury": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+  "adminTreasuryShared": true,
+  "contracts": {
+    "mockEAS": "0xcE19816Fc3A1cdb7514D3EF3331B7C66af30e5C1",
+    "cnfIssuer": "0x7801b24B78f21819E0172a194A34C7C94e75782C",
+    "policyRegistry": "0xdFA9e815BD86e97bb1F67c1392A7A696Fd0CF8db",
+    "complianceHook": "0xF06977eB72d769662F786F107663887Eb1440a80",
+    "router": "0x6C7A1E5AB19706691554529c62a6d4417F55868D"
+  },
+  "assets": {
+    "tokenA": "0x36B428CE686269ECab2f834365fc56147a9A2b89",
+    "tokenB": "0x992B0C6051bBF6Ae1DB54C3b669Ba3F1E2e3e694"
+  },
+  "pool": {
+    "id": "0x162ba27d7d920b42bdb48a8caf62c8bef96143d73f1aa8d27e5460626e37fd27",
+    "fee": 8388608,
+    "tickSpacing": 60
+  },
+  "features": {
+    "attestation": "MockEAS",
+    "zk": "disabled"
+  },
+  "releaseStatus": {
+    "software": "superseded",
+    "deployment": "deprecated Base Sepolia demo",
+    "productionReadiness": "not production-ready",
+    "audit": "unaudited"
+  }
+}

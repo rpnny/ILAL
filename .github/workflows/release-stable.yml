@@ -1,0 +1,39 @@
+name: release stable
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@1e60f620b9541dca1515400b05c3b78521a866c
+        with:
+          node-version: "24.13.0"
+      - name: Validate stable tag
+        run: node scripts/validate-stable-publish.mjs "$GITHUB_REF_NAME"
+      - name: Build release assets from tag commit
+        run: |
+          mkdir -p artifacts
+          node -e 'const fs=require("fs"); const tag=process.env.GITHUB_REF_NAME; const version=tag.slice(1); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); release.releaseCommit=process.env.GITHUB_SHA; fs.writeFileSync(`artifacts/${tag}.json`, JSON.stringify(release,null,2)+"\n"); const index=JSON.parse(fs.readFileSync("deployments/index.json")); const item=Object.values(index.active).map(path=>JSON.parse(fs.readFileSync(`deployments/${path}`))).find(x=>x.version===version); if(!item) process.exit(1); item.releaseCommit=process.env.GITHUB_SHA; fs.writeFileSync(`artifacts/deployment-${version}.json`, JSON.stringify(item,null,2)+"\n")'
+          cp proving-artifacts/PROVENANCE.json artifacts/
+          cp THIRD_PARTY_LICENSES.md artifacts/
+          npm ci --prefix cli
+          npm run build --prefix cli
+          cd cli
+          npm sbom --sbom-format cyclonedx > ../artifacts/cli.cdx.json
+          npm pack --pack-destination ../artifacts
+          cd ..
+          cd artifacts && sha256sum * > SHA256SUMS
+      - name: Create stable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" artifacts/* --verify-tag --title "$GITHUB_REF_NAME" --notes-file RELEASE.md

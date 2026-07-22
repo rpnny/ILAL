@@ -2,19 +2,17 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import {
   createPublicClient,
-  createWalletClient,
   decodeEventLog,
-  http,
   isAddress,
   keccak256,
   stringToBytes,
   isHex,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, header, log, die, Spinner, dieOnContract, requirePrivateKey } from "../ui.js";
+import { fmt, header, log, die, Spinner, dieOnContract } from "../ui.js";
 import { withConfig } from "../config.js";
+import { createExecutionClients } from "../signer.js";
 
 type IssuerStandard = {
   id: `0x${string}`;
@@ -277,14 +275,14 @@ export async function issuerAttest(opts: {
   privateKey?: string;
 }) {
   const cfg = withConfig(opts);
-  const rawKey = requirePrivateKey(cfg.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
 
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
-  const account = privateKeyToAccount(rawKey);
-  const transport = cfg.rpc ? http(cfg.rpc) : http();
-  const client = createPublicClient({ chain, transport });
-  const walletClient = createWalletClient({ account, chain, transport });
+  const { account, publicClient: client, walletClient } = await createExecutionClients({
+    chain,
+    rpc: cfg.rpc,
+    legacyPrivateKey: cfg.privateKey,
+  });
 
   let eas = opts.eas;
   let schema = opts.schema;
@@ -379,7 +377,7 @@ export async function issuerAttest(opts: {
   if (explorer) log.kv("explorer", fmt.cyan(explorer));
   if (uid) {
     log.callout("CNF mint path ready", "recipient can mint CNF without issuer involvement", "green");
-    log.command(`PRIVATE_KEY=<wallet-key> ilal credential mint --issuer ${cfg.issuer ?? "<CNFIssuer>"} --attestation ${uid} --chain ${chain.id}`);
+    log.command(`ilal --keystore <wallet.json> credential mint --issuer ${cfg.issuer ?? "<CNFIssuer>"} --attestation ${uid} --chain ${chain.id}`);
   }
   console.log();
 }

@@ -51,9 +51,9 @@ export async function credentialStatus(opts: {
     console.log();
     console.log(fmt.bold("  Issuer path — issuer-created EAS attestation"));
     console.log(`  ${fmt.gray("1.")} Ask the issuer/operator to run:`);
-    console.log(`       ${fmt.cyan("PRIVATE_KEY=<issuer-key> ilal issuer attest --wallet " + cfg.wallet)}`);
+    console.log(`       ${fmt.cyan("ilal --keystore <issuer.json> issuer attest --wallet " + cfg.wallet)}`);
     console.log(`  ${fmt.gray("2.")} Then mint with your wallet key:`);
-    console.log(`       ${fmt.cyan("PRIVATE_KEY=<wallet-key> ilal credential mint --attestation <uid>")}`);
+    console.log(`       ${fmt.cyan("ilal --keystore <wallet.json> credential mint --attestation <uid>")}`);
     console.log();
     console.log(fmt.bold("  Path A — Coinbase Verifications (EAS)"));
     console.log(`  ${fmt.gray("1.")} Complete KYC at ${fmt.cyan("https://coinbase.com/onchain-verify")}`);

@@ -242,20 +242,6 @@ export function die(msg: string): never {
   process.exit(1);
 }
 
-export function requirePrivateKey(rawKey?: string): `0x${string}` {
-  const key = rawKey?.trim();
-  if (!key) {
-    die("Private key required. Use --private-key or set PRIVATE_KEY env var.");
-  }
-  if (/^[0-9a-fA-F]{64}$/.test(key)) {
-    die("Private key must include the 0x prefix. Example: PRIVATE_KEY=0x...");
-  }
-  if (!/^0x[0-9a-fA-F]{64}$/.test(key)) {
-    die("Private key must be 32-byte hex and include the 0x prefix. Example: PRIVATE_KEY=0x...");
-  }
-  return key as `0x${string}`;
-}
-
 export function dieOnContract(e: unknown): never {
   if (process.env["ILAL_DEBUG"] === "1") console.error(e);
   die(parseViemError(e));

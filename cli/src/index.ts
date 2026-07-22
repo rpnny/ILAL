@@ -2,7 +2,14 @@
 import { Command } from "commander";
 import { credentialStatus } from "./commands/credential.js";
 import { credentialProve, credentialRoot } from "./commands/prove.js";
-import { oracleProposeRoot, oracleActivateRoot, oracleProposeVerifier, oracleActivateVerifier } from "./commands/oracle.js";
+import {
+  oracleActivateDomain,
+  oracleActivateRoot,
+  oracleActivateVerifier,
+  oracleProposeDomain,
+  oracleProposeRoot,
+  oracleProposeVerifier,
+} from "./commands/oracle.js";
 import { mintCredential, renewCredential } from "./commands/mint.js";
 import { proofMint, proofRenew } from "./commands/proof.js";
 import { sessionSign } from "./commands/session.js";
@@ -14,16 +21,34 @@ import { status } from "./commands/status.js";
 import { swap } from "./commands/swap.js";
 import { addLiquidity, removeLiquidity } from "./commands/liquidity.js";
 import { issuerAttest, issuerCreate, issuerGet, issuerSetJurisdiction, issuerSetType } from "./commands/issuer.js";
+import { policyGrantActivate, policyGrantStatus } from "./commands/policyV2.js";
 import { fmt } from "./ui.js";
 import { COINBASE_SCHEMA_UID } from "./constants.js";
+import { configureSignerOptions, type GlobalSignerOptions } from "./signer.js";
+import { safePropose } from "./safe.js";
+import { base, baseSepolia } from "viem/chains";
 
 const program = new Command();
 
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.2.21")
+  .version("0.3.3-rc.1")
+  .option("--keystore <path>", "Encrypted Web3 Secret Storage v3 keystore")
+  .option("--password-file <path>", "Keystore password file (must be mode 600)")
+  .option("--rpc-account <address>", "Account managed by the configured JSON-RPC node")
+  .option("--unsafe-private-key", "Allow testnet-only PRIVATE_KEY compatibility mode", false)
+  .option("--safe <address>", "Safe account for an administrative transaction proposal")
+  .option("--safe-tx-service <url>", "Safe Transaction Service base URL")
+  .option("--owner-keystore <path>", "Safe owner keystore used to sign a proposal")
+  .option("--owner-password-file <path>", "Safe owner password file (must be mode 600)")
+  .option("--safe-output <path>", "Write a reviewable Safe proposal JSON file")
+  .option("--submit-safe-proposal", "Submit a signed proposal to Safe Transaction Service", false)
   .addHelpText("before", `\n  ${fmt.bold(fmt.cyan("◆"))} ${fmt.bold("ILAL Protocol")}  ${fmt.gray("Uniswap v4 Compliance Hook")}\n`);
+
+program.hook("preAction", () => {
+  configureSignerOptions(program.opts() as GlobalSignerOptions);
+});
 
 // ─── init ─────────────────────────────────────────────────────────────────────
 
@@ -33,6 +58,8 @@ program
   .option("-i, --issuer <address>",   "CNFIssuer contract address")
   .option("-H, --hook <address>",     "ComplianceHook contract address")
   .option("-R, --registry <address>", "PolicyRegistry contract address")
+  .option("--grant-manager <address>", "PolicyGrantManagerV2 contract address")
+  .option("--protocol-version <version>", "Protocol version: 1 (CNF) or 2 (policy grant)", "1")
   .option("--router <address>",       "ILALRouter contract address")
   .option("--treasury <address>",     "ILAL protocol fee treasury address")
   .option("--token-a <address>",      "Demo token A / currency0 address")
@@ -46,7 +73,7 @@ program
   .option("--artifact-url <url>",     "Hosted proving artifact base URL")
   .option("--artifact-cache <path>",  "Local proving artifact cache directory")
   .option("-f, --force",              "Overwrite existing .ilal.json", false)
-  .action(async (opts: { issuer?: string; hook?: string; registry?: string; router?: string; treasury?: string; tokenA?: string; tokenB?: string; poolId?: string; fee?: string; tickSpacing?: string; chain: string; rpc?: string; circuitDir?: string; artifactUrl?: string; artifactCache?: string; force: boolean }) => {
+  .action(async (opts: { protocolVersion: string; issuer?: string; hook?: string; registry?: string; grantManager?: string; router?: string; treasury?: string; tokenA?: string; tokenB?: string; poolId?: string; fee?: string; tickSpacing?: string; chain: string; rpc?: string; circuitDir?: string; artifactUrl?: string; artifactCache?: string; force: boolean }) => {
     await init(opts).catch(err);
   });
 
@@ -79,8 +106,7 @@ const demoCommand = program
 demoCommand
   .command("check")
   .description("Check whether the configured live demo can run on-chain")
-  .option("-w, --wallet <address>", "Wallet address to check (defaults to PRIVATE_KEY address)")
-  .option("-k, --private-key <hex>", "Private key used only to derive the wallet address")
+  .option("-w, --wallet <address>", "Wallet address to check (defaults to configured signer)")
   .action(async (opts: { wallet?: string; privateKey?: string }) => {
     await demoCheck(opts).catch(err);
   });
@@ -88,9 +114,8 @@ demoCommand
 demoCommand
   .command("faucet")
   .description("Mint mock demo TOKA/TOKB to a wallet (testnet mock tokens only)")
-  .option("-w, --wallet <address>", "Recipient wallet (defaults to PRIVATE_KEY address)")
+  .option("-w, --wallet <address>", "Recipient wallet (defaults to configured signer)")
   .option("--amount <tokens>", "Human token amount to mint for each token", "10000")
-  .option("-k, --private-key <hex>", "Private key that pays gas")
   .action(async (opts: { wallet?: string; amount?: string; privateKey?: string }) => {
     await demoFaucet(opts).catch(err);
   });
@@ -100,7 +125,6 @@ demoCommand
   .description("Legacy testnet alias: create a MockEAS attestation for a wallet")
   .requiredOption("-w, --wallet <address>", "Recipient wallet that will mint the CNF")
   .option("--expires-in-days <days>", "Attestation lifetime in days", "90")
-  .option("-k, --private-key <hex>", "MockEAS owner private key")
   .action(async (opts: { wallet: string; expiresInDays?: string; privateKey?: string }) => {
     await demoAttest(opts).catch(err);
   });
@@ -126,7 +150,6 @@ issuer
   .option("--no-revocable", "Create a non-revocable EAS attestation")
   .option("-c, --chain <chainId>", "Chain ID", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Issuer attester private key")
   .action(async (opts: { wallet: string; schema?: string; eas?: string; issuer?: string; expiresInDays?: string; data?: string; revocable?: boolean; chain?: string; rpc?: string; privateKey?: string }) => {
     await issuerAttest(opts).catch(err);
   });
@@ -192,7 +215,6 @@ credential
   .option("--out-dir <path>", "Directory to write proof/witness files")
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--expires-at <unix>", "Unix timestamp used in the ZK proof/root (must match issuer root)")
   .action(async (opts: { wallet: string; issuer: string; action?: string; circuitDir?: string; artifactUrl?: string; artifactCache?: string; offline?: boolean; outDir?: string; chain: string; rpc?: string; privateKey?: string; expiresAt?: string }) => {
     await credentialProve(opts).catch(err);
@@ -215,7 +237,6 @@ credential
   .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
   .option("-c, --chain <chainId>", "Chain ID", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--simulate", "Verify attestation without sending tx", false)
   .action(async (opts: { attestation: string; issuer?: string; chain?: string; rpc?: string; privateKey?: string; simulate: boolean }) => {
     await mintCredential(opts).catch(err);
@@ -228,7 +249,6 @@ credential
   .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
   .option("-c, --chain <chainId>", "Chain ID", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--simulate", "Verify attestation without sending tx", false)
   .action(async (opts: { attestation: string; issuer?: string; chain?: string; rpc?: string; privateKey?: string; simulate: boolean }) => {
     await renewCredential(opts).catch(err);
@@ -246,7 +266,6 @@ proof
   .requiredOption("-i, --issuer <address>", "CNFIssuer contract address")
   .option("-c, --chain <chainId>", "Chain ID", "8453")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .action(async (opts: { proof: string; public: string; issuer: string; chain: string; rpc?: string; privateKey?: string }) => {
     await proofMint(opts).catch(err);
   });
@@ -259,7 +278,6 @@ proof
   .requiredOption("-i, --issuer <address>", "CNFIssuer contract address")
   .option("-c, --chain <chainId>", "Chain ID", "8453")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .action(async (opts: { proof: string; public: string; issuer: string; chain: string; rpc?: string; privateKey?: string }) => {
     await proofRenew(opts).catch(err);
   });
@@ -275,13 +293,46 @@ session
   .requiredOption("-a, --action <action>", "Action: swap | addLiquidity | removeLiquidity")
   .option("-H, --hook <address>", "ComplianceHook contract address (defaults to .ilal.json hook)")
   .option("-i, --issuer <address>", "CNFIssuer contract address (defaults to .ilal.json issuer)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address (v2)")
+  .option("--protocol-version <version>", "Protocol version: 1 or 2 (defaults to .ilal.json)")
   .option("-u, --user <address>", "Trader address (defaults to key's address)")
   .option("--caller <address>", "Authorized v4 caller (defaults to .ilal.json router, then user)")
   .option("-c, --chain <chainId>", "Chain ID (defaults to .ilal.json chain, then 84532)")
   .option("-t, --ttl <seconds>", "Session lifetime in seconds", "600")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
-  .action(async (opts: { pool?: string; action: string; hook?: string; issuer?: string; user?: string; caller?: string; chain?: string; ttl: string; privateKey?: string }) => {
+  .action(async (opts: { pool?: string; action: string; hook?: string; issuer?: string; registry?: string; protocolVersion?: string; user?: string; caller?: string; chain?: string; ttl: string; privateKey?: string }) => {
     await sessionSign({ ...opts, ttl: parseInt(opts.ttl, 10) }).catch(err);
+  });
+
+// ─── v2 policy grants ───────────────────────────────────────────────────────
+
+const policyV2 = program.command("policy").description("Protocol v2 eligibility policy and grant operations");
+const grantsV2 = policyV2.command("grant").description("Short-lived policy grant operations");
+
+grantsV2
+  .command("status")
+  .description("Read the current pool policy and a wallet's v2 grant")
+  .requiredOption("-w, --wallet <address>", "Wallet address")
+  .option("-p, --pool <bytes32>", "Pool ID (defaults to .ilal.json poolId)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address")
+  .option("-G, --grant-manager <address>", "PolicyGrantManagerV2 address")
+  .option("-c, --chain <chainId>", "Chain ID (defaults to .ilal.json)")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { wallet: string; pool?: string; registry?: string; grantManager?: string; chain?: string; rpc?: string }) => {
+    await policyGrantStatus(opts).catch(err);
+  });
+
+grantsV2
+  .command("activate")
+  .description("Verify a circuit v2 proof and activate a short-lived pool policy grant")
+  .requiredOption("--proof <path>", "Path to snarkjs proof.json")
+  .requiredOption("--public <path>", "Path to snarkjs public.json")
+  .option("-p, --pool <bytes32>", "Pool ID (defaults to .ilal.json poolId)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address")
+  .option("-G, --grant-manager <address>", "PolicyGrantManagerV2 address")
+  .option("-c, --chain <chainId>", "Chain ID (defaults to .ilal.json)")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { proof: string; public: string; pool?: string; registry?: string; grantManager?: string; chain?: string; rpc?: string; privateKey?: string }) => {
+    await policyGrantActivate(opts).catch(err);
   });
 
 // ─── pool ─────────────────────────────────────────────────────────────────────
@@ -299,7 +350,6 @@ policy
   .option("-T, --cred-type <bytes32>", "Required credential type", COINBASE_SCHEMA_UID)
   .option("-c, --chain <chainId>", "Chain ID", "8453")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .action(async (opts: { pool: string; issuer: string; registry: string; credType: string; chain: string; rpc?: string; privateKey?: string }) => {
     await poolPolicySet(opts).catch(err);
   });
@@ -321,24 +371,30 @@ pool
   .requiredOption("--tick-lower <int24>", "Lower tick of position")
   .requiredOption("--tick-upper <int24>", "Upper tick of position")
   .requiredOption("--liquidity <uint128>", "Liquidity amount to add (in raw units)")
+  .option("--max-amount-0 <raw>", "Maximum currency0 spend in raw token units")
+  .option("--max-amount-1 <raw>", "Maximum currency1 spend in raw token units")
+  .option("--unsafe-no-amount-limits", "Disable LP spend protection (test environments only)", false)
   .option("--salt <bytes32>", "Position salt for multiple positions at the same range (defaults to user-scoped salt)")
   .option("--pool-id <bytes32>", "Pool ID (or set in .ilal.json)")
   .option("--router <address>", "ILALRouter address (or set in .ilal.json)")
   .option("-H, --hook <address>", "ComplianceHook address (or set in .ilal.json)")
   .option("-i, --issuer <address>", "CNFIssuer address (or set in .ilal.json)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address (v2)")
+  .option("-G, --grant-manager <address>", "PolicyGrantManagerV2 address (v2)")
+  .option("--protocol-version <version>", "Protocol version: 1 or 2 (defaults to .ilal.json)")
   .option("--token-a <address>", "currency0 token address (or set in .ilal.json)")
   .option("--token-b <address>", "currency1 token address (or set in .ilal.json)")
   .option("--fee <uint24>", "Pool fee tier (default: config or 3000; 8388608=dynamic)")
   .option("--tick-spacing <int24>", "Tick spacing (default: config or 60)")
   .option("-c, --chain <chainId>", "Chain ID", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--ttl <seconds>", "Session token lifetime in seconds", "600")
   .action(async (opts: {
     tickLower: string; tickUpper: string; liquidity: string; salt?: string;
-    poolId?: string; router?: string; hook?: string; issuer?: string;
+    poolId?: string; router?: string; hook?: string; issuer?: string; registry?: string; grantManager?: string; protocolVersion?: string;
     tokenA?: string; tokenB?: string; fee?: string; tickSpacing?: string;
     chain: string; rpc?: string; privateKey?: string; ttl: string;
+    maxAmount0?: string; maxAmount1?: string; unsafeNoAmountLimits: boolean;
   }) => {
     await addLiquidity(opts).catch(err);
   });
@@ -349,24 +405,30 @@ pool
   .requiredOption("--tick-lower <int24>", "Lower tick of position")
   .requiredOption("--tick-upper <int24>", "Upper tick of position")
   .requiredOption("--liquidity <uint128>", "Liquidity amount to remove (in raw units)")
+  .option("--min-amount-0 <raw>", "Minimum currency0 receive in raw token units")
+  .option("--min-amount-1 <raw>", "Minimum currency1 receive in raw token units")
+  .option("--unsafe-no-amount-limits", "Disable LP output protection (test environments only)", false)
   .option("--salt <bytes32>", "Position salt (defaults to user-scoped salt)")
   .option("--pool-id <bytes32>", "Pool ID (or set in .ilal.json)")
   .option("--router <address>", "ILALRouter address (or set in .ilal.json)")
   .option("-H, --hook <address>", "ComplianceHook address (or set in .ilal.json)")
   .option("-i, --issuer <address>", "CNFIssuer address (or set in .ilal.json)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address (v2)")
+  .option("-G, --grant-manager <address>", "PolicyGrantManagerV2 address (v2)")
+  .option("--protocol-version <version>", "Protocol version: 1 or 2 (defaults to .ilal.json)")
   .option("--token-a <address>", "currency0 token address (or set in .ilal.json)")
   .option("--token-b <address>", "currency1 token address (or set in .ilal.json)")
   .option("--fee <uint24>", "Pool fee tier (default: config or 3000; 8388608=dynamic)")
   .option("--tick-spacing <int24>", "Tick spacing (default: config or 60)")
   .option("-c, --chain <chainId>", "Chain ID", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--ttl <seconds>", "Session token lifetime in seconds", "600")
   .action(async (opts: {
     tickLower: string; tickUpper: string; liquidity: string; salt?: string;
-    poolId?: string; router?: string; hook?: string; issuer?: string;
+    poolId?: string; router?: string; hook?: string; issuer?: string; registry?: string; grantManager?: string; protocolVersion?: string;
     tokenA?: string; tokenB?: string; fee?: string; tickSpacing?: string;
     chain: string; rpc?: string; privateKey?: string; ttl: string;
+    minAmount0?: string; minAmount1?: string; unsafeNoAmountLimits: boolean;
   }) => {
     await removeLiquidity(opts).catch(err);
   });
@@ -377,7 +439,8 @@ program
   .command("swap")
   .description("Execute a compliant token swap through the ILAL channel")
   .requiredOption("--amount-in <amount>", "Input amount in human-readable units (e.g. 100)")
-  .option("--min-amount-out <wei>", "Minimum output amount in wei — reverts if pool gives less (default: 0 = off)")
+  .option("--min-amount-out <raw>", "Required minimum output in raw token units for live swaps")
+  .option("--unsafe-no-slippage", "Explicitly disable output protection (test environments only)", false)
   .option("--token-in <address>", "Token to sell (defaults to tokenA from config)")
   .option("--token-a <address>", "currency0 token address (or set in .ilal.json)")
   .option("--token-b <address>", "currency1 token address (or set in .ilal.json)")
@@ -385,18 +448,20 @@ program
   .option("--router <address>", "ILALRouter address (or set in .ilal.json)")
   .option("-H, --hook <address>", "ComplianceHook address (or set in .ilal.json)")
   .option("-i, --issuer <address>", "CNFIssuer address (or set in .ilal.json)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address (v2)")
+  .option("-G, --grant-manager <address>", "PolicyGrantManagerV2 address (v2)")
+  .option("--protocol-version <version>", "Protocol version: 1 or 2 (defaults to .ilal.json)")
   .option("--fee <uint24>", "Pool fee tier (default: config or 3000; 8388608=dynamic)")
   .option("--tick-spacing <int24>", "Tick spacing (default: config or 60)")
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--ttl <seconds>", "Session token lifetime in seconds", "600")
   .option("--hook-data <hex>", "Use externally signed one-time hookData instead of signing inside swap")
   .option("--explain", "Show inline explanations for gate checks and session fields", false)
   .option("--simulate", "Sign session without sending tx", false)
   .action(async (opts: {
-    amountIn: string; minAmountOut?: string; tokenIn?: string; tokenA?: string; tokenB?: string;
-    poolId?: string; router?: string; hook?: string; issuer?: string;
+    amountIn: string; minAmountOut?: string; unsafeNoSlippage: boolean; tokenIn?: string; tokenA?: string; tokenB?: string;
+    poolId?: string; router?: string; hook?: string; issuer?: string; registry?: string; grantManager?: string; protocolVersion?: string;
     fee?: string; tickSpacing?: string; chain: string; rpc?: string;
     privateKey?: string; ttl: string; hookData?: string; explain: boolean; simulate: boolean;
   }) => {
@@ -405,12 +470,11 @@ program
 
 // ─── oracle ───────────────────────────────────────────────────────────────────
 // Operator-only commands — require owner key.
-// Merkle root and ZK verifier changes are timelocked:
-//   ROOT_DELAY = 48h, VERIFIER_DELAY = 72h.
+// Merkle root, verifier, and proof-domain changes are timelocked.
 
 const oracle = program
   .command("oracle")
-  .description("Operator commands for managing timelocked Merkle root and ZK verifier");
+  .description("Operator commands for managing timelocked ZK trust configuration");
 
 oracle
   .command("propose-root")
@@ -419,7 +483,6 @@ oracle
   .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .action(async (opts: { root: string; issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
     await oracleProposeRoot(opts).catch(err);
   });
@@ -430,7 +493,6 @@ oracle
   .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .action(async (opts: { issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
     await oracleActivateRoot(opts).catch(err);
   });
@@ -442,7 +504,6 @@ oracle
   .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
   .option("-c, --chain <chainId>", "Chain ID", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .action(async (opts: { verifier: string; issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
     await oracleProposeVerifier(opts).catch(err);
   });
@@ -453,9 +514,52 @@ oracle
   .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
   .option("-c, --chain <chainId>", "Chain ID", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .action(async (opts: { issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
     await oracleActivateVerifier(opts).catch(err);
+  });
+
+oracle
+  .command("propose-domain")
+  .description("Queue issuer/schema public-input hashes (step 1 of 2 — owner only, 72 h timelock)")
+  .requiredOption("--issuer-hash <uint256>", "Poseidon field hash of the CNFIssuer address")
+  .requiredOption("--schema-hash <uint256>", "Poseidon field hash of the accepted credential schema")
+  .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
+  .option("-c, --chain <chainId>", "Chain ID", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { issuerHash: string; schemaHash: string; issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await oracleProposeDomain(opts).catch(err);
+  });
+
+oracle
+  .command("activate-domain")
+  .description("Activate pending issuer/schema hashes after the 72-hour timelock (step 2 of 2)")
+  .option("-i, --issuer <address>", "CNFIssuer contract address (or set in .ilal.json)")
+  .option("-c, --chain <chainId>", "Chain ID", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { issuer?: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await oracleActivateDomain(opts).catch(err);
+  });
+
+// ─── Safe proposals ─────────────────────────────────────────────────────────
+
+const safe = program.command("safe").description("Build and optionally submit Safe administrative transactions");
+
+safe
+  .command("propose")
+  .description("Create an offline Safe transaction JSON; submission requires an explicit flag")
+  .requiredOption("--to <address>", "Transaction target")
+  .requiredOption("--data <hex>", "ABI-encoded calldata")
+  .option("--value <wei>", "Native value in wei", "0")
+  .option("--operation <0|1>", "0=CALL, 1=DELEGATECALL", "0")
+  .option("-c, --chain <chainId>", "Chain ID", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { to: string; data: string; value?: string; operation?: string; chain: string; rpc?: string }) => {
+    const chain = opts.chain === "8453" ? base : opts.chain === "84532" ? baseSepolia : undefined;
+    if (!chain) {
+      err(new Error(`Unsupported chain: ${opts.chain}`));
+      return;
+    }
+    await safePropose({ ...opts, chain }).catch(err);
   });
 
 // ─── deploy ───────────────────────────────────────────────────────────────────
@@ -465,13 +569,22 @@ program
   .description("Deploy ILAL contracts (PolicyRegistry + CNFIssuer + ComplianceHook)")
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .option("-k, --private-key <hex>", "Private key (or set PRIVATE_KEY env var)")
   .option("--broadcast", "Send transactions (omit for dry run)", false)
   .option("--verify", "Verify contracts on Etherscan/Basescan", false)
   .option("--mock", "Use MockEAS for testnet (Base Sepolia only)", false)
+  .option("--admin <address>", "Safe/admin that receives CNFIssuer and PolicyRegistry ownership (production only)")
+  .option("--eas <address>", "Issuer EAS contract (defaults to the chain EAS contract)")
+  .option("--schema <bytes32>", "Issuer EAS schema UID (defaults to Coinbase Account Verification)")
+  .option("--attester <address>", "Trusted EAS attester (defaults to Coinbase Verifications)")
+  .option("--treasury <address>", "Protocol-fee treasury (defaults to deployer)")
+  .option("--protocol-fee-pips <pips>", "Verified-flow protocol fee, 0-1000 (default 50)")
+  .option("--issuer-name <name>", "On-chain issuer display name")
+  .option("--issuer-jurisdiction <text>", "On-chain issuer jurisdiction descriptor")
+  .option("--issuer-standard <text>", "On-chain credential standard descriptor")
+  .option("--issuer-uri <uri>", "On-chain issuer metadata URI")
   .option("--wallet-to-seed <address>", "Wallet that receives a seeded test attestation (--mock only)")
   .option("--contracts-dir <path>", "Path to contracts/ directory")
-  .action(async (opts: { chain: string; rpc?: string; privateKey?: string; broadcast: boolean; verify: boolean; mock: boolean; walletToSeed?: string; contractsDir?: string }) => {
+  .action(async (opts: { chain: string; rpc?: string; privateKey?: string; broadcast: boolean; verify: boolean; mock: boolean; admin?: string; eas?: string; schema?: string; attester?: string; treasury?: string; protocolFeePips?: string; issuerName?: string; issuerJurisdiction?: string; issuerStandard?: string; issuerUri?: string; walletToSeed?: string; contractsDir?: string }) => {
     await deploy(opts).catch(err);
   });
 

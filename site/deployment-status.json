@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": "deployments/index.json",
+  "active": {},
+  "deployments": [
+    {
+      "version": "0.3.2",
+      "network": "base-sepolia",
+      "chainId": 84532,
+      "status": "deprecated",
+      "manifest": "base-sepolia/v0.3.2.json",
+      "reason": "The demo owner signer was exposed. Do not rely on this stack for authorization or current examples."
+    }
+  ]
+}

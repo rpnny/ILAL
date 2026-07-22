@@ -1,39 +1,41 @@
 /**
  * oracle.ts — `ilal oracle`
  *
- * Operator-only commands for managing the CNFIssuer Merkle root and
- * ZK verifier via the timelock mechanism.
+ * Operator-only commands for managing the CNFIssuer Merkle root,
+ * ZK verifier, and ZK public-input domain via timelock mechanisms.
  *
- * Merkle root and ZK verifier changes are protected by a 2-step propose → activate
- * timelock (ROOT_DELAY = 48 h, VERIFIER_DELAY = 72 h). Only the contract
- * owner can call these.
+ * Every trust change uses a 2-step propose → activate flow. Root changes wait
+ * 48 hours; verifier and public-input domain changes wait 72 hours. Only the
+ * contract owner can call these functions.
  *
  * Usage:
  *   # Step 1 — queue a new root (requires owner key, executes immediately)
- *   PRIVATE_KEY=0x... ilal oracle propose-root \
+ *   ilal --keystore issuer.json oracle propose-root \
  *     --root 0xDEADBEEF... \
  *     --issuer 0x335413...
  *
  *   # Step 2 — after ROOT_DELAY (48 h) has elapsed, activate it
- *   PRIVATE_KEY=0x... ilal oracle activate-root \
+ *   ilal --keystore issuer.json oracle activate-root \
  *     --issuer 0x335413...
  *
  *   # Same pattern for the ZK verifier (VERIFIER_DELAY = 72 h)
- *   PRIVATE_KEY=0x... ilal oracle propose-verifier --verifier 0x... --issuer 0x...
- *   PRIVATE_KEY=0x... ilal oracle activate-verifier --issuer 0x...
+ *   ilal --keystore issuer.json oracle propose-verifier --verifier 0x... --issuer 0x...
+ *   ilal --keystore issuer.json oracle activate-verifier --issuer 0x...
+ *
+ *   # Bind ZK proofs to one issuer/schema domain (ZK_DOMAIN_DELAY = 72 h)
+ *   ilal --keystore issuer.json oracle propose-domain \
+ *     --issuer-hash <uint256> --schema-hash <uint256> --issuer 0x...
+ *   ilal --keystore issuer.json oracle activate-domain --issuer 0x...
  */
 
 import {
-  createPublicClient,
-  createWalletClient,
-  http,
   isAddress,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, header, Spinner, die, dieOnContract, requirePrivateKey } from "../ui.js";
+import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
 import { withConfig } from "../config.js";
+import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -55,6 +57,17 @@ const ORACLE_ABI = [
     inputs: [], outputs: [],
   },
   {
+    name: "proposeZKPublicInputHashes", type: "function" as const, stateMutability: "nonpayable" as const,
+    inputs: [
+      { name: "_issuerHash", type: "uint256" as const },
+      { name: "_schemaHash", type: "uint256" as const },
+    ], outputs: [],
+  },
+  {
+    name: "activateZKPublicInputHashes", type: "function" as const, stateMutability: "nonpayable" as const,
+    inputs: [], outputs: [],
+  },
+  {
     name: "pendingRoot", type: "function" as const, stateMutability: "view" as const,
     inputs: [], outputs: [{ type: "uint256" as const }],
   },
@@ -71,6 +84,18 @@ const ORACLE_ABI = [
     inputs: [], outputs: [{ type: "uint256" as const }],
   },
   {
+    name: "pendingZKIssuerHash", type: "function" as const, stateMutability: "view" as const,
+    inputs: [], outputs: [{ type: "uint256" as const }],
+  },
+  {
+    name: "pendingZKSchemaHash", type: "function" as const, stateMutability: "view" as const,
+    inputs: [], outputs: [{ type: "uint256" as const }],
+  },
+  {
+    name: "pendingZKDomainActivatesAt", type: "function" as const, stateMutability: "view" as const,
+    inputs: [], outputs: [{ type: "uint256" as const }],
+  },
+  {
     name: "ROOT_DELAY", type: "function" as const, stateMutability: "view" as const,
     inputs: [], outputs: [{ type: "uint256" as const }],
   },
@@ -79,7 +104,19 @@ const ORACLE_ABI = [
     inputs: [], outputs: [{ type: "uint256" as const }],
   },
   {
+    name: "ZK_DOMAIN_DELAY", type: "function" as const, stateMutability: "view" as const,
+    inputs: [], outputs: [{ type: "uint256" as const }],
+  },
+  {
     name: "merkleRoot", type: "function" as const, stateMutability: "view" as const,
+    inputs: [], outputs: [{ type: "uint256" as const }],
+  },
+  {
+    name: "zkIssuerHash", type: "function" as const, stateMutability: "view" as const,
+    inputs: [], outputs: [{ type: "uint256" as const }],
+  },
+  {
+    name: "zkSchemaHash", type: "function" as const, stateMutability: "view" as const,
     inputs: [], outputs: [{ type: "uint256" as const }],
   },
 ] as const;
@@ -89,16 +126,14 @@ function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
   return baseUrl ? `${baseUrl}/tx/${hash}` : undefined;
 }
 
-function makeClients(cfg: ReturnType<typeof withConfig>, opts: { rpc?: string; chain?: string; privateKey?: string }) {
-  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
+async function makeClients(cfg: ReturnType<typeof withConfig>, opts: { rpc?: string; chain?: string; privateKey?: string }) {
   const chain     = CHAINS[opts.chain ?? "84532"] ?? baseSepolia;
-  const transport = opts.rpc ? http(opts.rpc) : http();
-  const account   = privateKeyToAccount(rawKey);
+  const clients = await createExecutionClients({ chain, rpc: opts.rpc, legacyPrivateKey: opts.privateKey });
   return {
     chain,
-    account,
-    pubClient: createPublicClient({ chain, transport }),
-    walClient: createWalletClient({ account, chain, transport }),
+    account: clients.account,
+    pubClient: clients.publicClient,
+    walClient: clients.walletClient,
   };
 }
 
@@ -117,7 +152,7 @@ export async function oracleProposeRoot(opts: {
   if (!opts.root) die("--root <uint256> required");
 
   const root = BigInt(opts.root!);
-  const { chain, account, pubClient, walClient } = makeClients(cfg, opts);
+  const { chain, account, pubClient, walClient } = await makeClients(cfg, opts);
 
   header("ILAL Oracle — Propose Merkle Root", chain.name);
   log.kv("issuer", fmt.cyan(cfg.issuer!));
@@ -174,7 +209,7 @@ export async function oracleActivateRoot(opts: {
   if (!cfg.issuer) die("CNFIssuer address required. Use --issuer or set in .ilal.json");
   if (!isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
 
-  const { chain, account, pubClient, walClient } = makeClients(cfg, opts);
+  const { chain, account, pubClient, walClient } = await makeClients(cfg, opts);
 
   header("ILAL Oracle — Activate Merkle Root", chain.name);
   log.kv("issuer", fmt.cyan(cfg.issuer!));
@@ -233,7 +268,7 @@ export async function oracleProposeVerifier(opts: {
   if (!isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
   if (!opts.verifier || !isAddress(opts.verifier)) die("--verifier <address> required");
 
-  const { chain, account, pubClient, walClient } = makeClients(cfg, opts);
+  const { chain, account, pubClient, walClient } = await makeClients(cfg, opts);
 
   header("ILAL Oracle — Propose ZK Verifier", chain.name);
   log.kv("issuer",       fmt.cyan(cfg.issuer!));
@@ -287,7 +322,7 @@ export async function oracleActivateVerifier(opts: {
   if (!cfg.issuer) die("CNFIssuer address required. Use --issuer or set in .ilal.json");
   if (!isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
 
-  const { chain, account, pubClient, walClient } = makeClients(cfg, opts);
+  const { chain, account, pubClient, walClient } = await makeClients(cfg, opts);
 
   header("ILAL Oracle — Activate ZK Verifier", chain.name);
 
@@ -326,6 +361,136 @@ export async function oracleActivateVerifier(opts: {
 
   log.line();
   log.callout("Verifier live", "New ZK verifier is now active for all proof verifications", "green");
+  const explorer = txUrl(chain, txHash!);
+  if (explorer) log.kv("explorer", fmt.cyan(explorer));
+  console.log();
+}
+
+// ─── propose-domain ──────────────────────────────────────────────────────────
+
+export async function oracleProposeDomain(opts: {
+  issuerHash?: string;
+  schemaHash?: string;
+  issuer?: string;
+  chain?: string;
+  rpc?: string;
+  privateKey?: string;
+}) {
+  const cfg = withConfig(opts);
+  if (!cfg.issuer) die("CNFIssuer address required. Use --issuer or set in .ilal.json");
+  if (!isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
+  if (!opts.issuerHash) die("--issuer-hash <uint256> required");
+  if (!opts.schemaHash) die("--schema-hash <uint256> required");
+
+  const issuerHash = BigInt(opts.issuerHash);
+  const schemaHash = BigInt(opts.schemaHash);
+  if (issuerHash === 0n || schemaHash === 0n) die("Issuer and schema hashes must both be nonzero");
+
+  const { chain, account, pubClient, walClient } = await makeClients(cfg, opts);
+  const issuerAddress = cfg.issuer as `0x${string}`;
+
+  header("ILAL Oracle — Propose ZK Domain", chain.name);
+  log.kv("issuer", fmt.cyan(issuerAddress));
+  log.kv("new issuer hash", fmt.gray(issuerHash.toString()));
+  log.kv("new schema hash", fmt.gray(schemaHash.toString()));
+
+  const [currentIssuerHash, currentSchemaHash, delay] = await Promise.all([
+    pubClient.readContract({ address: issuerAddress, abi: ORACLE_ABI, functionName: "zkIssuerHash" }) as Promise<bigint>,
+    pubClient.readContract({ address: issuerAddress, abi: ORACLE_ABI, functionName: "zkSchemaHash" }) as Promise<bigint>,
+    pubClient.readContract({ address: issuerAddress, abi: ORACLE_ABI, functionName: "ZK_DOMAIN_DELAY" }) as Promise<bigint>,
+  ]);
+  log.kv("current issuer hash", fmt.gray(currentIssuerHash.toString()));
+  log.kv("current schema hash", fmt.gray(currentSchemaHash.toString()));
+  log.kv("timelock delay", `${Number(delay) / 3600} hours`);
+  log.line();
+
+  const spin = new Spinner("Proposing ZK public-input domain…").start();
+  let txHash: `0x${string}`;
+  try {
+    txHash = await walClient.writeContract({
+      account,
+      address: issuerAddress,
+      abi: ORACLE_ABI,
+      functionName: "proposeZKPublicInputHashes",
+      args: [issuerHash, schemaHash],
+    });
+    await pubClient.waitForTransactionReceipt({ hash: txHash });
+    spin.succeed(`ZK domain proposed ${fmt.gray(fmt.hash(txHash))}`);
+  } catch (e) {
+    spin.fail("proposeZKPublicInputHashes failed");
+    dieOnContract(e);
+    return;
+  }
+
+  const activatesAt = new Date(Date.now() + Number(delay) * 1000);
+  log.line();
+  log.callout(
+    "ZK domain queued",
+    `Activate after ${activatesAt.toISOString()}\n  Run: ilal oracle activate-domain --issuer ${issuerAddress}`,
+    "cyan"
+  );
+  const explorer = txUrl(chain, txHash!);
+  if (explorer) log.kv("explorer", fmt.cyan(explorer));
+  console.log();
+}
+
+// ─── activate-domain ─────────────────────────────────────────────────────────
+
+export async function oracleActivateDomain(opts: {
+  issuer?: string;
+  chain?: string;
+  rpc?: string;
+  privateKey?: string;
+}) {
+  const cfg = withConfig(opts);
+  if (!cfg.issuer) die("CNFIssuer address required. Use --issuer or set in .ilal.json");
+  if (!isAddress(cfg.issuer!)) die(`Invalid issuer address: ${cfg.issuer}`);
+
+  const { chain, account, pubClient, walClient } = await makeClients(cfg, opts);
+  const issuerAddress = cfg.issuer as `0x${string}`;
+
+  header("ILAL Oracle — Activate ZK Domain", chain.name);
+  log.kv("issuer", fmt.cyan(issuerAddress));
+
+  const [pendingIssuerHash, pendingSchemaHash, activatesAt] = await Promise.all([
+    pubClient.readContract({ address: issuerAddress, abi: ORACLE_ABI, functionName: "pendingZKIssuerHash" }) as Promise<bigint>,
+    pubClient.readContract({ address: issuerAddress, abi: ORACLE_ABI, functionName: "pendingZKSchemaHash" }) as Promise<bigint>,
+    pubClient.readContract({ address: issuerAddress, abi: ORACLE_ABI, functionName: "pendingZKDomainActivatesAt" }) as Promise<bigint>,
+  ]);
+
+  if (pendingIssuerHash === 0n || pendingSchemaHash === 0n || activatesAt === 0n) {
+    die("No pending ZK domain — run `ilal oracle propose-domain` first");
+  }
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  if (activatesAt > now) {
+    const remaining = Number(activatesAt - now);
+    die(`Timelock not elapsed. Activate in ${Math.ceil(remaining / 3600)} hour(s) (${new Date(Number(activatesAt) * 1000).toISOString()})`);
+  }
+
+  log.kv("pending issuer hash", fmt.cyan(pendingIssuerHash.toString()));
+  log.kv("pending schema hash", fmt.cyan(pendingSchemaHash.toString()));
+  log.line();
+
+  const spin = new Spinner("Activating ZK public-input domain…").start();
+  let txHash: `0x${string}`;
+  try {
+    txHash = await walClient.writeContract({
+      account,
+      address: issuerAddress,
+      abi: ORACLE_ABI,
+      functionName: "activateZKPublicInputHashes",
+      args: [],
+    });
+    await pubClient.waitForTransactionReceipt({ hash: txHash });
+    spin.succeed(`ZK domain activated ${fmt.gray(fmt.hash(txHash))}`);
+  } catch (e) {
+    spin.fail("activateZKPublicInputHashes failed");
+    dieOnContract(e);
+    return;
+  }
+
+  log.line();
+  log.callout("ZK domain live", "Proofs must now match this issuer and schema exactly", "green");
   const explorer = txUrl(chain, txHash!);
   if (explorer) log.kv("explorer", fmt.cyan(explorer));
   console.log();

@@ -1,15 +1,12 @@
 import { readFileSync } from "fs";
 import {
-  createPublicClient,
-  createWalletClient,
   encodeAbiParameters,
-  http,
   isAddress,
   type Chain,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
-import { fmt, log, die, requirePrivateKey } from "../ui.js";
+import { fmt, log, die } from "../ui.js";
+import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -52,7 +49,7 @@ const CNF_ISSUER_ABI = [
   },
 ] as const;
 
-function loadSnarkjsProof(proofPath: string, publicPath: string): {
+export function loadSnarkjsProof(proofPath: string, publicPath: string): {
   proofBytes: `0x${string}`;
   publicInputs: bigint[];
 } {
@@ -128,15 +125,14 @@ async function sendProofTx(
     privateKey?: string;
   }
 ) {
-  const rawKey = requirePrivateKey(opts.privateKey ?? process.env["PRIVATE_KEY"]);
   if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
 
   const chain = CHAINS[opts.chain] ?? baseSepolia;
-  const account = privateKeyToAccount(rawKey);
-  const transport = opts.rpc ? http(opts.rpc) : http();
-
-  const publicClient = createPublicClient({ chain, transport });
-  const walletClient = createWalletClient({ account, chain, transport });
+  const { account, publicClient, walletClient } = await createExecutionClients({
+    chain,
+    rpc: opts.rpc,
+    legacyPrivateKey: opts.privateKey,
+  });
 
   console.log();
   console.log(fmt.bold(`  ILAL Credential ZK ${mode === "mint" ? "Mint" : "Renew"}`));
