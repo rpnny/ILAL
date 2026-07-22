@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "status": "development-only",
   "productionApproved": false,
-  "circuitSourceCommit": null,
+  "circuitSourceCommit": "66af98f76dcae6688b0c0a4b3861c131dedee0ba",
   "circuits": {
     "v1": {
       "path": "circuits/ilal.circom",
