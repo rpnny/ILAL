@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | `v0.3.3-rc.2` |
+| Version | `v0.3.3-rc.3` |
 | Software | Release candidate |
 | Deployment | No active v0.3.3 deployment |
 | Attestation | MockEAS planned for Base Sepolia demo |
@@ -13,13 +13,13 @@
 | Audit | Unaudited |
 | npm | RC is not published to `latest` or `next` |
 
-The canonical machine-readable template is `releases/v0.3.3-rc.2.json`. It records the clean frozen `sourceCommit`. Because a commit cannot contain its own SHA, tracked `releaseCommit` remains `null`; the tag workflow resolves it to the signed tag commit in the published release asset. Neither value may be guessed or derived from a dirty tree. `v0.3.3-rc.1` remains an unpublished failed candidate because its first public CI runs exposed invalid Action and dependency references; its signed tag is not rewritten.
+The canonical machine-readable template is `releases/v0.3.3-rc.3.json`. It records the clean frozen `sourceCommit`. Because a commit cannot contain its own SHA, tracked `releaseCommit` remains `null`; the tag workflow resolves it to the signed tag commit in the published release asset. Neither value may be guessed or derived from a dirty tree. `v0.3.3-rc.1` remains an unpublished failed candidate after invalid Action and dependency references were exposed. `v0.3.3-rc.2` remains a published diagnostic candidate whose tag-level check exposed a detached-HEAD assumption. Neither signed tag is rewritten; RC3 supersedes both.
 
 ## Version compatibility
 
 | Artifact | Meaning |
 |---|---|
-| Local `cli/` source `0.3.3-rc.2` | New signer abstraction, Safe proposal flow, deprecated preset removal, bounded execution |
+| Local `cli/` source `0.3.3-rc.3` | New signer abstraction, Safe proposal flow, deprecated preset removal, bounded execution |
 | npm `@ilalv3/cli@0.3.2` | Published stable but deprecated because its default test stack is unsafe |
 | npm `@ilalv3/cli@0.2.21` | Historical old Router ABI; incompatible with current source expectations |
 

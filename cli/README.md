@@ -6,7 +6,7 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.3.3-rc.2` | Current local source in this monorepo | Release candidate; no active preset and not published to npm |
+| `0.3.3-rc.3` | Current local source in this monorepo | Release candidate; no active preset and not published to npm |
 | `0.3.2` | npm stable | Deprecated because it points at a Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Historical old Router ABI; do not mix with v0.3 source or manifests |
 
@@ -16,7 +16,7 @@ The local source and published npm versions are intentionally different. Until `
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.3.3-rc.2
+node dist/index.js --version  # 0.3.3-rc.3
 npm test
 ```
 

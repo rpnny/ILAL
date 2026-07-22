@@ -19,7 +19,7 @@ An ignored in-repository directory is never the sole backup.
 1. Run `make verify` from a clean tree.
 2. Confirm no active deployment is selected and v0.3.2 is marked deprecated.
 3. Freeze the RC source commit and populate the release manifest honestly.
-4. Tag the current RC at the reviewed release commit. `v0.3.3-rc.1` is retained as a failed pre-release attempt and must not be moved; the corrected candidate is `v0.3.3-rc.2`.
+4. Tag the current RC at the reviewed release commit. `v0.3.3-rc.1` and `v0.3.3-rc.2` are retained as superseded diagnostic candidates and must not be moved; the corrected candidate is `v0.3.3-rc.3`.
 5. Let `release-rc.yml` create a GitHub prerelease with checksums, SBOM, test evidence, release/deployment status, and proving provenance.
 6. Do not publish npm `latest` or `next` from the RC workflow.
 

@@ -1,6 +1,6 @@
 {
   "name": "@ilalv3/cli",
-  "version": "0.3.3-rc.2",
+  "version": "0.3.3-rc.3",
   "description": "ILAL Protocol CLI — compliant swaps and credential management for Uniswap v4",
   "type": "module",
   "bin": {
