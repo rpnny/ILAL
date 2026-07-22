@@ -1,0 +1,53 @@
+# Operating-system and editor state
+.DS_Store
+*.swp
+*.swo
+
+# Local agent and IDE configuration
+.claude/
+.codex/
+.vscode/
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+.npmrc
+*.pem
+*.key
+*.keystore
+*.secret
+**/.ilal.json
+.ilal.json
+.ilal-issuer-standards.json
+
+# JavaScript and TypeScript output
+**/node_modules/
+**/dist/
+**/coverage/
+*.tsbuildinfo
+
+# Foundry output and broadcast state
+**/out/
+**/cache/
+**/broadcast/
+
+# Circuit and proving output
+circuits/build/
+circuits/build-v2/
+circuits/outputs/
+circuits/ptau/
+outputs/
+*.wtns
+*.r1cs
+*.sym
+*.ptau
+proving-artifacts/*.zkey
+proving-artifacts/*_js/
+
+# Hosting state
+**/.vercel/
+
+# Confidential diligence material
+data-room-private/
+
