@@ -6,6 +6,7 @@ For the current review scope, start with:
 
 - `ILAL_CURRENT_AUDIT_SCOPE.md`
 - `../RELEASE.md`
+- `../docs/CODEBASE_GUIDE.md`
 
 The older `v0.2.5` filenames are retained as supporting history and should not be treated as the only current version marker.
 
@@ -41,16 +42,23 @@ Test suites:
 - `contracts/test/PolicyRegistry.t.sol`
 - `contracts/test/ILALRouter.t.sol`
 - `contracts/test/Fuzz.t.sol`
+- `contracts/test/ComplianceHookV2.t.sol`
+- `contracts/test/PolicyGrantManagerV2.t.sol`
+- `contracts/test/Groth16VerifierAdapterV2.t.sol`
 
-## Base Sepolia Live Evidence
+## Active Base Sepolia Evidence
+
+The source of truth is `../deployments/index.json` and the active manifest it
+references. The current active entry is the v0.3.3 Safe-controlled MockEAS demo.
 
 | Flow | Transaction |
 |---|---|
-| ZK CNF mint | `0xb9aa16c9604a575c8b2281cbfe9ba24fedbf205283a7b05638fbc413ed78de41` |
-| Add liquidity | `0x8b2b87ca74debf9988e09ee06dccdd3ff73d759a4c5508f36cf53b0c4af12d33` |
-| Swap | `0xb67dc74b85d40ef23c16e925b33e5959b9f3d467c5c2e06fe3a43f17ce18ddd5` |
-| Safe LP exit | `0xc1f80cef49d0d256c616d5c567181958592f13a1a32d8af2e3eb2a6870cfe826` |
-| Router binding | `ComplianceHook.authorizedRouter() = 0x805A7654bDCfF1286652de29D2aE906a87e2a912` |
+| MockEAS attestation | `0x729f34c5ff27f355ac712d6bf5fb1dfce1f71952725b16f0c131f70c9357ade6` |
+| CNF mint | `0xaaea4d6b00b84796949d7a0646e08d268a207ca09adb55323c748e052fe0b428` |
+| Add liquidity | `0x8109f8677bbbef1c68ea4415e508215401a7e5a5969f315c02cc8e6b7db0ee0f` |
+| Successful swap | `0x50215347045552e82993f164472d4c575850a254b384381c6bb502565916b7a5` |
+| Invalid-credential swap | `0x72896278739b641eda1b5f709a028d53c129aeb3ee0478bee77d73a7969b356f` (reverted as expected) |
+| Router binding | `ComplianceHook.authorizedRouter() = 0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77` |
 
 ## Commands Run
 
@@ -65,9 +73,9 @@ npm run build
 
 Latest local results:
 
-- Solidity tests: 164 passed, 0 failed.
-- CLI security contract tests: 15 passed, 0 failed.
-- SDK tests: 15 passed, 0 failed.
+- Solidity tests: 188 passed, 0 failed, 0 skipped.
+- CLI tests: 29 passed, 0 failed.
+- SDK tests: 18 passed, 0 failed.
 - Circuit oracle validation tests: 7 passed, 0 failed.
 - Isolated policy circuit v2: 1 valid vector accepted and 4 adversarial vectors rejected.
 - CLI TypeScript build: passed.

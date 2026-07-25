@@ -17,7 +17,8 @@ An ignored in-repository directory is never the sole backup.
 ## RC
 
 1. Run `make verify` from a clean tree.
-2. Confirm no active deployment is selected and v0.3.2 is marked deprecated.
+2. Confirm the intended deployment state is recorded in `deployments/index.json`
+   and every superseded deployment, including v0.3.2, is marked deprecated.
 3. Freeze the RC source commit and populate the release manifest honestly.
 4. Tag the current RC at the reviewed release commit. `v0.3.3-rc.1` and `v0.3.3-rc.2` are retained as superseded diagnostic candidates and must not be moved; the corrected candidate is `v0.3.3-rc.3`.
 5. Let `release-rc.yml` create a GitHub prerelease with checksums, SBOM, test evidence, release/deployment status, and proving provenance.

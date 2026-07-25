@@ -6,19 +6,22 @@ Solidity smart contracts for the ILAL Protocol — Uniswap v4 compliance hook.
 
 | Contract | Description |
 |----------|-------------|
+| `ILALRouter.sol` | Executes bounded swaps and liquidity changes through the Uniswap v4 unlock/settlement flow and charges the immutable protocol fee on actual swap input. |
 | `CNFIssuer.sol` | Soulbound ERC-721 compliance credential. Two mint paths: Coinbase EAS attestation (MVP A) and Groth16 ZK proof (MVP B). |
 | `ComplianceHook.sol` | Uniswap v4 `IHooks` implementation. Gates `beforeSwap`, `beforeAddLiquidity`, `beforeRemoveLiquidity` behind EIP-712 session tokens. Supports EOA (ECDSA) and smart wallets (ERC-1271). Nonce bitmap prevents session replay. |
 | `PolicyRegistry.sol` | Maps each pool ID to a compliance policy (issuer contract + required credential type). Pool operators set their own policy. |
 | `libraries/SessionLib.sol` | EIP-712 session token struct, digest, and signature recovery. |
 | `libraries/HookMiner.sol` | CREATE2 salt mining — finds a salt such that the deployed hook address has the required LSB flags set (Uniswap v4 requirement). |
 | `verifier/Groth16VerifierAdapter.sol` | Bridges the snarkjs-generated verifier (fixed-size `uint[6]` array) to `IGroth16Verifier` (dynamic `uint[]`). |
-| `v2/EligibilityPolicyRegistryV2.sol` | Isolated v2 prototype: versioned per-pool private eligibility policy. Not connected to the current Hook. |
+| `v2/EligibilityPolicyRegistryV2.sol` | Isolated v2 prototype: versioned per-pool private eligibility policy. Not part of the active deployment. |
 | `v2/PolicyGrantManagerV2.sol` | Isolated v2 prototype: verifies once and caches a bounded per-wallet/per-pool grant. |
+| `v2/ComplianceHookV2.sol` | Isolated v2 Hook: validates revision-bound sessions against cached policy grants. |
 | `v2/Groth16VerifierAdapterV2.sol` | Fixed-nine-signal adapter for the isolated v2 policy circuit. |
 
 ## Tests
 
 ```bash
+cd contracts
 forge test --summary
 ```
 
@@ -28,42 +31,40 @@ forge test --summary
 ╞════════════════════╪════════╪════════╪═════════╡
 │ CNFIssuerTest      │ 59     │ 0      │ 0       │
 │ ComplianceHookTest │ 29     │ 0      │ 0       │
+│ ComplianceHookV2   │ 21     │ 0      │ 0       │
 │ FuzzCNFIssuer      │ 9      │ 0      │ 0       │
 │ Groth16AdapterV2   │ 4      │ 0      │ 0       │
-│ ILALRouterTest     │ 28     │ 0      │ 0       │
+│ ILALRouterTest     │ 31     │ 0      │ 0       │
 │ PolicyGrantV2      │ 15     │ 0      │ 0       │
 │ PolicyRegistryTest │ 20     │ 0      │ 0       │
 ╰────────────────────┴────────┴────────┴─────────╯
 ```
 
-## Deploy
+Current total: `188 passed, 0 failed, 0 skipped`.
 
-**Testnet (Base Sepolia, MockEAS):**
+## Deployment
+
+The supported deployment path uses the CLI with an encrypted Web3 v3
+keystore. A Base Sepolia MockEAS rehearsal looks like:
+
 ```bash
-POOL_MANAGER=0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408 \
-WALLET_TO_SEED=0xYourWallet \
-PRIVATE_KEY=0x... \
-forge script script/DeployMock.s.sol \
-  --rpc-url https://sepolia.base.org \
-  --broadcast --slow
+node cli/dist/index.js \
+  --keystore ./fresh-deployer.json \
+  --password-file ./deployer.password \
+  deploy \
+  --chain 84532 \
+  --mock \
+  --admin 0xAdminSafe \
+  --treasury 0xTreasury \
+  --wallet-to-seed 0xDemoTrader
 ```
 
-**Mainnet (Base, Coinbase EAS):**
-```bash
-EAS_ADDRESS=0x4200000000000000000000000000000000000021 \
-SCHEMA_UID=0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9 \
-TRUSTED_ATTESTER=0x357458739F90461b99789350868CD7CF330Dd7EE \
-POOL_MANAGER=0x498581ff718922c3f8e6a244956af099b2652b2b \
-ADMIN=0xYourSafe \
-PRIVATE_KEY=0x... \
-forge script script/Deploy.s.sol \
-  --rpc-url https://mainnet.base.org \
-  --broadcast --verify --slow
-```
+Run this command from the repository root after building the CLI. See
+[`../DEMO.md`](../DEMO.md) for the complete testnet flow and evidence
+requirements.
 
-`ADMIN` is optional for development but required operationally for production.
-When provided, the script transfers both `CNFIssuer` and `PolicyRegistry`
-ownership to that Safe before the deployment broadcast completes.
+The repository is unaudited and not production-ready. Mainnet deployment is
+outside the current supported scope.
 
 ## Hook address flags
 

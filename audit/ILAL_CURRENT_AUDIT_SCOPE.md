@@ -19,7 +19,7 @@ This document supersedes the older `v0.2.5` filenames as the current reviewer en
 | SDK integration | `sdk/src` | Integration review |
 | Circuit | `circuits/ilal.circom` | Design review; production ceremony not complete |
 | Policy circuit v2 | `circuits/v2/ilal_policy.circom` | Isolated source candidate; constraint-tested, not deployed |
-| Policy grant v2 | `contracts/src/v2` | Isolated prototype; not connected to the current Hook |
+| Policy grant v2 | `contracts/src/v2` | Isolated end-to-end source prototype; not deployed |
 
 ## Current Release Linkage
 
@@ -31,7 +31,7 @@ See `../RELEASE.md` for the release matrix:
 - SDK: `@ilalv3/sdk@0.2.0`
 - Circuits: `@ilal/circuits@0.1.0`
 - Proving artifacts: `@ilalv3/proving-artifacts@0.1.0`
-- Active deployment: none; next demo target is Base Sepolia
+- Active deployment: Base Sepolia v0.3.3 demo; Safe-controlled, MockEAS, and unaudited
 
 ## Verified Local Results
 
@@ -44,13 +44,12 @@ make verify
 Expected current results:
 
 - Solidity tests: `188 passed, 0 failed, 0 skipped`; fuzz runs `256`
-- CLI tests: baseline `19`; current candidate includes additional signer/Safe tests and must remain above baseline
-- SDK tests: `15 passed, 0 failed`
+- CLI tests: `29 passed, 0 failed`; release baseline remains `19`
+- SDK tests: `18 passed, 0 failed`
 - Oracle validation tests: `7 passed, 0 failed`
 - Policy circuit v2: valid witness accepted; 4 adversarial witnesses rejected
 - CLI build: pass
 - CLI audit: `0 vulnerabilities`
-- SDK tests: `15 passed, 0 failed`
 - SDK audit: `0 vulnerabilities`
 - Circuit production dependency audit: `0 vulnerabilities`
 - Circuit full development toolchain: `21 advisories` (offline build scope)
@@ -89,7 +88,7 @@ These items block production capital and any production-readiness claim:
 6. Monitoring for verifier/root proposals, policy changes, revocations, failed swaps, and pool price/liquidity health.
 7. Expanded router settlement tests for non-standard ERC-20 behavior and edge cases.
 8. Decide whether v2 policy grants enter the production scope. If they do,
-   integrate them through a versioned Hook and audit the complete path.
+   audit, deploy, and operationally validate the complete versioned path.
 
 ## ZK Trusted Setup Status
 

@@ -1,12 +1,16 @@
 # Operating-system and editor state
 .DS_Store
+Thumbs.db
 *.swp
 *.swo
+*.tmp
+*.log
 
 # Local agent and IDE configuration
 .claude/
 .codex/
 .vscode/
+.idea/
 
 # Secrets and local environment
 .env

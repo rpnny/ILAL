@@ -224,7 +224,7 @@ The current source and stable package are `@ilalv3/cli@0.3.3`. npm `0.3.2` is de
 
 The SDK is published as `@ilalv3/sdk`.
 
-We have 188 Solidity tests, 19 CLI tests, and 15 SDK tests passing.
+We have 188 Solidity tests, 29 CLI tests, and 18 SDK tests passing.
 
 This includes timelocks, slippage protection, session checks, permanent revocation, issuer policy tests, router tests, high-s signature rejection, and fuzz cases.
 
@@ -238,7 +238,9 @@ An issuer can create an attestation with `ilal issuer attest`; the user can mint
 
 That is the full loop: issuer eligibility, user credential, local session, Uniswap v4 execution.
 
-This is unaudited and not production-ready. The contracts and local candidate are executable and fully tested; archived testnet transactions are evidence of prior behavior, not a claim that an active stack exists today.
+This is unaudited and not production-ready. The active v0.3.3 Base Sepolia
+deployment is a MockEAS testnet demo; archived transactions from older
+deployments remain historical evidence only.
 
 ## 13. Roadmap
 

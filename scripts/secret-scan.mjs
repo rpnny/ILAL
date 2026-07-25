@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { extname, join, resolve } from "node:path";
 
@@ -40,6 +40,9 @@ function scanText(label, text) {
 }
 
 function scanFile(path, label = path) {
+  // `git ls-files --cached --others` may include the old side of an unstaged
+  // rename. Skip paths that no longer exist in the working tree.
+  if (!existsSync(path)) return;
   if (binaryExtensions.has(extname(path).toLowerCase())) return;
   if (statSync(path).size > 2_000_000) return;
   const contents = readFileSync(path);

@@ -1,4 +1,9 @@
-# ILAL 0.3.0 Release-Candidate Coverage Summary
+# ILAL coverage snapshot
+
+> Coverage percentages below were measured for the v0.3.0 release candidate
+> on 2026-07-21. They are retained as historical evidence and must not be
+> presented as fresh v0.3.3 coverage. Current test results are recorded
+> separately below.
 
 Command:
 
@@ -19,7 +24,7 @@ Result date: 2026-07-21
 | `src/PolicyRegistry.sol` | 100.00% | 100.00% | 100.00% | 100.00% |
 | `src/libraries/SessionLib.sol` | 88.24% | 81.82% | 33.33% | 75.00% |
 
-## Test Count
+## Current test results
 
 `forge test --summary`:
 
@@ -27,10 +32,13 @@ Result date: 2026-07-21
 |---|---:|---:|
 | `CNFIssuerTest` | 59 | 0 |
 | `ComplianceHookTest` | 29 | 0 |
+| `ComplianceHookV2Test` | 21 | 0 |
 | `FuzzCNFIssuer` | 9 | 0 |
-| `ILALRouterTest` | 28 | 0 |
+| `Groth16VerifierAdapterV2Test` | 4 | 0 |
+| `ILALRouterTest` | 31 | 0 |
+| `PolicyGrantManagerV2Test` | 15 | 0 |
 | `PolicyRegistryTest` | 20 | 0 |
-| Total | 145 | 0 |
+| Total | 188 | 0 |
 
 ## Notes for Auditors
 

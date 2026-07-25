@@ -1,106 +1,144 @@
 # ILAL — Institutional Liquidity Access Layer
 
-ILAL is an experimental Uniswap v4 access layer that combines compliance credentials, one-time session authorizations, pool policy, and bounded execution. This repository is the public monorepo for contracts, CLI, SDK, circuits, proving metadata, website, audit scope, and deployment evidence.
+[![verify](https://github.com/rpnny/ILAL/actions/workflows/ci.yml/badge.svg)](https://github.com/rpnny/ILAL/actions/workflows/ci.yml)
+[![release](https://img.shields.io/badge/release-v0.3.3-2563eb)](releases/v0.3.3.json)
+[![network](https://img.shields.io/badge/network-Base%20Sepolia-0052ff)](deployments/base-sepolia/v0.3.3.json)
+[![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
-## Release status
+ILAL is an experimental Uniswap v4 access layer for verified institutional
+flow. It combines compliance credentials, one-time session authorization,
+pool policy, and bounded execution without moving price discovery away from
+Uniswap.
+
+> Compliance is the hook. Prove eligibility, sign locally, and execute through
+> Uniswap v4.
+
+## What works today
+
+- `ComplianceHook` gates swaps and liquidity actions using live pool policy and
+  credential state.
+- One-time EIP-712 sessions bind the user, router, chain, hook, pool, action,
+  deadline, and nonce.
+- EOA signatures enforce canonical low-s ECDSA; contract wallets use ERC-1271.
+- `ILALRouter` enforces swap slippage and LP spend/receive limits on-chain.
+- Liquidity positions are caller-scoped, and signed LP exits remain available
+  after later policy changes or credential invalidation.
+- `CNFIssuer` supports non-transferable credentials issued from EAS
+  attestations or Groth16 proofs, with timelocked ZK configuration.
+- The CLI supports encrypted Web3 v3 keystores, capability-checked RPC-managed
+  accounts, and offline Safe administrative proposals.
+
+The isolated v2 policy-grant path is implemented and constraint-tested, but it
+is not part of the active public deployment.
+
+## How it works
+
+```text
+EAS attestation or ZK proof
+              │
+              ▼
+         CNFIssuer
+              │
+              ▼
+       one-time session
+              │
+              ▼
+         ILALRouter ───── bounded swap / LP settlement
+              │
+              ▼
+      ComplianceHook ─── policy, credential, signature, nonce
+              │
+              ▼
+      Uniswap v4 PoolManager
+```
+
+The active v1 execution path is documented in
+[`docs/CODEBASE_GUIDE.md`](docs/CODEBASE_GUIDE.md).
+
+## Live demo and evidence
 
 | Surface | Current status |
 |---|---|
-| Local source | `v0.3.3` stable software |
-| npm stable | `@ilalv3/cli@0.3.3` |
-| npm legacy | `@ilalv3/cli@0.2.21`, old Router ABI only |
-| Active deployment | Base Sepolia v0.3.3 demo; Safe-controlled |
+| Source and CLI | `v0.3.3` |
+| Active deployment | Base Sepolia v0.3.3 demo |
+| Administration | Safe-controlled |
 | Attestation | MockEAS demo issuance |
 | ZK | Experimental; disabled in the public deployment |
-| Production readiness | Not production-ready |
 | Audit | Unaudited |
+| Production readiness | Not production-ready |
 
-The active addresses, transactions, bytecode hashes, and Sourcify exact-match source verification are in `deployments/base-sepolia/v0.3.3.json`. The old v0.3.2 addresses remain as historical evidence only; their owner signer was exposed and they are never selected by the CLI.
+The versioned
+[`v0.3.3 deployment manifest`](deployments/base-sepolia/v0.3.3.json)
+contains addresses, transactions, constructor data, role checks, bytecode
+hashes, and source-verification evidence. The
+[`demo runbook`](DEMO.md) covers the positive and negative flows.
 
-## What is implemented
+The v0.3.2 deployment is retained only as deprecated historical evidence and
+is never selected by the current CLI.
 
-- `ComplianceHook` and `ComplianceHookV2` enforce credential or policy-grant access, action/caller/chain/pool binding, deadlines, and one-time nonces.
-- `ILALRouter` provides bounded swap and liquidity execution and protocol-fee accounting.
-- `CNFIssuer` provides soulbound credentials through EAS or Groth16 issuance with timelocked ZK configuration.
-- The CLI supports encrypted Web3 v3 keystores, capability-checked RPC-managed accounts, and offline Safe administrative transaction proposals.
-- ERC-1271 contract-wallet session signatures are accepted through on-chain `isValidSignature`; EOA sessions retain canonical 65-byte ECDSA checks.
+## Verification
 
-Safe proposal creation, owner confirmation, and execution are separate phases. The CLI does not treat a Safe as an EOA and does not claim native Fireblocks, Copper, HSM, or custody integration.
-
-## Repository map
-
-```text
-contracts/           Solidity contracts, scripts, and Foundry tests
-cli/                 @ilalv3/cli source and tests
-sdk/                 TypeScript SDK
-circuits/            Groth16 circuit sources and constraint tests
-proving-artifacts/   Checksums and reproducibility metadata; no witness data
-deployments/         Versioned deployment manifests and JSON schema
-releases/            Software release manifests
-audit/               Current audit scope and historical review material
-docs/data-room/      Public technical due-diligence materials
-site/                Static website source
-```
-
-## Verify locally
-
-Prerequisites are Foundry, Node.js, npm, Circom, and git. Contract dependencies are pinned and installed outside Git history by the verification target.
+Prerequisites: Foundry, Node.js, npm, Circom, and git.
 
 ```bash
 make verify
 ```
 
-The baseline is 188 Foundry tests, at least 19 CLI tests, no skipped Foundry tests, and 256 fuzz runs. New tests may increase those totals; reducing the baseline, hiding failures, or adding unexplained skips is not accepted.
+Current verified suites:
 
-## CLI signing model
+| Suite | Result |
+|---|---:|
+| Foundry | 188 passed, 0 failed, 0 skipped |
+| CLI | 29 passed |
+| SDK | 18 passed |
+| Circuit oracle | 7 passed |
+| Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
+| Fuzzing | 256 runs per fuzz test |
 
-Encrypted EOA keystore:
+`make verify` also validates deployment/release metadata, package contents,
+Git history, secret scanning, and dependency SBOM generation.
 
-```bash
-ilal --keystore ./deployer.json --password-file ./deployer.password \
-  deploy --chain 84532 --admin 0xSafe --treasury 0xTreasury
-```
+## Code map
 
-The password file must be mode `600`. Without `--password-file`, the password is read interactively without echo.
-For deployment, the CLI passes the keystore path to Foundry; it does not export the decrypted key into the Forge child environment.
+| Path | Purpose |
+|---|---|
+| [`contracts/src/`](contracts/src) | Router, hooks, issuer, policy registries, and verifier adapters |
+| [`contracts/test/`](contracts/test) | Foundry unit, integration, regression, and fuzz tests |
+| [`cli/src/`](cli/src) | CLI commands, signing, Safe proposals, and deployment tooling |
+| [`sdk/src/`](sdk/src) | Session signing, hook-data encoding, and credential reads |
+| [`circuits/`](circuits) | v1 and isolated v2 Circom sources and constraint tests |
+| [`deployments/`](deployments) | Versioned deployment manifests and schema |
+| [`releases/`](releases) | Software release manifests |
+| [`docs/data-room/`](docs/data-room) | Threat model, privileged roles, and public diligence material |
+| [`audit/`](audit) | Current audit scope plus explicitly dated historical review material |
+| [`site/`](site) | Static project website |
 
-RPC-managed account:
+Start with [`contracts/src/ComplianceHook.sol`](contracts/src/ComplianceHook.sol),
+[`contracts/src/ILALRouter.sol`](contracts/src/ILALRouter.sol), and
+[`docs/CODEBASE_GUIDE.md`](docs/CODEBASE_GUIDE.md).
 
-```bash
-ilal --rpc-account 0xManagedAccount pool policy set ...
-```
+## Hookathon partner integrations
 
-Before sending, the CLI verifies the RPC chain and confirms the address is returned by `eth_accounts`. This is not a generic custody adapter.
+No partner integrations.
 
-Offline Safe administrative proposal:
+ILAL's completed supporting integrations are Uniswap v4 core/periphery, EAS
+attestation reads, ERC-1271 wallet validation, and optional Safe transaction
+proposal submission. Their implementations are located in `contracts/src/`,
+`cli/src/safe.ts`, and `cli/src/signer.ts`; they are not presented as
+Hookathon partner integrations.
 
-```bash
-ilal --safe 0xSafe --safe-output ./policy-proposal.json \
-  safe propose --to 0xRegistry --data 0xEncodedCalldata --chain 84532
-```
+## Security and scope
 
-The default is offline JSON only. Submission requires `--submit-safe-proposal`, `--safe-tx-service`, and a Safe owner keystore. Execution and additional owner confirmations remain outside this command.
+This repository contains unaudited testnet software. Do not use it with
+production funds or identity data. See [`SECURITY.md`](SECURITY.md),
+[`RELEASE.md`](RELEASE.md), and the
+[`public threat model`](docs/data-room/THREAT_MODEL.md).
 
-Legacy `PRIVATE_KEY` compatibility is deliberately restricted to known test networks and requires the explicit `--unsafe-private-key` flag. It is never written to config or logs. Do not use it for deployment or production operations.
-
-## Deployment and release gates
-
-The deployment manifest keeps `admin` and `treasury` independent and records whether a demo intentionally reuses one Safe. It includes source/release commits, toolchain settings, bytecode/ABI hashes, constructor data, transactions, pool data, and role-verification results.
-
-A stable release follows this order:
-
-1. Freeze a clean `sourceCommit`.
-2. Build and deploy only that commit with a fresh encrypted deployer.
-3. Transfer and verify every privileged role; the deployer retains no undeclared privilege.
-4. Commit deployment evidence as `releaseCommit`.
-5. Prove that the release-only diff did not alter contracts, compiler config, or build dependencies.
-6. Sign `v0.3.3` at the reviewed tag commit.
-7. Resolve the tracked `releaseCommit: null` self-reference to that tag SHA in release assets, then build GitHub Release, npm, and website from the same tag.
-
-The v0.3.3 Base Sepolia demo uses a newly deployed Safe for both independently modeled `admin` and `treasury` fields. Previously disclosed secrets were not reused.
-
-See [RELEASE.md](RELEASE.md), [docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md), and [docs/data-room/INDEX.md](docs/data-room/INDEX.md).
+Exact-input ERC-20 execution is the current Router scope. Native ETH pools and
+exact-output swaps are not supported.
 
 ## License
 
-First-party public code is Apache-2.0. It includes the contributor patent license and patent-litigation termination mechanism within Apache-2.0 section 3; it is not a blanket patent or non-infringement guarantee. Generated verifier files retain GPL-3.0 and vendored dependencies retain their original licenses. See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) and [NOTICE](NOTICE).
+First-party code is Apache-2.0. Generated verifier files and third-party
+dependencies retain their respective licenses. See
+[`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) and [`NOTICE`](NOTICE).

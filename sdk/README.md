@@ -80,12 +80,16 @@ interface CredentialStatus {
 
 | Contract | Address |
 |---|---|
-| CNFIssuer | `0xB13AE2498Df62A85768a4b783109C05fCf5A264a` |
-| ComplianceHook | `0x6C57b50Ef9286b132066012B19b291FB120ACa80` |
-| ILALRouter | `0xd0aF4D1EFF36CB2a1E88017eA398dCaDe1Ac0040` |
+| CNFIssuer | `0x57d6faea0159C95e96D7a6Ed4e3D416701aA9aEF` |
+| ComplianceHook | `0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80` |
+| ILALRouter | `0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77` |
 
-Pool ID: `0x16b3e7a5c52216925f705673b3ab25db5e6025da530cf53b3bcb5affeb18d95f`
+Pool ID: `0x1a05b49e39c3ed799c4f0f23bb61e647ff9d3c558136f718a2ab2fa87c82d1ad`
+
+These values mirror `deployments/index.json` and the active versioned
+manifest. Treat those files as the source of truth when a new deployment is
+activated.
 
 ## License
 
-MIT
+Apache-2.0
