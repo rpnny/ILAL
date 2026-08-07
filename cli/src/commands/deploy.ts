@@ -60,6 +60,7 @@ export async function deploy(opts: {
   broadcast: boolean;
   verify: boolean;
   mock: boolean;
+  v2: boolean;
   walletToSeed?: string;
   contractsDir?: string;
   admin?: string;
@@ -73,6 +74,10 @@ export async function deploy(opts: {
   issuerStandard?: string;
   issuerUri?: string;
 }) {
+  if (opts.v2 && opts.mock) die("--v2 is an isolated policy-grant deployment; omit --mock.");
+  if (opts.v2 && opts.chain !== "84532") die("--v2 currently deploys the TESTNET-ONLY verifier on Base Sepolia (84532) only.");
+  if (opts.v2 && !opts.walletToSeed) die("--v2 requires --wallet-to-seed <address> to bind the demo proof and policy root.");
+  if (opts.v2 && opts.walletToSeed && !isAddress(opts.walletToSeed)) die(`Invalid v2 policy wallet: ${opts.walletToSeed}`);
   if (opts.admin && !isAddress(opts.admin)) die(`Invalid admin address: ${opts.admin}`);
   if (opts.mock && (opts.eas || opts.attester)) die("--mock deploys MockEAS; omit --eas and --attester.");
   if (opts.eas && !isAddress(opts.eas)) die(`Invalid EAS address: ${opts.eas}`);
@@ -93,7 +98,7 @@ export async function deploy(opts: {
   const chain = chainId === "8453" ? base : baseSepolia;
 
   const easAddress = opts.eas ?? EAS_ADDRESSES[parseInt(chainId)];
-  if (!easAddress) die(`No EAS address for chain ${chainId}.`);
+  if (!opts.v2 && !easAddress) die(`No EAS address for chain ${chainId}.`);
 
   const rpc = opts.rpc ?? RPC_URLS[chainId] ?? die(`No default RPC for chain ${chainId}. Use --rpc.`);
   const forgeSigner = await forgeSignerForExternalProcess({ chain, rpc, legacyPrivateKey: opts.privateKey });
@@ -112,11 +117,15 @@ export async function deploy(opts: {
   if (isMock && !opts.walletToSeed) die("--mock requires --wallet-to-seed <address>.");
 
   console.log();
-  console.log(fmt.bold(`  ILAL Protocol Deploy${isMock ? fmt.yellow(" [MOCK / TESTNET]") : ""}`));
+  console.log(fmt.bold(`  ILAL Protocol Deploy${opts.v2 ? fmt.yellow(" [V2 ZK / TESTNET]") : isMock ? fmt.yellow(" [MOCK / TESTNET]") : ""}`));
   log.line();
   log.kv("chain", chainId === "8453" ? "Base mainnet" : "Base Sepolia");
   log.kv("poolManager", poolManager);
-  if (isMock) {
+  if (opts.v2) {
+    log.kv("eligibility", fmt.yellow("Groth16 policy proof + cached grant"));
+    log.kv("ceremony", fmt.yellow("unsafe development beacon; never use on mainnet"));
+    log.kv("policy wallet", opts.walletToSeed!);
+  } else if (isMock) {
     log.kv("eas", fmt.yellow("MockEAS (testnet only)"));
     log.kv("walletToSeed", opts.walletToSeed!);
   } else {
@@ -140,7 +149,31 @@ export async function deploy(opts: {
   delete env["ETH_PASSWORD"];
   delete env["MNEMONIC"];
 
-  if (isMock) {
+  let v2ProofDir: string | undefined;
+  let v2DeploymentOutput: string | undefined;
+  if (opts.v2) {
+    const circuitsDir = resolve(contractsDir, "../circuits");
+    const proofScript = resolve(circuitsDir, "scripts/generate_v2_demo_proof.sh");
+    if (!existsSync(proofScript)) die(`V2 proof generator not found at ${proofScript}`);
+    v2ProofDir = resolve(contractsDir, `../artifacts/v2-demo/${opts.walletToSeed!.toLowerCase()}`);
+    log.step("Generating and locally verifying the wallet-bound v2 proof…");
+    execFileSync("bash", [proofScript, opts.walletToSeed!, v2ProofDir], {
+      cwd: circuitsDir,
+      env: process.env,
+      stdio: "inherit",
+    });
+    const vector = JSON.parse(readFileSync(resolve(v2ProofDir, "vectors/valid.json"), "utf8")) as Record<string, string>;
+    env["WALLET"] = opts.walletToSeed!;
+    env["V2_ISSUER_HASH"] = vector["issuerHash"]!;
+    env["V2_SCHEMA_HASH"] = vector["schemaHash"]!;
+    env["V2_CREDENTIAL_ROOT"] = vector["credentialRoot"]!;
+    env["V2_MIN_KYC_LEVEL"] = vector["minKycLevel"]!;
+    env["V2_JURISDICTION_ROOT"] = vector["jurisdictionRoot"]!;
+    env["V2_POLICY_HASH"] = vector["policyHash"]!;
+    v2DeploymentOutput = resolve(v2ProofDir, "deployment.json");
+    env["V2_DEPLOYMENT_OUTPUT"] = v2DeploymentOutput;
+    if (opts.admin) env["ADMIN"] = opts.admin;
+  } else if (isMock) {
     env["WALLET_TO_SEED"] = opts.walletToSeed!;
     env["WALLET"] = opts.walletToSeed!;
     env["MOCK_EAS"] = "true";
@@ -159,7 +192,11 @@ export async function deploy(opts: {
   if (opts.issuerStandard) env["ISSUER_STANDARD"] = opts.issuerStandard;
   if (opts.issuerUri) env["ISSUER_URI"] = opts.issuerUri;
 
-  const script = isMock ? "script/DeployDemo.s.sol" : "script/Deploy.s.sol";
+  const script = opts.v2
+    ? "script/DeployV2Demo.s.sol"
+    : isMock
+      ? "script/DeployDemo.s.sol"
+      : "script/Deploy.s.sol";
 
   const args = [
     "script",
@@ -184,13 +221,24 @@ export async function deploy(opts: {
     console.log();
     log.ok(fmt.bold(fmt.green("Deployment complete")));
     if (opts.broadcast) {
-      if (isMock) {
+      if (opts.v2) {
+        log.kv("proof", resolve(v2ProofDir!, "proof.json"));
+        log.kv("public inputs", resolve(v2ProofDir!, "public.json"));
+        if (v2DeploymentOutput && existsSync(v2DeploymentOutput)) {
+          log.kv("deployment JSON", v2DeploymentOutput);
+        }
+        log.step("Activate the grant with the Pool ID and PolicyGrantManagerV2 printed above:");
+        console.log(`  ${fmt.gray(`ilal policy grant activate --proof ${resolve(v2ProofDir!, "proof.json")} --public ${resolve(v2ProofDir!, "public.json")} --pool <poolId> --grant-manager <PolicyGrantManagerV2> --registry <PolicyRegistryV2>`)}`);
+      } else if (isMock) {
         const uid = readBroadcastAttestationUid(contractsDir, script, chainId);
         if (uid) log.kv("mined attestation UID", uid);
         else log.warn("No mined AttestationCreated event was found in the broadcast artifact; do not rely on a simulated UID.");
       }
       log.step("Update your CLI commands with the deployed addresses:");
-      console.log(`  ${fmt.gray("ilal pool policy set --registry <PolicyRegistry> --issuer <CNFIssuer> ...")}`);
+      const policyCommand = opts.v2
+        ? "ilal policy admin set --registry <PolicyRegistryV2> --pool <poolId> ..."
+        : "ilal pool policy set --registry <PolicyRegistry> --issuer <CNFIssuer> ...";
+      console.log(`  ${fmt.gray(policyCommand)}`);
     }
   } catch {
     die("forge script failed. Check output above.");

@@ -21,7 +21,14 @@ import { status } from "./commands/status.js";
 import { swap } from "./commands/swap.js";
 import { addLiquidity, removeLiquidity } from "./commands/liquidity.js";
 import { issuerAttest, issuerCreate, issuerGet, issuerSetJurisdiction, issuerSetType } from "./commands/issuer.js";
-import { policyGrantActivate, policyGrantStatus } from "./commands/policyV2.js";
+import {
+  policyDisableV2,
+  policyGrantActivate,
+  policyGrantRevoke,
+  policyGrantStatus,
+  policyProofGenerate,
+  policySetV2,
+} from "./commands/policyV2.js";
 import { fmt } from "./ui.js";
 import { COINBASE_SCHEMA_UID } from "./constants.js";
 import { configureSignerOptions, type GlobalSignerOptions } from "./signer.js";
@@ -86,10 +93,12 @@ program
   .option("-i, --issuer <address>",   "CNFIssuer contract address")
   .option("-H, --hook <address>",     "ComplianceHook contract address")
   .option("-R, --registry <address>", "PolicyRegistry contract address")
+  .option("-G, --grant-manager <address>", "PolicyGrantManagerV2 contract address")
+  .option("--protocol-version <version>", "Protocol version: 1 or 2 (defaults to .ilal.json)")
   .option("-p, --pool <bytes32>",     "Pool ID to check policy for")
   .option("-c, --chain <chainId>",    "Chain ID", "84532")
   .option("-r, --rpc <url>",          "Custom RPC URL")
-  .action(async (opts: { wallet?: string; issuer?: string; hook?: string; registry?: string; pool?: string; chain?: string; rpc?: string }) => {
+  .action(async (opts: { wallet?: string; issuer?: string; hook?: string; registry?: string; grantManager?: string; protocolVersion?: string; pool?: string; chain?: string; rpc?: string }) => {
     await status(opts).catch(err);
   });
 
@@ -306,7 +315,55 @@ session
 // ─── v2 policy grants ───────────────────────────────────────────────────────
 
 const policyV2 = program.command("policy").description("Protocol v2 eligibility policy and grant operations");
+const policyAdminV2 = policyV2.command("admin").description("Pool eligibility policy administration (owner or Safe)");
+const policyProofV2 = policyV2.command("proof").description("Generate a local circuit v2 eligibility proof");
 const grantsV2 = policyV2.command("grant").description("Short-lived policy grant operations");
+
+policyAdminV2
+  .command("set")
+  .description("Set or revise a pool eligibility policy; existing grants become stale")
+  .requiredOption("--issuer-hash <uint256>", "Issuer trust-domain field hash")
+  .requiredOption("--schema-hash <uint256>", "Credential schema field hash")
+  .requiredOption("--credential-root <uint256>", "Credential Merkle root")
+  .requiredOption("--min-kyc-level <1|2|3>", "Minimum accepted KYC tier")
+  .requiredOption("--jurisdiction-root <uint256>", "Allowed-jurisdiction Merkle root")
+  .requiredOption("--policy-hash <uint256>", "Committed policy hash")
+  .option("--max-grant-ttl <seconds>", "Maximum cached grant lifetime, at most 7 days", "86400")
+  .option("-p, --pool <bytes32>", "Pool ID (defaults to .ilal.json poolId)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address")
+  .option("-c, --chain <chainId>", "Chain ID (defaults to .ilal.json)")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: {
+    issuerHash: string; schemaHash: string; credentialRoot: string; minKycLevel: string;
+    jurisdictionRoot: string; policyHash: string; maxGrantTtl: string;
+    pool?: string; registry?: string; chain?: string; rpc?: string; privateKey?: string;
+  }) => {
+    await policySetV2(opts).catch(err);
+  });
+
+policyAdminV2
+  .command("disable")
+  .description("Disable a pool policy and invalidate every current grant")
+  .option("-p, --pool <bytes32>", "Pool ID (defaults to .ilal.json poolId)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address")
+  .option("-c, --chain <chainId>", "Chain ID (defaults to .ilal.json)")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { pool?: string; registry?: string; chain?: string; rpc?: string; privateKey?: string }) => {
+    await policyDisableV2(opts).catch(err);
+  });
+
+policyProofV2
+  .command("generate")
+  .description("Generate and locally verify a Groth16 v2 proof without uploading private attributes")
+  .requiredOption("--input <path>", "Private circuit input JSON")
+  .option("--circuit-dir <path>", "V2 proving artifact directory", "circuits/build-v2")
+  .option("--wasm <path>", "Explicit circuit WASM path")
+  .option("--zkey <path>", "Explicit proving key path")
+  .option("--vkey <path>", "Explicit verification key path")
+  .option("--out-dir <path>", "Output directory for proof.json and public.json", "artifacts/v2-proof")
+  .action(async (opts: { input: string; circuitDir?: string; wasm?: string; zkey?: string; vkey?: string; outDir?: string }) => {
+    await policyProofGenerate(opts).catch(err);
+  });
 
 grantsV2
   .command("status")
@@ -333,6 +390,19 @@ grantsV2
   .option("-r, --rpc <url>", "Custom RPC URL")
   .action(async (opts: { proof: string; public: string; pool?: string; registry?: string; grantManager?: string; chain?: string; rpc?: string; privateKey?: string }) => {
     await policyGrantActivate(opts).catch(err);
+  });
+
+grantsV2
+  .command("revoke")
+  .description("Revoke one wallet grant for the current policy revision (owner or Safe)")
+  .requiredOption("-w, --wallet <address>", "Wallet address")
+  .option("-p, --pool <bytes32>", "Pool ID (defaults to .ilal.json poolId)")
+  .option("-R, --registry <address>", "EligibilityPolicyRegistryV2 address")
+  .option("-G, --grant-manager <address>", "PolicyGrantManagerV2 address")
+  .option("-c, --chain <chainId>", "Chain ID (defaults to .ilal.json)")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { wallet: string; pool?: string; registry?: string; grantManager?: string; chain?: string; rpc?: string; privateKey?: string }) => {
+    await policyGrantRevoke(opts).catch(err);
   });
 
 // ─── pool ─────────────────────────────────────────────────────────────────────
@@ -566,12 +636,13 @@ safe
 
 program
   .command("deploy")
-  .description("Deploy ILAL contracts (PolicyRegistry + CNFIssuer + ComplianceHook)")
+  .description("Deploy the ILAL v1 stack or isolated v2 policy-grant testnet stack")
   .option("-c, --chain <chainId>", "Chain ID (8453=Base, 84532=Base Sepolia)", "84532")
   .option("-r, --rpc <url>", "Custom RPC URL")
   .option("--broadcast", "Send transactions (omit for dry run)", false)
   .option("--verify", "Verify contracts on Etherscan/Basescan", false)
   .option("--mock", "Use MockEAS for testnet (Base Sepolia only)", false)
+  .option("--v2", "Deploy the ZK policy-grant v2 stack (Base Sepolia, testnet ceremony only)", false)
   .option("--admin <address>", "Safe/admin that receives CNFIssuer and PolicyRegistry ownership (production only)")
   .option("--eas <address>", "Issuer EAS contract (defaults to the chain EAS contract)")
   .option("--schema <bytes32>", "Issuer EAS schema UID (defaults to Coinbase Account Verification)")
@@ -582,9 +653,9 @@ program
   .option("--issuer-jurisdiction <text>", "On-chain issuer jurisdiction descriptor")
   .option("--issuer-standard <text>", "On-chain credential standard descriptor")
   .option("--issuer-uri <uri>", "On-chain issuer metadata URI")
-  .option("--wallet-to-seed <address>", "Wallet that receives a seeded test attestation (--mock only)")
+  .option("--wallet-to-seed <address>", "Wallet receiving demo tokens; also binds the generated proof in --v2 mode")
   .option("--contracts-dir <path>", "Path to contracts/ directory")
-  .action(async (opts: { chain: string; rpc?: string; privateKey?: string; broadcast: boolean; verify: boolean; mock: boolean; admin?: string; eas?: string; schema?: string; attester?: string; treasury?: string; protocolFeePips?: string; issuerName?: string; issuerJurisdiction?: string; issuerStandard?: string; issuerUri?: string; walletToSeed?: string; contractsDir?: string }) => {
+  .action(async (opts: { chain: string; rpc?: string; privateKey?: string; broadcast: boolean; verify: boolean; mock: boolean; v2: boolean; admin?: string; eas?: string; schema?: string; attester?: string; treasury?: string; protocolFeePips?: string; issuerName?: string; issuerJurisdiction?: string; issuerStandard?: string; issuerUri?: string; walletToSeed?: string; contractsDir?: string }) => {
     await deploy(opts).catch(err);
   });
 

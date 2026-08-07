@@ -25,6 +25,7 @@ export const DEPLOYMENT_INDEX = {
 
 export const ACTIVE_PRESETS: Record<string, Record<string, string>> = {
   "84532": {
+    "protocolVersion": "1",
     "issuer": "0x57d6faea0159C95e96D7a6Ed4e3D416701aA9aEF",
     "hook": "0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80",
     "registry": "0xB93fcF91001FeCfaa14B6d7aB6dB57581ce47f52",

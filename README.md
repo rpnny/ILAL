@@ -28,8 +28,9 @@ Uniswap.
 - The CLI supports encrypted Web3 v3 keystores, capability-checked RPC-managed
   accounts, and offline Safe administrative proposals.
 
-The isolated v2 policy-grant path is implemented and constraint-tested, but it
-is not part of the active public deployment.
+The isolated v2 policy-grant path is implemented, constraint-tested, and has a
+Base Sepolia deployment/proof workflow. It is not yet part of the active public
+deployment; see [`docs/V2_TESTNET_RUNBOOK.md`](docs/V2_TESTNET_RUNBOOK.md).
 
 ## How it works
 
@@ -89,7 +90,7 @@ Current verified suites:
 | Suite | Result |
 |---|---:|
 | Foundry | 188 passed, 0 failed, 0 skipped |
-| CLI | 29 passed |
+| CLI | 35 passed |
 | SDK | 18 passed |
 | Circuit oracle | 7 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
@@ -112,6 +113,17 @@ Git history, secret scanning, and dependency SBOM generation.
 | [`docs/data-room/`](docs/data-room) | Threat model, privileged roles, and public diligence material |
 | [`audit/`](audit) | Current audit scope plus explicitly dated historical review material |
 | [`site/`](site) | Static project website |
+
+The isolated V2 path can be exercised without a public-chain key:
+
+```bash
+./scripts/simulate-v2-fork.sh
+```
+
+It performs a real Groth16 proof, cached policy grant, liquidity add, swap,
+policy revision, and revocation against a fresh Base Sepolia fork. Fork
+transaction hashes are local evidence only; public deployment claims still
+require a broadcast manifest and independently readable RPC state.
 
 Start with [`contracts/src/ComplianceHook.sol`](contracts/src/ComplianceHook.sol),
 [`contracts/src/ILALRouter.sol`](contracts/src/ILALRouter.sol), and

@@ -119,6 +119,7 @@ const MAX_UINT256 = 2n ** 256n - 1n;
 const SECP256K1_HALF_ORDER = BigInt("0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0");
 
 function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
+  if (process.env["ILAL_DISABLE_EXPLORER"] === "1") return undefined;
   const baseUrl = chain.blockExplorers?.default?.url;
   return baseUrl ? `${baseUrl}/tx/${hash}` : undefined;
 }

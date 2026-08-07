@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import { attestationUidFromBroadcast } from "../dist/commands/deploy.js";
 import { waitForAllowance } from "../dist/commands/liquidity.js";
+import { waitForPolicyGrant } from "../dist/commands/policyV2.js";
 
 const EVENT_TOPIC = "0x63f86f3e95d67d75fed996a7db68f9e7eabf0600abbd54fccabf34ec3b5fa4a7";
 
@@ -42,4 +43,26 @@ test("allowance read-back stops after its configured bound", async () => {
 
   assert.equal(allowance, 1n);
   assert.equal(reads, 3);
+});
+
+test("policy grant read-back tolerates bounded RPC propagation delay", async () => {
+  let reads = 0;
+  const valid = await waitForPolicyGrant(async () => {
+    reads += 1;
+    return reads >= 3;
+  }, { attempts: 5, delayMs: 0 });
+
+  assert.equal(valid, true);
+  assert.equal(reads, 3);
+});
+
+test("policy grant read-back stops after its configured bound", async () => {
+  let reads = 0;
+  const valid = await waitForPolicyGrant(async () => {
+    reads += 1;
+    return false;
+  }, { attempts: 4, delayMs: 0 });
+
+  assert.equal(valid, false);
+  assert.equal(reads, 4);
 });

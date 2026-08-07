@@ -36,10 +36,13 @@ for (const [chainId, manifestPath] of Object.entries(index.active ?? {})) {
   const manifest = JSON.parse(readFileSync(resolve(root, "deployments", String(manifestPath)), "utf8"));
   if (manifest.status !== "active") throw new Error(`Active deployment ${manifestPath} is not marked active.`);
   const address = value => typeof value === "string" ? value : value?.address;
+  const grantManager = address(manifest.contracts.policyGrantManager);
   activePresets[chainId] = {
+    protocolVersion: grantManager ? "2" : "1",
     issuer: address(manifest.contracts.cnfIssuer),
     hook: address(manifest.contracts.complianceHook),
     registry: address(manifest.contracts.policyRegistry),
+    grantManager,
     router: address(manifest.contracts.router),
     treasury: manifest.treasury,
     tokenA: address(manifest.assets?.tokenA ?? manifest.pool.key.currency0),

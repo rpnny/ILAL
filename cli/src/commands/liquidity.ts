@@ -117,6 +117,7 @@ const GRANT_MANAGER_V2_ABI = [{
 }] as const;
 
 function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
+  if (process.env["ILAL_DISABLE_EXPLORER"] === "1") return undefined;
   const baseUrl = chain.blockExplorers?.default?.url;
   return baseUrl ? `${baseUrl}/tx/${hash}` : undefined;
 }

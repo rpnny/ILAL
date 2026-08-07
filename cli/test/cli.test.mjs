@@ -46,6 +46,28 @@ test("init selects only the active v0.3.3 Base Sepolia deployment", () => {
   }
 });
 
+test("v2 init does not inherit v1 contract addresses or onboarding commands", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ilal-cli-init-v2-"));
+  try {
+    const result = spawnSync(process.execPath, [cli, "init", "--protocol-version", "2"], {
+      cwd: dir,
+      env: { ...process.env, NO_COLOR: "1" },
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, output(result));
+    const config = JSON.parse(readFileSync(join(dir, ".ilal.json"), "utf8"));
+    assert.equal(config.protocolVersion, "2");
+    assert.equal(config.chain, "84532");
+    assert.equal(config.rpc, "https://sepolia.base.org");
+    assert.equal(config.issuer, undefined);
+    assert.equal(config.hook, undefined);
+    assert.match(output(result), /policy proof generate/);
+    assert.doesNotMatch(output(result), /credential prove/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("private keys are not accepted in process arguments", () => {
   const result = run([
     "swap",
@@ -311,6 +333,68 @@ test("mock deploy rejects external EAS parameters instead of ignoring them", () 
   ]);
   assert.notEqual(result.status, 0);
   assert.match(output(result), /--mock deploys MockEAS/);
+});
+
+test("v2 deploy is Base Sepolia only", () => {
+  const result = run([
+    "deploy", "--v2", "--chain", "8453",
+    "--wallet-to-seed", "0x5555555555555555555555555555555555555555",
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(output(result), /Base Sepolia \(84532\) only/);
+});
+
+test("v2 deploy requires the wallet bound into its proof", () => {
+  const result = run(["deploy", "--v2"]);
+  assert.notEqual(result.status, 0);
+  assert.match(output(result), /requires --wallet-to-seed/);
+});
+
+test("v2 deploy cannot be combined with MockEAS mode", () => {
+  const result = run([
+    "deploy", "--v2", "--mock",
+    "--wallet-to-seed", "0x5555555555555555555555555555555555555555",
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(output(result), /omit --mock/);
+});
+
+test("v2 policy administration and proof commands are discoverable", () => {
+  const admin = run(["policy", "admin", "--help"]);
+  const proof = run(["policy", "proof", "--help"]);
+  const grant = run(["policy", "grant", "--help"]);
+  assert.equal(admin.status, 0, output(admin));
+  assert.equal(proof.status, 0, output(proof));
+  assert.equal(grant.status, 0, output(grant));
+  assert.match(output(admin), /set/);
+  assert.match(output(admin), /disable/);
+  assert.match(output(proof), /generate/);
+  assert.match(output(grant), /revoke/);
+});
+
+test("v2 policy set rejects an invalid KYC tier before signer access", () => {
+  const result = run([
+    "policy", "admin", "set",
+    "--pool", `0x${"11".repeat(32)}`,
+    "--registry", "0x1111111111111111111111111111111111111111",
+    "--issuer-hash", "1",
+    "--schema-hash", "2",
+    "--credential-root", "3",
+    "--min-kyc-level", "4",
+    "--jurisdiction-root", "5",
+    "--policy-hash", "6",
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(output(result), /--min-kyc-level must be between 1 and 3/);
+});
+
+test("v2 proof generation reports missing private input before proving", () => {
+  const result = run([
+    "policy", "proof", "generate",
+    "--input", "/definitely/missing/ilal-v2-input.json",
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(output(result), /Missing input/);
 });
 
 test("broadcast deployment requires an explicit Safe admin", () => {

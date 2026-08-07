@@ -50,8 +50,11 @@ export async function init(opts: {
     return;
   }
 
-  // Start with preset for the chain
-  const preset = { ...(PRESETS[opts.chain] ?? {}), ...(ACTIVE_PRESETS[opts.chain] ?? {}) };
+  // Network settings are protocol-neutral. Contract presets are only safe to
+  // inherit when they match the requested protocol generation.
+  const activePreset = ACTIVE_PRESETS[opts.chain] ?? {};
+  const contractPreset = activePreset["protocolVersion"] === opts.protocolVersion ? activePreset : {};
+  const preset = { ...(PRESETS[opts.chain] ?? {}), ...contractPreset };
 
   const config = {
     protocolVersion: opts.protocolVersion,
@@ -109,7 +112,12 @@ export async function init(opts: {
   log.line();
   console.log(`  ${fmt.gray("You can now run commands without --issuer and --chain flags:")}`);
   console.log();
-  console.log(`  ${fmt.cyan("ilal credential prove --wallet 0x...")}`);
+  if (config.protocolVersion === "2") {
+    console.log(`  ${fmt.cyan("ilal policy proof generate --input <private-input.json>")}`);
+    console.log(`  ${fmt.cyan("ilal policy grant activate --proof <proof.json> --public <public.json>")}`);
+  } else {
+    console.log(`  ${fmt.cyan("ilal credential prove --wallet 0x...")}`);
+  }
   console.log(`  ${fmt.cyan("ilal status --wallet 0x...")}`);
   console.log();
 }

@@ -12,6 +12,7 @@ import { base, baseSepolia } from "viem/chains";
 import { loadConfig } from "../config.js";
 import { die, fmt, header, log, Spinner } from "../ui.js";
 import { createExecutionClients } from "../signer.js";
+import { readEligibilityPolicyV2 } from "./policyV2.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 const POOL_MANAGER: Record<string, `0x${string}`> = {
@@ -52,6 +53,15 @@ const REGISTRY_ABI = [
 const ROUTER_ABI = [
   { name: "protocolFeePips", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "uint24" as const }] },
   { name: "treasury", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+] as const;
+
+const HOOK_V2_ABI = [
+  { name: "authorizedRouter", type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{ type: "address" as const }] },
+] as const;
+
+const GRANT_V2_ABI = [
+  { name: "isPolicyGrantValid", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "poolId", type: "bytes32" as const }, { name: "user", type: "address" as const }], outputs: [{ type: "bool" as const }] },
+  { name: "grants", type: "function" as const, stateMutability: "view" as const, inputs: [{ name: "poolId", type: "bytes32" as const }, { name: "user", type: "address" as const }], outputs: [{ name: "policyHash", type: "uint256" as const }, { name: "expiresAt", type: "uint64" as const }, { name: "policyRevision", type: "uint64" as const }] },
 ] as const;
 
 const ERC20_ABI = [
@@ -198,11 +208,167 @@ async function hasCode(client: ReturnType<typeof createPublicClient>, label: str
   }
 }
 
+async function demoCheckV2(
+  cfg: ReturnType<typeof loadConfig>,
+  chain: Chain,
+  client: ReturnType<typeof createPublicClient>,
+  wallet?: string
+) {
+  header("V2 Policy-Grant Preflight", chain.name);
+  log.deal([
+    { label: "Private proof", value: "Groth16", note: "verified once per grant window", tone: "cyan" },
+    { label: "Cached access", value: "policy grant", note: "cheap Hook reads after activation", tone: "green" },
+    { label: "Verified LP fee", value: "0.05%", note: "dynamic fee override", tone: "cyan" },
+  ]);
+  log.line();
+
+  let networkReady = false;
+  log.section("Network");
+  try {
+    const block = await client.getBlockNumber();
+    ok("latest block", block.toString());
+    networkReady = true;
+  } catch (error) {
+    bad("latest block", error instanceof Error ? error.message.split("\n")[0]! : String(error));
+  }
+  log.line();
+
+  log.section("V2 Contracts");
+  const codeChecks = await Promise.all([
+    hasCode(client, "ComplianceHookV2", cfg.hook),
+    hasCode(client, "PolicyRegistryV2", cfg.registry),
+    hasCode(client, "PolicyGrantManagerV2", cfg.grantManager),
+    hasCode(client, "ILALRouter", cfg.router),
+    hasCode(client, "currency0", cfg.tokenA),
+    hasCode(client, "currency1", cfg.tokenB),
+  ]);
+  let infrastructureReady = networkReady && codeChecks.every(Boolean);
+  let routerBound = false;
+  if (cfg.hook && cfg.router && isAddress(cfg.hook) && isAddress(cfg.router)) {
+    try {
+      const authorizedRouter = await client.readContract({ address: cfg.hook as `0x${string}`, abi: HOOK_V2_ABI, functionName: "authorizedRouter" });
+      routerBound = authorizedRouter.toLowerCase() === cfg.router.toLowerCase();
+      (routerBound ? ok : bad)("router binding", `${fmt.addr(authorizedRouter)} ${routerBound ? fmt.badge("bound", "green") : fmt.badge("mismatch", "red")}`);
+    } catch (error) {
+      bad("router binding", error instanceof Error ? error.message.split("\n")[0]! : String(error));
+    }
+  }
+  infrastructureReady &&= routerBound;
+  log.line();
+
+  let economicsReady = false;
+  if (cfg.router && isAddress(cfg.router)) {
+    log.section("Verified Flow Economics");
+    try {
+      const [feePips, treasury] = await Promise.all([
+        client.readContract({ address: cfg.router as `0x${string}`, abi: ROUTER_ABI, functionName: "protocolFeePips" }),
+        client.readContract({ address: cfg.router as `0x${string}`, abi: ROUTER_ABI, functionName: "treasury" }),
+      ]);
+      ok("verified LP fee", "0.05% dynamic override");
+      ok("ILAL fee", `${pipsToPercent(feePips)} to ${fmt.addr(treasury)}`);
+      economicsReady = true;
+    } catch (error) {
+      bad("router economics", error instanceof Error ? error.message.split("\n")[0]! : String(error));
+    }
+    log.line();
+  }
+
+  let policyReady = false;
+  let policyRevision = 0n;
+  if (cfg.registry && cfg.poolId && isAddress(cfg.registry) && isHex(cfg.poolId) && cfg.poolId.length === 66) {
+    log.section("Eligibility Policy");
+    try {
+      const policy = await readEligibilityPolicyV2(client, cfg.registry as `0x${string}`, cfg.poolId as `0x${string}`);
+      policyReady = policy.enabled && policy.revision > 0n;
+      policyRevision = policy.revision;
+      (policyReady ? ok : bad)("policy", `${policy.enabled ? fmt.badge("enabled", "green") : fmt.badge("disabled", "red")} revision ${policy.revision.toString()}`);
+      ok("policy hash", policy.policyHash.toString());
+      ok("minimum KYC", policy.minKycLevel.toString());
+      ok("grant window", `${policy.maxGrantTTL.toString()}s maximum`);
+    } catch (error) {
+      bad("policy", error instanceof Error ? error.message.split("\n")[0]! : String(error));
+    }
+    log.line();
+  }
+
+  const walletSelected = !!wallet && isAddress(wallet);
+  let grantReady = false;
+  let balancesReady = false;
+  if (walletSelected && cfg.grantManager && cfg.poolId && isAddress(cfg.grantManager) && isHex(cfg.poolId)) {
+    log.section("Wallet Grant");
+    try {
+      const [valid, grant] = await Promise.all([
+        client.readContract({ address: cfg.grantManager as `0x${string}`, abi: GRANT_V2_ABI, functionName: "isPolicyGrantValid", args: [cfg.poolId as `0x${string}`, wallet as `0x${string}`] }),
+        client.readContract({ address: cfg.grantManager as `0x${string}`, abi: GRANT_V2_ABI, functionName: "grants", args: [cfg.poolId as `0x${string}`, wallet as `0x${string}`] }),
+      ]);
+      grantReady = valid;
+      (valid ? ok : warn)("grant", valid ? `${fmt.badge("valid", "green")} revision ${grant[2].toString()}` : fmt.badge("missing / stale", "yellow"));
+      if (grant[1] > 0n) ok("expires", new Date(Number(grant[1]) * 1000).toISOString());
+    } catch (error) {
+      bad("grant", error instanceof Error ? error.message.split("\n")[0]! : String(error));
+    }
+    log.line();
+
+    log.section("Wallet Balances");
+    const checks: boolean[] = [];
+    for (const [label, token] of [["currency0", cfg.tokenA], ["currency1", cfg.tokenB]] as const) {
+      if (!token || !isAddress(token)) {
+        bad(label, "missing token config");
+        checks.push(false);
+        continue;
+      }
+      const [symbol, decimals, balance] = await Promise.all([
+        client.readContract({ address: token as `0x${string}`, abi: ERC20_ABI, functionName: "symbol" }),
+        client.readContract({ address: token as `0x${string}`, abi: ERC20_ABI, functionName: "decimals" }),
+        client.readContract({ address: token as `0x${string}`, abi: ERC20_ABI, functionName: "balanceOf", args: [wallet as `0x${string}`] }),
+      ]);
+      const funded = balance > 0n;
+      checks.push(funded);
+      (funded ? ok : warn)(label, `${formatUnits(balance, decimals)} ${symbol}`);
+    }
+    balancesReady = checks.length === 2 && checks.every(Boolean);
+    log.line();
+  } else {
+    log.info("Pass --wallet to verify the cached policy grant and token balances.");
+    log.line();
+  }
+
+  const realTxReady = infrastructureReady && economicsReady && policyReady && walletSelected && grantReady && balancesReady;
+  log.section("Readiness");
+  log.metrics([
+    { label: "infra", value: infrastructureReady ? "ready" : "incomplete", tone: infrastructureReady ? "green" : "red" },
+    { label: "policy", value: policyReady ? `rev ${policyRevision}` : "not ready", tone: policyReady ? "green" : "red" },
+    { label: "grant", value: grantReady ? "valid" : "missing", tone: grantReady ? "green" : "yellow" },
+    { label: "tx", value: realTxReady ? "ready" : "blocked", tone: realTxReady ? "green" : "yellow" },
+  ]);
+  if (realTxReady) {
+    log.callout("V2 live flow ready", "proof, cached grant, policy, Hook, Router, and balances are aligned", "green");
+  } else if (infrastructureReady && policyReady) {
+    log.callout("V2 infrastructure ready", "generate and activate the wallet proof, then fund both pool tokens", "yellow");
+  } else {
+    log.callout("V2 demo not ready", "fix the failing infrastructure or policy checks first", "red");
+  }
+  log.line();
+  log.section("Next Commands");
+  if (!grantReady) {
+    log.command("ilal policy proof generate --input <private-input.json> --out-dir artifacts/v2-proof");
+    log.command("ilal policy grant activate --proof artifacts/v2-proof/proof.json --public artifacts/v2-proof/public.json");
+  }
+  log.command("ilal pool add-liquidity --tick-lower=-600 --tick-upper=600 --liquidity=1000000000000000000 --max-amount-0 <raw> --max-amount-1 <raw>");
+  log.command(`ilal swap --amount-in 0.001 --token-in ${cfg.tokenB ?? "<token>"} --min-amount-out <quotedMinRaw>`);
+  console.log();
+}
+
 export async function demoCheck(opts: { wallet?: string; privateKey?: string }) {
   const cfg = loadConfig();
   const chain = CHAINS[cfg.chain ?? "84532"] ?? baseSepolia;
   const client = createPublicClient({ chain, transport: http(cfg.rpc) });
   const wallet = opts.wallet;
+
+  if (cfg.protocolVersion === "2") {
+    await demoCheckV2(cfg, chain, client, wallet);
+    return;
+  }
 
   header("Live Demo Preflight", chain.name);
   log.deal([

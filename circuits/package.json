@@ -13,7 +13,8 @@
     "build:tree": "npx tsx oracle/build_tree.ts",
     "build:witness": "npx tsx oracle/generate_witness.ts",
     "test:oracle": "npx --no-install tsx --test oracle/*.test.ts",
-    "test:v2": "bash scripts/test_v2.sh"
+    "test:v2": "bash scripts/test_v2.sh",
+    "prove:v2:demo": "bash scripts/generate_v2_demo_proof.sh"
   },
   "dependencies": {
     "@zk-kit/incremental-merkle-tree": "^1.1.0",
