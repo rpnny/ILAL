@@ -1,0 +1,243 @@
+{
+  "$schema": "../schema/deployment-manifest.schema.json",
+  "schemaVersion": 1,
+  "version": "0.4.0-v2-poc.1",
+  "status": "candidate",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "protocolVersion": 2,
+  "sourceCommit": "a4f658db84aad3f16998380dbf212b3bff30b5b3",
+  "releaseCommit": null,
+  "deployer": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+  "admin": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+  "treasury": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+  "adminTreasuryShared": true,
+  "contracts": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "router": {
+      "address": "0xcADfb9d8a468832A6B24b088c214178B00A3fD47",
+      "transactionHash": "0x36ee0b93baec7924e214491b10ec3c6b92a2acafdaa547ec81ff6e45ec29abae",
+      "blockNumber": 45160651,
+      "constructorArguments": "[\"0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408\",\"0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58\",\"50\"]",
+      "creationBytecodeHash": "0xd093c25ce1dd04d7fdfb41153debfb838ec28451d3d4b3ea61800ad0afc02e3a",
+      "runtimeBytecodeHash": "0x4b705dc666eb8f2b6fa4c4c810e3ba56923f916b7234e0f507895627c46be868",
+      "abiHash": "0xd866dd5dbcff5f45828dc66aadf0efc502b8a0921193d839f79ad027cc3d5aa4",
+      "create2Salt": null
+    },
+    "policyRegistry": {
+      "address": "0x48eB31FB6496058FEd112053EE07fAF557565325",
+      "transactionHash": "0x1ca9ab13c8d3d70d6a1c1837b961247747427242a28b60053109f6347c2db884",
+      "blockNumber": 45160652,
+      "constructorArguments": "[\"0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58\"]",
+      "creationBytecodeHash": "0x3609e4a3ea2e0f2fe1b105572b63520c269b04abe53968e7fb84e1ed66cc0bdf",
+      "runtimeBytecodeHash": "0xb4f4bd7e9c8b97c642ef57c6f29e8d705eef760475b215f302188ede6e1c7b24",
+      "abiHash": "0xdb1825000f61ea9f26307be89de850e80570c5b8075d3f8262f6699b2cf3b46e",
+      "create2Salt": null
+    },
+    "policyVerifier": {
+      "address": "0x97d495E891384b6BFB85ca8ABfB373aFfd606807",
+      "transactionHash": "0x92098a057ff6f896d5de63bef2023547280ac717776b108e6cee727f48bf514f",
+      "blockNumber": 45160653,
+      "constructorArguments": "[]",
+      "creationBytecodeHash": "0x930a6ebedbad32b094bdfacddaa921eae981b818417628c042c6016bfc1df83a",
+      "runtimeBytecodeHash": "0x66093507f21d90cd5595a52972c6d4cb9a2a656d048a076dd3f553dbffcfc4fc",
+      "abiHash": "0xe62ac616aaa054c37a0b3b6684d71b0d861ef657f9119590ed07d0d2bed44cda",
+      "create2Salt": null
+    },
+    "verifierAdapter": {
+      "address": "0xaa204E50309e41d33f60D7d23D070B796AeF7330",
+      "transactionHash": "0x171a503c63db8d14d5537b20b9a1ddfbd7732aec91d1e8a5af93bdc720d5b1ab",
+      "blockNumber": 45160654,
+      "constructorArguments": "[\"0x97d495E891384b6BFB85ca8ABfB373aFfd606807\"]",
+      "creationBytecodeHash": "0xa8f81963d284bbfd736068c0454b220a2ab6464e7bc38aa4a2e2d465cb5b5245",
+      "runtimeBytecodeHash": "0x8f16e632d34cc36800b4a49b0cf19b774aff60464a144ca507a852e27d9c96d7",
+      "abiHash": "0x3de4077dc02fe96dc05d53325f3f2a3061652bbfa64ffff3f6f65e8a947d3d99",
+      "create2Salt": null
+    },
+    "policyGrantManager": {
+      "address": "0xb19121e6CE972A1d1f23910e3d22924D47e43C11",
+      "transactionHash": "0x6da45f51d3c1791d5df6290e17c1a2730ee1f04197212284a3c6ebdec2d5f2b9",
+      "blockNumber": 45160655,
+      "constructorArguments": "[\"0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58\",\"0xaa204E50309e41d33f60D7d23D070B796AeF7330\",\"0x48eB31FB6496058FEd112053EE07fAF557565325\"]",
+      "creationBytecodeHash": "0x7db25d98bf92809b4ead7988b193fd414b67825797c3a39c57afc164435e8434",
+      "runtimeBytecodeHash": "0xcfdc0f230cab9fb951023dd74032882d0ba956cef386bb94fe043b6a239dbec5",
+      "abiHash": "0xbb2999ead416a0a115441e02177fb8e56a89827d3b05b83a34ecd90782bc975a",
+      "create2Salt": null
+    },
+    "complianceHook": {
+      "address": "0xD7E3280bf895C43BC74baA1FB190e775C5864A80",
+      "transactionHash": "0x26529fcfb3dcd322382389c2df0c9ef3db7156c6ffd27d55a84ba7957671c6ac",
+      "blockNumber": 45160656,
+      "constructorArguments": "[\"0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408\",\"0x48eB31FB6496058FEd112053EE07fAF557565325\",\"0xb19121e6CE972A1d1f23910e3d22924D47e43C11\",\"0xcADfb9d8a468832A6B24b088c214178B00A3fD47\"]",
+      "creationBytecodeHash": "0xb26a127264b55db96bcfad9ac18014579e66f0d1327b4fac69948ee09639b8fc",
+      "runtimeBytecodeHash": "0xad62171ff3e83086d79dc237584be5916f0862c618e32fcbe8039efabba70200",
+      "abiHash": "0x77d528a7a87c686fbf07b5cd08aef7f5211350a6f3d8b31c0da3500f3d7a796b",
+      "create2Salt": "0x0000000000000000000000000000000000000000000000000000000000003e01"
+    },
+    "mockTokenA": {
+      "address": "0x67b341da917749f97432aeEFe888CF7Fd229FD77",
+      "transactionHash": "0x5a3631eaa2d9918b745422f8904f0fdd63074a37269de978bb9eb94bd4d6d516",
+      "blockNumber": 45160647,
+      "constructorArguments": "[\"ILAL v2 Token A\",\"V2A\",\"18\"]",
+      "creationBytecodeHash": "0x62bf391f86a8701d7caf26592d62fa9f9ac0895b31babaee3fa9da27968107b2",
+      "runtimeBytecodeHash": "0x92fa16690c4179d35a4a73feb7289e571bc067b3ab364cc541f94c6bce5d182e",
+      "abiHash": "0x4334adde4722c85a11d524a653f84dfd4077d027dc1b3f4d8c28db979b2c08e5",
+      "create2Salt": null
+    },
+    "mockTokenB": {
+      "address": "0xF494949d51a7285Eb082c1D8bFAFD56BfC471C37",
+      "transactionHash": "0xac9f18370cbfc73da0d5b775cf0d144e2f433b04698105969dd9ccf12f7785b1",
+      "blockNumber": 45160648,
+      "constructorArguments": "[\"ILAL v2 Token B\",\"V2B\",\"18\"]",
+      "creationBytecodeHash": "0x62bf391f86a8701d7caf26592d62fa9f9ac0895b31babaee3fa9da27968107b2",
+      "runtimeBytecodeHash": "0x92fa16690c4179d35a4a73feb7289e571bc067b3ab364cc541f94c6bce5d182e",
+      "abiHash": "0x4334adde4722c85a11d524a653f84dfd4077d027dc1b3f4d8c28db979b2c08e5",
+      "create2Salt": null
+    }
+  },
+  "assets": {
+    "tokenA": "0x67b341da917749f97432aeEFe888CF7Fd229FD77",
+    "tokenB": "0xF494949d51a7285Eb082c1D8bFAFD56BfC471C37"
+  },
+  "pool": {
+    "poolId": "0x524f781c2c66c8617f3b38c12ca2bf70e4639c3923fc0f63bdb315dda0a104a4",
+    "initializationTransactionHash": "0xbf4fb7e3311f970e43e2bb8338e3740007f39b5c58a1d5cf9dfad5555e981268",
+    "initializationBlockNumber": 45160657,
+    "key": {
+      "currency0": "0x67b341da917749f97432aeEFe888CF7Fd229FD77",
+      "currency1": "0xF494949d51a7285Eb082c1D8bFAFD56BfC471C37",
+      "fee": 8388608,
+      "tickSpacing": 60,
+      "hook": "0xD7E3280bf895C43BC74baA1FB190e775C5864A80"
+    },
+    "policyEvidence": {
+      "transactionHash": "0x7a47dffec77794ed007a0c6328320eaff65c2319e0d54a6a6dafafc3610659e1",
+      "blockNumber": 45160658,
+      "policyHash": "18775350948550363407780205057611240140946272626898793889806331175085024939676",
+      "revision": 1,
+      "minimumKycLevel": 2,
+      "maxGrantTTL": 86400
+    },
+    "grantEvidence": {
+      "transactionHash": "0x1a0096ddf0518cc9e0dde92ecdfdf663c5f4e2466ce495714cfaaa9b88fd76d8",
+      "blockNumber": 45160685,
+      "wallet": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "policyRevision": 1,
+      "status": "valid"
+    },
+    "liquidityEvidence": {
+      "transactionHash": "0x3023ea73bb88b53011e4ab8c7e499e1c75c37431dfd893e772cfe7edce14cc38",
+      "blockNumber": 45160760,
+      "tickLower": -600,
+      "tickUpper": 600,
+      "liquidity": "1000000000000000000"
+    },
+    "positiveSwap": {
+      "transactionHash": "0x531b0381d21e4e56e39aaf15d2c02cdffc3437e0b8a0378be3453d175efb1b60",
+      "blockNumber": 45160764,
+      "status": "success",
+      "gasUsed": 211147
+    },
+    "negativeSwap": {
+      "wallet": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+      "status": "blocked before approval and broadcast",
+      "reason": "missing current v2 policy grant"
+    }
+  },
+  "circuitEvidence": {
+    "ceremony": "unsafe development beacon for Base Sepolia PoC only",
+    "publicInputCount": 9,
+    "zkeySha256": "1acf76cb9f61cdcf6211bafca004adf762def009968adfcc18f3788221430c14",
+    "verificationKeySha256": "5c159bce0d8704a51c8ad3f57ebdfb74f57b17a10860516c03062df3f2453709",
+    "wasmSha256": "a560ee9eb39498aac242d69209aa800cc1cfeb58fbbf881ce0c8bd7133ade39f",
+    "solidityVerifierSha256": "c246d89315050dfef958a07e34b404c61ea20e864cd390dcf5c155767041e2c4"
+  },
+  "toolchain": {
+    "solc": "0.8.26+commit.8a97fa7a",
+    "optimizerEnabled": true,
+    "optimizerRuns": 200,
+    "viaIR": false,
+    "evmVersion": "cancun",
+    "remappings": [
+      "v4-core/=lib/v4-core/",
+      "v4-periphery/=lib/v4-periphery/",
+      "@openzeppelin/=lib/openzeppelin-contracts/",
+      "forge-std/=lib/forge-std/src/"
+    ],
+    "libraries": {}
+  },
+  "sourceTreeHash": "0x7fba927d77627d218d500f5ee3edca9cc25b661720becc0d54c9c4f5dddee2f4",
+  "sourceTreeHashAlgorithm": "sha256(git archive of contracts/src, contracts/script, contracts/foundry.toml, contracts/scripts/install-deps.sh)",
+  "sourceVerification": {
+    "verifier": "Sourcify",
+    "verifiedAt": "2026-08-07",
+    "status": "exact_match",
+    "jobs": {
+      "mockTokenA": "e81ca151-08a7-456b-a51f-f8aa77ff7e59",
+      "mockTokenB": "a4336826-f3f0-4a07-9a2d-489957dbaecb",
+      "router": "already exact-matched",
+      "policyRegistry": "36667277-fb8f-4fb8-9eab-f3754d10ac2e",
+      "policyVerifier": "ae14fe52-ed4a-4a8d-9757-7c4179133759",
+      "verifierAdapter": "8c6b4f08-593e-480f-a37b-d8dd7ebd5467",
+      "policyGrantManager": "b05b5291-3d03-46c0-9725-05ec264e0e67",
+      "complianceHook": "50967f41-8afa-48c3-9fb8-3d1cb00c600c"
+    }
+  },
+  "privilegedRoles": [
+    {
+      "capability": "eligibility policy administrator",
+      "applicable": true,
+      "contract": "0x48eB31FB6496058FEd112053EE07fAF557565325",
+      "holder": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "verificationCall": "EligibilityPolicyRegistryV2.owner()",
+      "result": "deployer EOA; testnet PoC only",
+      "deployerRetained": true
+    },
+    {
+      "capability": "policy grant revoker",
+      "applicable": true,
+      "contract": "0xb19121e6CE972A1d1f23910e3d22924D47e43C11",
+      "holder": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "verificationCall": "PolicyGrantManagerV2.owner()",
+      "result": "deployer EOA; testnet PoC only",
+      "deployerRetained": true
+    },
+    {
+      "capability": "protocol fee recipient",
+      "applicable": true,
+      "contract": "0xcADfb9d8a468832A6B24b088c214178B00A3fD47",
+      "holder": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "verificationCall": "ILALRouter.treasury()",
+      "result": "deployer EOA; protocolFeePips=50; testnet PoC only",
+      "deployerRetained": true
+    },
+    {
+      "capability": "authorized execution router",
+      "applicable": true,
+      "contract": "0xD7E3280bf895C43BC74baA1FB190e775C5864A80",
+      "holder": "0xcADfb9d8a468832A6B24b088c214178B00A3fD47",
+      "verificationCall": "ComplianceHookV2.authorizedRouter()",
+      "result": "immutable ILALRouter binding",
+      "deployerRetained": false
+    },
+    {
+      "capability": "proof verifier replacement",
+      "applicable": false,
+      "contract": null,
+      "holder": null,
+      "verificationCall": "contract architecture review",
+      "result": "verifier and adapter references are immutable; redeployment is required",
+      "deployerRetained": false
+    }
+  ],
+  "features": {
+    "attestation": "off-chain credential and jurisdiction roots bound into a private Groth16 policy proof",
+    "zk": "Groth16 policy circuit v2; unsafe development ceremony",
+    "audit": "unaudited",
+    "productionReadiness": "testnet PoC only; deployer-administered"
+  },
+  "releaseStatus": {
+    "software": "V2 testnet release candidate",
+    "deployment": "Base Sepolia public V2 PoC candidate"
+  }
+}

@@ -10,6 +10,7 @@
     "status": { "enum": ["candidate", "active", "deprecated"] },
     "network": { "type": "string" },
     "chainId": { "type": "integer", "minimum": 1 },
+    "protocolVersion": { "type": "integer", "minimum": 1 },
     "sourceCommit": { "anyOf": [{ "type": "string", "pattern": "^[0-9a-f]{40}$" }, { "type": "null" }] },
     "releaseCommit": { "anyOf": [{ "type": "string", "pattern": "^[0-9a-f]{40}$" }, { "type": "null" }] },
     "deployer": { "anyOf": [{ "$ref": "#/$defs/address" }, { "type": "null" }] },

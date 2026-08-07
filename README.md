@@ -28,9 +28,12 @@ Uniswap.
 - The CLI supports encrypted Web3 v3 keystores, capability-checked RPC-managed
   accounts, and offline Safe administrative proposals.
 
-The isolated v2 policy-grant path is implemented, constraint-tested, and has a
-Base Sepolia deployment/proof workflow. It is not yet part of the active public
-deployment; see [`docs/V2_TESTNET_RUNBOOK.md`](docs/V2_TESTNET_RUNBOOK.md).
+The isolated v2 policy-grant path is implemented, constraint-tested, and
+deployed as a public Base Sepolia PoC candidate. It remains separate from the
+active v1 CLI preset because its proving key uses an unsafe development
+ceremony and its testnet admin is an EOA. See the
+[`v2 deployment manifest`](deployments/base-sepolia/v0.4.0-v2-poc.1.json) and
+[`V2 testnet runbook`](docs/V2_TESTNET_RUNBOOK.md).
 
 ## How it works
 
@@ -62,9 +65,10 @@ The active v1 execution path is documented in
 |---|---|
 | Source and CLI | `v0.3.3` |
 | Active deployment | Base Sepolia v0.3.3 demo |
+| V2 candidate | Base Sepolia `v0.4.0-v2-poc.1`; public proof/grant/LP/swap evidence |
 | Administration | Safe-controlled |
 | Attestation | MockEAS demo issuance |
-| ZK | Experimental; disabled in the public deployment |
+| ZK | V1 active stack: disabled; V2 public candidate: Groth16 development ceremony |
 | Audit | Unaudited |
 | Production readiness | Not production-ready |
 
@@ -90,7 +94,7 @@ Current verified suites:
 | Suite | Result |
 |---|---:|
 | Foundry | 188 passed, 0 failed, 0 skipped |
-| CLI | 35 passed |
+| CLI | 38 passed |
 | SDK | 18 passed |
 | Circuit oracle | 7 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
@@ -122,8 +126,8 @@ The isolated V2 path can be exercised without a public-chain key:
 
 It performs a real Groth16 proof, cached policy grant, liquidity add, swap,
 policy revision, and revocation against a fresh Base Sepolia fork. Fork
-transaction hashes are local evidence only; public deployment claims still
-require a broadcast manifest and independently readable RPC state.
+transaction hashes are local evidence only; the separate V2 candidate manifest
+contains the public Base Sepolia evidence.
 
 Start with [`contracts/src/ComplianceHook.sol`](contracts/src/ComplianceHook.sol),
 [`contracts/src/ILALRouter.sol`](contracts/src/ILALRouter.sol), and

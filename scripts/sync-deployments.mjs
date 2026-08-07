@@ -28,7 +28,13 @@ for (const entry of index.deployments ?? []) {
     if (!isHash(manifest.sourceTreeHash) || !isHash(manifest.pool?.poolId) || !manifest.pool?.key) throw new Error(`${entry.manifest} has incomplete source or pool evidence.`);
     if (!manifest.toolchain?.solc || typeof manifest.toolchain.viaIR !== "boolean") throw new Error(`${entry.manifest} has incomplete toolchain evidence.`);
     if (!Array.isArray(manifest.privilegedRoles) || manifest.privilegedRoles.length === 0) throw new Error(`${entry.manifest} has no privilege evidence.`);
-    if (manifest.privilegedRoles.some(role => role.deployerRetained !== false)) throw new Error(`${entry.manifest} retains or omits a deployer privilege result.`);
+    const deployerRetained = manifest.privilegedRoles.some(role => role.deployerRetained !== false);
+    if (manifest.status === "active" && deployerRetained) {
+      throw new Error(`${entry.manifest} retains or omits a deployer privilege result.`);
+    }
+    if (manifest.status === "candidate" && deployerRetained && !/testnet poc only/i.test(manifest.features.productionReadiness ?? "")) {
+      throw new Error(`${entry.manifest} retains deployer privilege without an explicit testnet PoC classification.`);
+    }
   }
 }
 

@@ -19,6 +19,14 @@ export const DEPLOYMENT_INDEX = {
       "chainId": 84532,
       "status": "active",
       "manifest": "base-sepolia/v0.3.3.json"
+    },
+    {
+      "version": "0.4.0-v2-poc.1",
+      "network": "base-sepolia",
+      "chainId": 84532,
+      "status": "candidate",
+      "manifest": "base-sepolia/v0.4.0-v2-poc.1.json",
+      "reason": "Public V2 ZK policy-grant PoC; unsafe development ceremony and deployer-administered testnet governance."
     }
   ]
 } as const;
