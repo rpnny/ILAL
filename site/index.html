@@ -47,7 +47,7 @@
         <li><a class="nav-item" href="#how"        data-close>How it works<span class="nav-item__sub">4 steps · EAS/ZK → CNF → Session → Swap</span></a></li>
         <li><a class="nav-item" href="#issuers"    data-close>RWA Issuers<span class="nav-item__sub">Deploy your own compliance pool</span></a></li>
         <li><a class="nav-item" href="#cli"        data-close>Integrate<span class="nav-item__sub">npm CLI · SDK · 5 commands</span></a></li>
-        <li><a class="nav-item" href="#deployments" data-close>On-chain<span class="nav-item__sub">Active v0.3.3 Base Sepolia demo</span></a></li>
+        <li><a class="nav-item" href="#deployments" data-close>On-chain<span class="nav-item__sub">V1 active · V2 public ZK candidate</span></a></li>
       </ul>
       <div class="nav-overlay__foot">
         <span>ILAL — Institutional Liquidity Access Layer</span>
@@ -65,7 +65,7 @@
     <div class="hero-text">
       <div class="hero-badge">
         <span class="badge-dot"></span>
-        v0.3.3 stable software · Base Sepolia demo
+        v0.3.3 stable · V2 ZK PoC live on Base Sepolia
         &nbsp;&nbsp;
         <span class="uni-badge"><span class="uni-badge__dot"></span>Uniswap v4 Hook</span>
       </div>
@@ -640,6 +640,8 @@ ilal --keystore ./wallet.json credential prove \
             <tr><td><code>ilal pool remove-liquidity</code></td><td>Remove liquidity with minimum token receive bounds</td></tr>
             <tr><td><code>ilal pool policy set</code></td><td>Register compliance policy for a pool</td></tr>
             <tr><td><code>ilal session sign</code></td><td>Sign a standalone SessionToken</td></tr>
+            <tr><td><code>ilal policy proof generate</code></td><td>Generate and locally verify a private V2 eligibility proof</td></tr>
+            <tr><td><code>ilal policy grant activate</code></td><td>Cache a short-lived pool grant after on-chain proof verification</td></tr>
             <tr><td><code>ilal deploy --admin 0xSafe</code></td><td>Deploy an issuer-owned stack with custom EAS trust domain</td></tr>
           </tbody>
         </table>
@@ -763,6 +765,66 @@ ilal --keystore ./wallet.json credential prove \
         <div class="pool-info__row">
           <span>PoolManager (Base Sepolia)</span>
           <code>0x05E733…3408</code>
+        </div>
+      </div>
+
+      <div class="section-head section-head--compact">
+        <p class="eyebrow">Public candidate · V2 ZK policy grants</p>
+        <h2>Prove private eligibility once.<br/><em>Trade on a cached grant.</em></h2>
+        <p class="section-lead">Base Sepolia PoC only. The proving key uses a development ceremony and the testnet admin remains an EOA.</p>
+      </div>
+
+      <div class="deploy-grid">
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xD7E3280bf895C43BC74baA1FB190e775C5864A80" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">ComplianceHookV2</span>
+          <span class="deploy-card__desc">Current policy grant, session and dynamic fee enforcement</span>
+          <code class="deploy-card__addr">0xD7E328…5864A80 ↗</code>
+        </a>
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xb19121e6CE972A1d1f23910e3d22924D47e43C11" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">PolicyGrantManagerV2</span>
+          <span class="deploy-card__desc">Groth16 verification and short-lived grant cache</span>
+          <code class="deploy-card__addr">0xb19121…47e43C11 ↗</code>
+        </a>
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x48eB31FB6496058FEd112053EE07fAF557565325" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">PolicyRegistryV2</span>
+          <span class="deploy-card__desc">Issuer, KYC tier, jurisdiction and revision commitment</span>
+          <code class="deploy-card__addr">0x48eB31…7565325 ↗</code>
+        </a>
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xcADfb9d8a468832A6B24b088c214178B00A3fD47" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">ILALRouter V2</span>
+          <span class="deploy-card__desc">Bound execution with slippage and LP amount limits</span>
+          <code class="deploy-card__addr">0xcADfb9…00A3fD47 ↗</code>
+        </a>
+      </div>
+
+      <div class="tx-list">
+        <p class="eyebrow">V2 public execution evidence</p>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x1a0096ddf0518cc9e0dde92ecdfdf663c5f4e2466ce495714cfaaa9b88fd76d8" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Groth16 policy grant activated</span>
+          <span class="tx-row__hash">revision 1 · verified on-chain ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x3023ea73bb88b53011e4ab8c7e499e1c75c37431dfd893e772cfe7edce14cc38" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">V2 hook-gated liquidity added</span>
+          <span class="tx-row__hash">362,275 gas ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x531b0381d21e4e56e39aaf15d2c02cdffc3437e0b8a0378be3453d175efb1b60" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">V2 verified-flow swap</span>
+          <span class="tx-row__hash">0.05% LP fee · 211,147 gas ↗</span>
+        </a>
+      </div>
+
+      <div class="pool-info">
+        <p class="eyebrow">V2 candidate pool</p>
+        <div class="pool-info__row">
+          <span>Pool ID</span>
+          <code>0x524f78…a104a4</code>
+        </div>
+        <div class="pool-info__row">
+          <span>Deployment classification</span>
+          <code>public testnet PoC · unaudited</code>
         </div>
       </div>
     </div>
