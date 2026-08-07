@@ -128,14 +128,14 @@ Use the addresses and Pool ID printed by the deployment:
 ilal init --force \
   --protocol-version 2 \
   --chain 84532 \
-  --hook 0xComplianceHookV2 \
-  --registry 0xEligibilityPolicyRegistryV2 \
-  --grant-manager 0xPolicyGrantManagerV2 \
-  --router 0xILALRouter \
-  --treasury 0xTreasury \
-  --token-a 0xCurrency0 \
-  --token-b 0xCurrency1 \
-  --pool-id 0xPoolId \
+  --hook 0xD7E3280bf895C43BC74baA1FB190e775C5864A80 \
+  --registry 0x48eB31FB6496058FEd112053EE07fAF557565325 \
+  --grant-manager 0xb19121e6CE972A1d1f23910e3d22924D47e43C11 \
+  --router 0xcADfb9d8a468832A6B24b088c214178B00A3fD47 \
+  --treasury 0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58 \
+  --token-a 0x67b341da917749f97432aeEFe888CF7Fd229FD77 \
+  --token-b 0xF494949d51a7285Eb082c1D8bFAFD56BfC471C37 \
+  --pool-id 0x524f781c2c66c8617f3b38c12ca2bf70e4639c3923fc0f63bdb315dda0a104a4 \
   --fee 8388608 \
   --tick-spacing 60
 ```
@@ -159,8 +159,8 @@ then submits the proof generated for that exact address:
 ilal --keystore ./policy-wallet.json \
   --password-file ./policy-wallet.password \
   policy grant activate \
-  --proof ./artifacts/v2-demo/0xpolicywallet/proof.json \
-  --public ./artifacts/v2-demo/0xpolicywallet/public.json
+  --proof ./artifacts/v2-proof/proof.json \
+  --public ./artifacts/v2-proof/public.json
 
 ilal policy grant status --wallet 0xPolicyWallet
 ```
