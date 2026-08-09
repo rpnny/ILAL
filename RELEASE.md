@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | `v0.4.0-v2-poc.3` |
+| Version | `v0.4.0-v2-poc.4` |
 | npm | `@ilalv3/cli@next` |
 | Deployment | Base Sepolia V2 PoC candidate `v0.4.0-v2-poc.1` |
 | ZK | Groth16 V2 with an unsafe development ceremony |
@@ -12,8 +12,9 @@
 | Audit | Unaudited |
 
 The preview adds the issuer-operated encrypted tree, PII-free JSON/CSV import,
-revocation, Safe-ready policy commitments, private witness export, and local
-V2 proof generation. It does not replace npm `latest` or the active v0.3.3
+revocation, Safe-ready policy commitments, private witness export, local V2
+proof generation, and same-block policy/grant preflight with a final revision
+check before broadcast. It does not replace npm `latest` or the active v0.3.3
 demo preset.
 
 ## Current release
