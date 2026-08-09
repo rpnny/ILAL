@@ -42,8 +42,10 @@ Git commit identifiers are hashes of their tree and metadata, so a tracked file 
 ## npm Trusted Publishing
 
 - Bind the Trusted Publisher to organization `rpnny`, repository `ilal`, workflow `publish-npm-stable.yml`, protected environment `npm-production`, and the allowed npm publish action.
-- Stable publication accepts stable `vX.Y.Z` tags only and has `contents: read` plus `id-token: write`.
-- PRs, branches, prerelease tags, and the RC workflow cannot publish.
+- Stable publication accepts stable `vX.Y.Z` tags and publishes to `latest`.
+- V2 PoC tags matching `vX.Y.Z-v2-poc.N` publish only to `next`; they must reference a recorded candidate deployment and remain explicitly unaudited and not production-ready.
+- Both channels use the protected `npm-production` environment with `contents: read` plus `id-token: write`.
+- PRs, branches, and ordinary RC tags cannot publish.
 - Tag, CLI package version, release manifest, and active deployment manifest must match.
 - Revoke old npm automation tokens only after OIDC publication and provenance are verified.
 

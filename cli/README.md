@@ -6,17 +6,21 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.3.3` | Current local source and npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
+| `0.4.0-v2-poc.2` | npm `next` preview | V2 issuer integration kit; Base Sepolia PoC only, unsafe development ceremony, unaudited |
+| `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
 | `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
 
-The v0.3.3 local source and npm package share the current ABI and active manifest. Published `0.2.21` remains a separate legacy line; copying its commands or addresses into v0.3.3 will fail.
+The V2 preview keeps the stable v0.3.3 deployment preset isolated while adding
+issuer-operated policy tooling for the recorded V2 candidate. Install it with
+`npm install -g @ilalv3/cli@next`. Published `0.2.21` remains a separate legacy
+line; copying its commands or addresses into current releases will fail.
 
 ```bash
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.3.3
+node dist/index.js --version  # 0.4.0-v2-poc.2
 npm test
 ```
 
@@ -155,7 +159,12 @@ The active public v0.3.3 Base Sepolia demo is recorded in `deployments/base-sepo
 
 ## Release policy
 
-RC tags create GitHub prereleases only. Stable npm publication uses GitHub OIDC Trusted Publishing, provenance, a protected environment, and exact version consistency across Git tag, `package.json`, release manifest, and deployment manifest. See the root `RELEASE.md` and `docs/RELEASE_PROCESS.md`.
+Ordinary RC tags create GitHub prereleases only. Stable releases publish to
+`latest`; explicitly versioned V2 PoC releases publish to `next`. Both npm
+channels use GitHub OIDC Trusted Publishing, provenance, a protected
+environment, and exact consistency across the Git tag, `package.json`, release
+manifest, and the referenced active or candidate deployment. See the root
+`RELEASE.md` and `docs/RELEASE_PROCESS.md`.
 
 ## License
 

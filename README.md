@@ -2,6 +2,7 @@
 
 [![verify](https://github.com/rpnny/ILAL/actions/workflows/ci.yml/badge.svg)](https://github.com/rpnny/ILAL/actions/workflows/ci.yml)
 [![release](https://img.shields.io/badge/release-v0.3.3-2563eb)](releases/v0.3.3.json)
+[![v2 preview](https://img.shields.io/badge/v2%20preview-v0.4.0--v2--poc.2-111827)](releases/v0.4.0-v2-poc.2.json)
 [![network](https://img.shields.io/badge/network-Base%20Sepolia-0052ff)](deployments/base-sepolia/v0.3.3.json)
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
@@ -36,6 +37,8 @@ ceremony and its testnet admin is an EOA. See the
 [`V2 testnet runbook`](docs/V2_TESTNET_RUNBOOK.md). Issuers can operate an
 encrypted deterministic credential tree and export wallet-bound private
 witnesses with the [`Issuer Integration Kit`](docs/ISSUER_INTEGRATION.md).
+The kit is distributed as an explicitly non-production npm preview:
+`npm install -g @ilalv3/cli@next`.
 
 ## How it works
 
@@ -65,7 +68,7 @@ The active v1 execution path is documented in
 
 | Surface | Current status |
 |---|---|
-| Source and CLI | `v0.3.3` |
+| Source and CLI | npm `latest`: `v0.3.3`; V2 issuer preview: `v0.4.0-v2-poc.2` on `next` |
 | Active deployment | Base Sepolia v0.3.3 demo |
 | V2 candidate | Base Sepolia `v0.4.0-v2-poc.1`; public proof/grant/LP/swap evidence |
 | Administration | Safe-controlled |
