@@ -2,7 +2,7 @@
 
 [![verify](https://github.com/rpnny/ILAL/actions/workflows/ci.yml/badge.svg)](https://github.com/rpnny/ILAL/actions/workflows/ci.yml)
 [![release](https://img.shields.io/badge/release-v0.3.3-2563eb)](releases/v0.3.3.json)
-[![v2 preview](https://img.shields.io/badge/v2%20preview-v0.4.0--v2--poc.2-111827)](releases/v0.4.0-v2-poc.2.json)
+[![v2 preview](https://img.shields.io/badge/v2%20preview-v0.4.0--v2--poc.3-111827)](releases/v0.4.0-v2-poc.3.json)
 [![network](https://img.shields.io/badge/network-Base%20Sepolia-0052ff)](deployments/base-sepolia/v0.3.3.json)
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
@@ -68,7 +68,7 @@ The active v1 execution path is documented in
 
 | Surface | Current status |
 |---|---|
-| Source and CLI | npm `latest`: `v0.3.3`; V2 issuer preview: `v0.4.0-v2-poc.2` on `next` |
+| Source and CLI | npm `latest`: `v0.3.3`; V2 issuer preview: `v0.4.0-v2-poc.3` on `next` |
 | Active deployment | Base Sepolia v0.3.3 demo |
 | V2 candidate | Base Sepolia `v0.4.0-v2-poc.1`; public proof/grant/LP/swap evidence |
 | Administration | Safe-controlled |

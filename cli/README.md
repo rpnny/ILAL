@@ -6,7 +6,7 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.4.0-v2-poc.2` | npm `next` preview | V2 issuer integration kit; Base Sepolia PoC only, unsafe development ceremony, unaudited |
+| `0.4.0-v2-poc.3` | npm `next` preview | V2 issuer integration kit; Base Sepolia PoC only, unsafe development ceremony, unaudited |
 | `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
 | `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
@@ -20,7 +20,7 @@ line; copying its commands or addresses into current releases will fail.
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.4.0-v2-poc.2
+node dist/index.js --version  # 0.4.0-v2-poc.3
 npm test
 ```
 

@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | `v0.4.0-v2-poc.2` |
+| Version | `v0.4.0-v2-poc.3` |
 | npm | `@ilalv3/cli@next` |
 | Deployment | Base Sepolia V2 PoC candidate `v0.4.0-v2-poc.1` |
 | ZK | Groth16 V2 with an unsafe development ceremony |

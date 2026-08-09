@@ -128,7 +128,7 @@ async function submitProposal(serviceUrl: string, proposal: SafeProposal): Promi
       contractTransactionHash: proposal.safeTxHash,
       sender: proposal.sender,
       signature: proposal.signature,
-      origin: "ILAL CLI v0.4.0-v2-poc.2",
+      origin: "ILAL CLI v0.4.0-v2-poc.3",
     }),
   });
   if (!response.ok) {
