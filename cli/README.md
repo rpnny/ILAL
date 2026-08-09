@@ -126,6 +126,11 @@ mode `600`. Provider references are domain-separated and hashed before being
 stored. See the repository's `docs/ISSUER_INTEGRATION.md` for the data schema,
 Safe policy publication, revocation, and sandbox acceptance workflow.
 
+V2 swap and liquidity preflight pins policy and grant reads to one block. The
+CLI rechecks the policy hash, revision, and grant immediately before broadcast,
+so a newly published root rejects an old grant before the Router transaction is
+sent. The Hook performs the same enforcement on-chain.
+
 ## ERC-1271 sessions
 
 External `--hook-data` validation distinguishes EOAs from contract wallets. EOAs require canonical 65-byte low-s ECDSA. Contract wallets are validated on-chain with `isValidSignature(sessionDigest, signature)`, so an ERC-1271 signature is not forced into EOA length or recovery rules.

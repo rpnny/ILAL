@@ -40,6 +40,13 @@ witnesses with the [`Issuer Integration Kit`](docs/ISSUER_INTEGRATION.md).
 The kit is distributed as an explicitly non-production npm preview:
 `npm install -g @ilalv3/cli@next`.
 
+The issuer workflow has been exercised end to end on a separate Base Sepolia
+V2 sandbox with distinct admin, institution, market-maker, and control
+wallets: encrypted decision import, policy publication, wallet-bound witness,
+local Groth16 proof, grant activation, LP add, swap, control-wallet rejection,
+root rotation, and stale-grant rejection all passed. This is testnet acceptance
+evidence, not an audit or a production ceremony.
+
 ## How it works
 
 ```text
@@ -99,7 +106,7 @@ Current verified suites:
 | Suite | Result |
 |---|---:|
 | Foundry | 188 passed, 0 failed, 0 skipped |
-| CLI | 43 passed |
+| CLI | 46 passed |
 | SDK | 18 passed |
 | Circuit oracle | 7 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
@@ -134,6 +141,12 @@ It performs a real Groth16 proof, cached policy grant, liquidity add, swap,
 policy revision, and revocation against a fresh Base Sepolia fork. Fork
 transaction hashes are local evidence only; the separate V2 candidate manifest
 contains the public Base Sepolia evidence.
+
+V2 transaction preflight reads policy and wallet grant state at one pinned
+block and rechecks the expected policy hash and revision immediately before
+broadcast. A root rotation therefore invalidates the old grant locally before
+the Router transaction is sent, while the Hook remains the final on-chain
+enforcement layer.
 
 Start with [`contracts/src/ComplianceHook.sol`](contracts/src/ComplianceHook.sol),
 [`contracts/src/ILALRouter.sol`](contracts/src/ILALRouter.sol), and

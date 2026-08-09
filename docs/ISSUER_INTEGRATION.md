@@ -109,6 +109,12 @@ Run that command with `--safe 0xIssuerSafe` to produce a reviewable Safe
 proposal. Every successful policy set increments the on-chain revision and
 invalidates every grant from the previous revision.
 
+The CLI reads the current policy and wallet grant from one pinned block and
+rechecks the same policy hash and revision immediately before a V2 swap or
+liquidity-add broadcast. This prevents a load-balanced RPC from combining a
+new policy response with stale grant state. Contract enforcement remains the
+authoritative final check.
+
 ## 4. Export a wallet-bound private witness
 
 ```bash
@@ -194,3 +200,13 @@ market maker B, and non-eligible control C. The sandbox passes when:
 This kit is testnet PoC software. Production use still requires a production
 ceremony, independent security review, issuer governance, key-management
 controls, and jurisdiction-specific legal analysis.
+
+## Recorded testnet acceptance
+
+On 2026-08-09 the complete workflow was exercised against a separate Base
+Sepolia V2 sandbox with four unrelated roles: admin, institution A, market
+maker B, and non-eligible control C. The run covered encrypted JSON/CSV import,
+policy publication, mode-600 witness export, local Groth16 proofs, A/B grant
+activation, B liquidity, A swap, funded-C rejection before broadcast, root
+rotation, and rejection of A's stale grant. This demonstrates PoC integration
+behavior only; it is not a security audit or production-readiness claim.

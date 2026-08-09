@@ -125,6 +125,13 @@ export type EligibilityPolicyV2 = {
   enabled: boolean;
 };
 
+export type PolicyGrantSnapshotV2 = {
+  blockNumber: bigint;
+  policy: EligibilityPolicyV2;
+  valid: boolean;
+  grant: readonly [bigint, bigint, bigint];
+};
+
 function resolveV2(opts: {
   pool?: string;
   registry?: string;
@@ -175,14 +182,74 @@ function positiveInteger(value: string, name: string, max: bigint): bigint {
 export async function readEligibilityPolicyV2(
   publicClient: ReturnType<typeof createPublicClient>,
   registry: `0x${string}`,
-  poolId: `0x${string}`
+  poolId: `0x${string}`,
+  blockNumber?: bigint
 ): Promise<EligibilityPolicyV2> {
   return await publicClient.readContract({
     address: registry,
     abi: POLICY_REGISTRY_V2_ABI,
     functionName: "getEligibilityPolicy",
     args: [poolId],
+    blockNumber,
   }) as EligibilityPolicyV2;
+}
+
+export async function readPolicyGrantSnapshotV2(
+  publicClient: ReturnType<typeof createPublicClient>,
+  registry: `0x${string}`,
+  grantManager: `0x${string}`,
+  poolId: `0x${string}`,
+  wallet: `0x${string}`
+): Promise<PolicyGrantSnapshotV2> {
+  // Pin all reads to one block. Public RPC load balancers can otherwise serve
+  // policy and grant calls from different heads immediately after a revision.
+  const blockNumber = await publicClient.getBlockNumber({ cacheTime: 0 });
+  const [policy, contractValid, grant] = await Promise.all([
+    readEligibilityPolicyV2(publicClient, registry, poolId, blockNumber),
+    publicClient.readContract({
+      address: grantManager,
+      abi: GRANT_MANAGER_V2_ABI,
+      functionName: "isPolicyGrantValid",
+      args: [poolId, wallet],
+      blockNumber,
+    }) as Promise<boolean>,
+    publicClient.readContract({
+      address: grantManager,
+      abi: GRANT_MANAGER_V2_ABI,
+      functionName: "grants",
+      args: [poolId, wallet],
+      blockNumber,
+    }) as Promise<readonly [bigint, bigint, bigint]>,
+  ]);
+  const valid = contractValid
+    && policy.enabled
+    && policy.revision > 0n
+    && grant[0] === policy.policyHash
+    && grant[2] === policy.revision;
+  return { blockNumber, policy, valid, grant };
+}
+
+export function policyGrantSnapshotIssue(
+  snapshot: PolicyGrantSnapshotV2,
+  expected?: { policyHash: bigint; revision: bigint }
+): string | undefined {
+  if (!snapshot.policy.enabled || snapshot.policy.revision === 0n) {
+    return "pool eligibility policy is not enabled";
+  }
+  if (expected && (
+    snapshot.policy.policyHash !== expected.policyHash
+    || snapshot.policy.revision !== expected.revision
+  )) {
+    return `pool policy changed from revision ${expected.revision.toString()} to ${snapshot.policy.revision.toString()}`;
+  }
+  if (snapshot.grant[0] !== snapshot.policy.policyHash) {
+    return "wallet grant policy hash is stale";
+  }
+  if (snapshot.grant[2] !== snapshot.policy.revision) {
+    return `wallet grant revision ${snapshot.grant[2].toString()} is stale; current revision is ${snapshot.policy.revision.toString()}`;
+  }
+  if (!snapshot.valid) return "wallet policy grant is missing, expired, or revoked";
+  return undefined;
 }
 
 export async function waitForPolicyGrant(
@@ -212,25 +279,19 @@ export async function policyGrantStatus(opts: {
   const publicClient = createPublicClient({ chain, transport });
   const poolId = cfg.poolId as `0x${string}`;
   const wallet = opts.wallet as `0x${string}`;
-  const [policy, valid, grant] = await Promise.all([
-    readEligibilityPolicyV2(publicClient, cfg.registry as `0x${string}`, poolId),
-    publicClient.readContract({
-      address: cfg.grantManager as `0x${string}`,
-      abi: GRANT_MANAGER_V2_ABI,
-      functionName: "isPolicyGrantValid",
-      args: [poolId, wallet],
-    }) as Promise<boolean>,
-    publicClient.readContract({
-      address: cfg.grantManager as `0x${string}`,
-      abi: GRANT_MANAGER_V2_ABI,
-      functionName: "grants",
-      args: [poolId, wallet],
-    }) as Promise<readonly [bigint, bigint, bigint]>,
-  ]);
+  const snapshot = await readPolicyGrantSnapshotV2(
+    publicClient,
+    cfg.registry as `0x${string}`,
+    cfg.grantManager as `0x${string}`,
+    poolId,
+    wallet
+  );
+  const { policy, valid, grant } = snapshot;
 
   header("Policy Grant", chain.name);
   log.kv("wallet", fmt.addr(wallet));
   log.kv("pool", fmt.hash(poolId));
+  log.kv("snapshot block", snapshot.blockNumber.toString());
   log.section("Current Policy");
   log.kv("enabled", policy.enabled ? fmt.green("true") : fmt.red("false"));
   log.kv("policy hash", policy.policyHash.toString());

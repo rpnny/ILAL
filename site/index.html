@@ -457,69 +457,75 @@
     <div class="section-inner">
       <div class="section-head">
         <p class="eyebrow">For RWA issuers</p>
-        <h2>Your pool.<br/><em>Your credential. Your rules.</em></h2>
+        <h2>Your policy.<br/><em>Your users. Your control.</em></h2>
       </div>
 
       <p class="section-lead">
-        Each RWA issuer deploys their own <code>CNFIssuer</code> with their own <code>schemaUID</code>.
-        The pool policy binds to that specific issuer and credential type.
-        Other issuers' credentials cannot enter your pool. Full isolation, composable with any Uniswap v4 pool.
+        Keep KYC and KYB inside your own environment. ILAL turns PII-free
+        eligibility decisions into an encrypted credential tree, publishes
+        only a policy commitment, and lets each wallet prove eligibility
+        locally. The Hook sees a short-lived grant, never the institution's
+        KYC tier, country, provider record, or identity documents.
       </p>
 
       <div class="flow-diagram">
         <div class="flow-step">
           <div class="flow-step__icon">01</div>
           <div class="flow-step__text">
-            <strong>Deploy CNFIssuer</strong>
-            <span>Your own ERC-721 credential registry with your schemaUID</span>
+            <strong>Import decisions</strong>
+            <span>Map provider results to a strict PII-free JSON or CSV contract</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <div class="flow-step__icon">02</div>
           <div class="flow-step__text">
-            <strong>Register pool policy</strong>
-            <span>Bind poolId → (cnfIssuer, credentialType)</span>
+            <strong>Publish policy</strong>
+            <span>Commit encrypted-tree roots, KYC tier and jurisdiction rules through your Safe</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <div class="flow-step__icon">03</div>
           <div class="flow-step__text">
-            <strong>Approve wallets</strong>
-            <span>Add KYC'd wallets to Merkle tree, update root on-chain</span>
+            <strong>Prove privately</strong>
+            <span>Export a wallet-bound witness; the institution generates its Groth16 proof locally</span>
           </div>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <div class="flow-step__icon">04</div>
           <div class="flow-step__text">
-            <strong>Institutions trade</strong>
-            <span>Credentialed wallets get 0.05% fee. Others are excluded by the hook.</span>
+            <strong>Grant, trade, revoke</strong>
+            <span>Short-lived access enables swaps and LP actions; a new policy revision invalidates old grants</span>
           </div>
         </div>
       </div>
 
       <div class="issuer-cmd-block">
-        <div class="cmd-block__label">Deploy your stack</div>
-        <pre class="cmd-block__pre"><code><span class="c-dim"># Deploy CNFIssuer + ComplianceHook + ILALRouter + pool</span>
-forge script script/DeployDemo.s.sol \
-  --rpc-url https://sepolia.base.org \
-  --broadcast
+        <div class="cmd-block__label">V2 issuer sandbox · npm next</div>
+        <pre class="cmd-block__pre"><code>npm install -g @ilalv3/cli@next
 
-<span class="c-dim"># Operator queues the updated Merkle root, then activates after timelock</span>
-node dist/index.js oracle propose-root --root &lt;newMerkleRoot&gt;
-node dist/index.js oracle activate-root
+<span class="c-dim"># Encrypted issuer-owned tree; no identity documents enter ILAL</span>
+ilal issuer tree init --issuer "Partner Sandbox" \
+  --schema institutional-kyc-v1 --allow-countries 840,826,756 \
+  --store ./private/issuer.enc.json --store-password-file ./issuer.password
 
-<span class="c-dim"># Bind proofs to this issuer and schema (72h timelock)</span>
-node dist/index.js credential zk-root --wallet &lt;wallet&gt; --expires-at &lt;unix&gt; --issuer &lt;cnfIssuer&gt;
-node dist/index.js oracle propose-domain --issuer-hash &lt;issuerHash&gt; --schema-hash &lt;schemaHash&gt;
-node dist/index.js oracle activate-domain
+ilal issuer tree import --file ./issuer-decisions.csv \
+  --store ./private/issuer.enc.json --store-password-file ./issuer.password
 
-<span class="c-dim"># Set pool policy to require your credential type</span>
-node dist/index.js pool policy set \
-  --pool-id  0xYourPoolId \
-  --issuer   0xYourCNFIssuer</code></pre>
+<span class="c-dim"># Review commitment, publish policy through Safe, export a private witness</span>
+ilal issuer tree root --out ./artifacts/policy.json \
+  --store ./private/issuer.enc.json --store-password-file ./issuer.password
+
+ilal issuer tree export-witness --wallet 0xInstitution \
+  --out ./private/witness.json --store ./private/issuer.enc.json \
+  --store-password-file ./issuer.password
+
+<span class="c-dim"># Institution proves locally, activates a short-lived grant, then trades</span>
+ilal policy proof generate --input ./private/witness.json
+ilal policy grant activate --proof ./artifacts/v2-proof/proof.json \
+  --public ./artifacts/v2-proof/public.json</code></pre>
       </div>
     </div>
   </section>
@@ -771,7 +777,13 @@ ilal --keystore ./wallet.json credential prove \
       <div class="section-head section-head--compact">
         <p class="eyebrow">Public candidate · V2 ZK policy grants</p>
         <h2>Prove private eligibility once.<br/><em>Trade on a cached grant.</em></h2>
-        <p class="section-lead">Base Sepolia PoC only. The proving key uses a development ceremony and the testnet admin remains an EOA.</p>
+        <p class="section-lead">Base Sepolia PoC only. The proving key uses a development ceremony and the testnet admin remains an EOA. The issuer integration kit is available as <code>@ilalv3/cli@next</code>; npm <code>latest</code> remains the isolated v0.3.3 stable demo.</p>
+      </div>
+
+      <div class="proof-verdict">
+        <span>V2 issuer acceptance · 2026-08-09</span>
+        <strong>Import → policy → proof → grant → LP / swap → revoke passed</strong>
+        <span>Distinct admin, institution, market-maker and funded control wallets · separate Base Sepolia sandbox · unaudited</span>
       </div>
 
       <div class="deploy-grid">
