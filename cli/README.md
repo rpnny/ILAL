@@ -84,6 +84,44 @@ This signs and submits one owner proposal; it does not execute the Safe transact
 
 Configured policy management commands can use the same Safe proposal options. Safe proposal handling is for administrative transactions; it is not a swap-session multisig collector.
 
+## V2 issuer integration kit
+
+The issuer kit converts PII-free JSON or CSV decisions into an encrypted,
+deterministic credential tree. Exact KYC tier, country, wallet records, and
+Merkle paths remain in the issuer environment. Only policy commitments are
+published on-chain.
+
+```bash
+ilal issuer tree init \
+  --issuer "Partner Sandbox Issuer" \
+  --schema institutional-kyc-v1 \
+  --allow-countries 840,826,756 \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+
+ilal issuer tree import \
+  --file ./issuer-decisions.csv \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+
+ilal issuer tree root \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+
+ilal issuer tree export-witness \
+  --wallet 0xInstitution \
+  --out ./private/issuer-witness.json \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+```
+
+The encrypted store uses AES-256-GCM with a scrypt-derived key. Password,
+store, policy export, and witness files must be managed as issuer secrets; the
+CLI rejects group-readable password files and writes generated artifacts with
+mode `600`. Provider references are domain-separated and hashed before being
+stored. See the repository's `docs/ISSUER_INTEGRATION.md` for the data schema,
+Safe policy publication, revocation, and sandbox acceptance workflow.
+
 ## ERC-1271 sessions
 
 External `--hook-data` validation distinguishes EOAs from contract wallets. EOAs require canonical 65-byte low-s ECDSA. Contract wallets are validated on-chain with `isValidSignature(sessionDigest, signature)`, so an ERC-1271 signature is not forced into EOA length or recovery rules.

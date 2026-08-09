@@ -467,6 +467,7 @@ export async function policyProofGenerate(opts: {
   zkey?: string;
   vkey?: string;
   outDir?: string;
+  exitAfter?: boolean;
 }) {
   const cfg = withConfig(opts);
   const circuitDir = resolve(opts.circuitDir ?? cfg.circuitDir ?? "circuits/build-v2");
@@ -521,4 +522,8 @@ export async function policyProofGenerate(opts: {
   log.kv("policy hash", publicSignals[7]!);
   log.callout("Grant input ready", "Run `ilal policy grant activate --proof <proof> --public <public>` as the bound wallet", "green");
   log.line();
+  // snarkjs/ffjavascript keeps curve worker threads alive after fullProve and
+  // verify. The CLI command is intentionally process-scoped, so terminate only
+  // when invoked from the executable; imported callers and tests keep control.
+  if (opts.exitAfter) process.exit(0);
 }

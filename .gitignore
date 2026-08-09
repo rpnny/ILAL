@@ -24,6 +24,9 @@ Thumbs.db
 **/.ilal.json
 .ilal.json
 .ilal-issuer-standards.json
+.ilal-issuer-v2*.json
+issuer-store.password
+**/issuer-witness*.json
 
 # JavaScript and TypeScript output
 **/node_modules/
@@ -55,6 +58,7 @@ proving-artifacts/*_js/
 
 # Confidential diligence material
 data-room-private/
+/private/
 
 # Locally generated verification evidence
 artifacts/

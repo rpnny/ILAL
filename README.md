@@ -33,7 +33,9 @@ deployed as a public Base Sepolia PoC candidate. It remains separate from the
 active v1 CLI preset because its proving key uses an unsafe development
 ceremony and its testnet admin is an EOA. See the
 [`v2 deployment manifest`](deployments/base-sepolia/v0.4.0-v2-poc.1.json) and
-[`V2 testnet runbook`](docs/V2_TESTNET_RUNBOOK.md).
+[`V2 testnet runbook`](docs/V2_TESTNET_RUNBOOK.md). Issuers can operate an
+encrypted deterministic credential tree and export wallet-bound private
+witnesses with the [`Issuer Integration Kit`](docs/ISSUER_INTEGRATION.md).
 
 ## How it works
 
@@ -94,7 +96,7 @@ Current verified suites:
 | Suite | Result |
 |---|---:|
 | Foundry | 188 passed, 0 failed, 0 skipped |
-| CLI | 38 passed |
+| CLI | 43 passed |
 | SDK | 18 passed |
 | Circuit oracle | 7 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
@@ -115,6 +117,7 @@ Git history, secret scanning, and dependency SBOM generation.
 | [`deployments/`](deployments) | Versioned deployment manifests and schema |
 | [`releases/`](releases) | Software release manifests |
 | [`docs/data-room/`](docs/data-room) | Threat model, privileged roles, and public diligence material |
+| [`docs/ISSUER_INTEGRATION.md`](docs/ISSUER_INTEGRATION.md) | PII-free JSON/CSV issuer decisions, encrypted trees, witness export, and Safe publication |
 | [`audit/`](audit) | Current audit scope plus explicitly dated historical review material |
 | [`site/`](site) | Static project website |
 

@@ -22,6 +22,14 @@ import { swap } from "./commands/swap.js";
 import { addLiquidity, removeLiquidity } from "./commands/liquidity.js";
 import { issuerAttest, issuerCreate, issuerGet, issuerSetJurisdiction, issuerSetType } from "./commands/issuer.js";
 import {
+  issuerTreeAdd,
+  issuerTreeExportWitness,
+  issuerTreeImport,
+  issuerTreeInit,
+  issuerTreeRevoke,
+  issuerTreeRoot,
+} from "./commands/issuerKit.js";
+import {
   policyDisableV2,
   policyGrantActivate,
   policyGrantRevoke,
@@ -197,6 +205,82 @@ issuer
     await issuerGet(opts).catch(err);
   });
 
+const issuerTree = issuer
+  .command("tree")
+  .description("Operate an encrypted local v2 credential and jurisdiction tree");
+
+issuerTree
+  .command("init")
+  .description("Initialize an encrypted issuer tree and policy profile")
+  .requiredOption("--issuer <name>", "Issuer or trust-domain name")
+  .requiredOption("--schema <name>", "Credential schema name or version")
+  .requiredOption("--allow-countries <codes>", "Comma-separated ISO 3166-1 numeric country codes")
+  .option("--min-kyc-level <level>", "Minimum pool KYC level (1-3)", "2")
+  .option("--max-grant-ttl <seconds>", "Maximum short-lived grant TTL", "86400")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .option("--force", "Replace an existing issuer store", false)
+  .action(async (opts: { issuer: string; schema: string; allowCountries: string; minKycLevel?: string; maxGrantTtl?: string; store?: string; storePasswordFile: string; force?: boolean }) => {
+    await issuerTreeInit(opts).catch(err);
+  });
+
+issuerTree
+  .command("add")
+  .description("Add or update one wallet credential in the encrypted tree")
+  .requiredOption("--wallet <address>", "Credential wallet")
+  .requiredOption("--kyc-level <level>", "Private KYC level (0-3)")
+  .requiredOption("--country <code>", "Private ISO 3166-1 numeric country code")
+  .option("--expires-at <time>", "Unix timestamp or ISO-8601 source expiry")
+  .option("--expires-in-days <days>", "Source credential lifetime", "365")
+  .option("--verification-id <id>", "Provider reference; only its hash is stored")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { wallet: string; kycLevel: string; country: string; expiresAt?: string; expiresInDays?: string; verificationId?: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeAdd(opts).catch(err);
+  });
+
+issuerTree
+  .command("import")
+  .description("Import approved or revoked credentials from JSON or CSV")
+  .requiredOption("--file <path>", "JSON or CSV credential decision file")
+  .option("--default-expires-in-days <days>", "Default lifetime when a row omits expiry", "365")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { file: string; defaultExpiresInDays?: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeImport(opts).catch(err);
+  });
+
+issuerTree
+  .command("revoke")
+  .description("Remove one wallet from the active credential tree")
+  .requiredOption("--wallet <address>", "Credential wallet")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { wallet: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeRevoke(opts).catch(err);
+  });
+
+issuerTree
+  .command("root")
+  .description("Print the current policy commitment and Safe-ready admin command")
+  .option("--out <path>", "Write public policy fields to a mode-600 JSON file")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { out?: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeRoot(opts).catch(err);
+  });
+
+issuerTree
+  .command("export-witness")
+  .description("Export one wallet-bound private v2 circuit input")
+  .requiredOption("--wallet <address>", "Credential wallet")
+  .requiredOption("--out <path>", "Private circuit input JSON output")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { wallet: string; out: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeExportWitness(opts).catch(err);
+  });
+
 // ─── credential ───────────────────────────────────────────────────────────────
 
 const credential = program.command("credential").description("Manage compliance credentials (CNF)");
@@ -362,7 +446,7 @@ policyProofV2
   .option("--vkey <path>", "Explicit verification key path")
   .option("--out-dir <path>", "Output directory for proof.json and public.json", "artifacts/v2-proof")
   .action(async (opts: { input: string; circuitDir?: string; wasm?: string; zkey?: string; vkey?: string; outDir?: string }) => {
-    await policyProofGenerate(opts).catch(err);
+    await policyProofGenerate({ ...opts, exitAfter: true }).catch(err);
   });
 
 grantsV2
