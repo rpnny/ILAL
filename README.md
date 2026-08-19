@@ -15,6 +15,12 @@ to Uniswap v4.
 | Reviewer path | Start here |
 |---|---|
 | Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
+| Live Hook | [`0xb385…4088` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
+| Canonical `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
+| Reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |
+| Deployment evidence | [`candidate-manifest.json`](docs/hookathon/candidate-manifest.json) |
+| One-command test | `make verify` |
+| Before / built during | [Hookathon scope](#hookathon-scope) |
 | Atomic executor | [`contracts/src/netting/InstitutionalBatchRouter.sol`](contracts/src/netting/InstitutionalBatchRouter.sol) |
 | Integration tests | [`contracts/test/InstitutionalNetting.t.sol`](contracts/test/InstitutionalNetting.t.sol) |
 | Stateful invariants | [`contracts/test/InstitutionalNettingInvariant.t.sol`](contracts/test/InstitutionalNettingInvariant.t.sol) |
@@ -155,10 +161,14 @@ deploys two 6-decimal mock stablecoins, MockEAS, CNFIssuer, PolicyRegistry,
 BatchRouter and a CREATE2-mined `0x88` Hook, onboards two distinct institutions,
 and seeds liquidity through the standard v4 PositionManager.
 
-The Hookathon deployment is currently **candidate / pending broadcast**. It
-does not replace the active v0.3.3 Base Sepolia demo. No transaction hash is
-claimed until the separate deployer, institution and LP testnet signers are
-provided and the evidence checklist is completed.
+The Hookathon deployment is a separate, source-verified **candidate** and does
+not replace the active v0.3.3 Base Sepolia demo. The canonical `100/70` batch
+matched 140,000,000 gross raw units and sent only 30,000,000 token0 units to
+the AMM. The reverse `60/90` batch sent only 30,000,000 token1 units. All seven
+first-party contracts are Sourcify creation/runtime `exact_match`; addresses,
+transactions, decoded events, pool states, CREATE2 salt and bytecode hashes are
+recorded in the
+[`candidate manifest`](docs/hookathon/candidate-manifest.json).
 
 ## Supporting infrastructure
 

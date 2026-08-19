@@ -122,7 +122,7 @@ export SAFE_ADMIN=0x...
 export SOLVER=0x...
 
 forge script script/DeployHookathonNetting.s.sol:DeployHookathonNetting \
-  --rpc-url https://sepolia.base.org --broadcast -vvvv
+  --rpc-url https://base-sepolia-rpc.publicnode.com --broadcast -vv
 ```
 
 Pinned public infrastructure:
@@ -152,8 +152,9 @@ separate Hookathon candidate only after broadcast and verification.
 - Reverse-direction evidence from a fresh nonce pair.
 - Source verification links and status.
 
-The pending evidence template is
-[`docs/hookathon/candidate-manifest.template.json`](hookathon/candidate-manifest.template.json).
+The completed Base Sepolia evidence is
+[`docs/hookathon/candidate-manifest.json`](hookathon/candidate-manifest.json).
+The adjacent template remains available for later candidate deployments.
 
 ## Verification
 

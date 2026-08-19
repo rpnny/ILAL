@@ -66,7 +66,7 @@ The Hookathon candidate uses the dedicated Base Sepolia script:
 
 ```bash
 forge script script/DeployHookathonNetting.s.sol:DeployHookathonNetting \
-  --rpc-url https://sepolia.base.org --broadcast -vvvv
+  --rpc-url https://base-sepolia-rpc.publicnode.com --broadcast -vv
 ```
 
 It uses the official PoolManager/PositionManager/Permit2 stack, mines the
