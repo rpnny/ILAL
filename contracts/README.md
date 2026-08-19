@@ -7,8 +7,8 @@ Solidity smart contracts for the ILAL Protocol — Uniswap v4 compliance hook.
 | Contract | Description |
 |----------|-------------|
 | `netting/InstitutionalNettingHook.sol` | Hookathon core: verifies signed v1-CNF orders, nets stablecoin raw units 1:1 with `beforeSwap` deltas, and permits only residual flow to reach the AMM. Required flags: `0x0088`. |
-| `netting/InstitutionalBatchRouter.sol` | Permissionless atomic batch executor. Opens one PoolManager unlock, settles every signer directly, enforces total output, and closes only after Hook accounting cancels. |
-| `netting/NettingTypes.sol` | Shared EIP-712 order, batch header, preview and ordered commitment logic. |
+| `netting/InstitutionalBatchRouter.sol` | Permissionless atomic batch executor. Canonicalizes order/signature pairs by ascending order hash, opens one PoolManager unlock, settles every signer directly, enforces total output, and closes only after Hook accounting cancels. |
+| `netting/NettingTypes.sol` | Shared EIP-712 order, batch header, canonical preview and strictly ordered commitment logic. |
 | `ILALRouter.sol` | Executes bounded swaps and liquidity changes through the Uniswap v4 unlock/settlement flow and charges the immutable protocol fee on actual swap input. |
 | `CNFIssuer.sol` | Soulbound ERC-721 compliance credential. EAS credentials track their source attestation; ZK credentials are bound to the active Merkle root and the hardened seven-signal circuit revision. |
 | `ComplianceHook.sol` | Uniswap v4 `IHooks` implementation. Gates `beforeSwap`, `beforeAddLiquidity`, `beforeRemoveLiquidity` behind EIP-712 session tokens. Supports EOA (ECDSA) and smart wallets (ERC-1271). Nonce bitmap prevents session replay. |
@@ -40,16 +40,18 @@ forge test --summary
 │ ILALRouterTest     │ 33     │ 0      │ 0       │
 │ PolicyGrantV2      │ 15     │ 0      │ 0       │
 │ PolicyRegistryTest │ 24     │ 0      │ 0       │
-│ Netting integration│ 22     │ 0      │ 0       │
-│ Netting invariants │ 5      │ 0      │ 0       │
+│ Netting integration│ 24     │ 0      │ 0       │
+│ Netting invariants │ 6      │ 0      │ 0       │
 ╰────────────────────┴────────┴────────┴─────────╯
 ```
 
-Current total: `225 passed, 0 failed, 0 skipped`.
+Current total: `228 passed, 0 failed, 0 skipped`.
 
-Each netting invariant runs 256 handler calls and covers cumulative accounting,
-closed batch context, replay protection, zero Hook/Router inventory, and Token
-conservation. The maximum 16-order integration case is also gas-tested.
+Each netting invariant runs 256 handler calls over 3–16 order batches and covers
+cumulative accounting, one-sided residuals, closed batch context, replay
+protection, zero Hook/Router inventory, and Token conservation. The integration
+suite also compares `100/70` against a vanilla 30-token0 residual pool state;
+the maximum 16-order case is gas-tested.
 
 The checked-in v1 verifier is generated with the explicitly unsafe development
 beacon for deterministic repository testing only. Before any deployment, run a

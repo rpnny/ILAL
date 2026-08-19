@@ -34,17 +34,23 @@ function signedFile(value, chainId = 84532) {
 }
 
 test("100/70 preview exposes 140 gross matched and 30 token0 residual", () => {
-  const preview = previewNettingOrders([
-    order("0x3333333333333333333333333333333333333333", true, 100_000_000, 1),
-    order("0x4444444444444444444444444444444444444444", false, 70_000_000, 2),
-  ]);
+  const zeroForOne = order("0x3333333333333333333333333333333333333333", true, 100_000_000, 1);
+  const oneForZero = order("0x4444444444444444444444444444444444444444", false, 70_000_000, 2);
+  const preview = previewNettingOrders([zeroForOne, oneForZero]);
+  const reversed = previewNettingOrders([oneForZero, zeroForOne]);
   assert.equal(preview.total0, 100_000_000n);
   assert.equal(preview.total1, 70_000_000n);
   assert.equal(preview.matchedEachSide, 70_000_000n);
   assert.equal(preview.exposureReduction, 140_000_000n);
   assert.equal(preview.residual0, 30_000_000n);
   assert.equal(preview.residual1, 0n);
+  assert.equal(reversed.batchId, preview.batchId);
   assert.equal(preview.batchId, "0x3279cb3136ff7a9bd6fdb9304478401b2e52b3efe9e1a78c9b8eb1464264e025");
+});
+
+test("duplicate order hashes are rejected instead of receiving an ordering tie-break", () => {
+  const duplicate = order("0x3333333333333333333333333333333333333333", true, 100, 1);
+  assert.throws(() => previewNettingOrders([duplicate, duplicate]), /Duplicate order hash/);
 });
 
 test("offline batch preview reads signed JSON without any private key", () => {
@@ -64,6 +70,7 @@ test("offline batch preview reads signed JSON without any private key", () => {
     assert.match(output, /submitted gross:\s+170/);
     assert.match(output, /internally matched gross:\s+140/);
     assert.match(output, /residual token0:\s+30/);
+    assert.match(output, /ordering:\s+orderHash ascending/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

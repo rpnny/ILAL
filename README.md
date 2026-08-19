@@ -28,6 +28,8 @@ signed + currently eligible orders
                 │
                 ▼
       InstitutionalBatchRouter
+       ├─ sort orderHash ascending
+       └─ keep signatures paired
                 │ one PoolManager.unlock
                 ▼
       InstitutionalNettingHook
@@ -43,13 +45,26 @@ signed + currently eligible orders
 The Hook uses v4 `beforeSwap` return deltas (`0x88` flags). Opposing Hook
 deltas cancel inside one unlock; the Hook and Router finish with no Token
 inventory. Any bad signature, expired or reused nonce, invalid credential,
-policy change, peg violation, insufficient balance, partial AMM fill, or output
-slippage failure reverts the whole batch.
+policy change, non-canonical or duplicate order hash, opening peg violation,
+insufficient balance, partial AMM fill, or output slippage failure reverts the
+whole batch.
+
+The permissionless solver cannot choose match priority. The Router
+canonicalizes order/signature pairs by strict ascending `orderHash`; the Hook
+independently verifies that order before allocating matched input. Reordering
+the same signed set therefore produces the same `batchId`, per-user allocation,
+and pool result. Duplicate hashes are rejected rather than tie-broken.
 
 This MVP supports one equal-decimal ERC-20 stablecoin pool, exact-input orders,
 raw-unit 1:1 matching, zero netting fee, 2–16 orders, and a ±100 tick opening
 guard. `minAmountOut` protects total matched-plus-AMM output;
 `maxAmmInput` caps each order's residual exposure.
+
+The tick bound is checked exactly once in `openBatch`, before the first order.
+It is a **batch-start depeg guard**, not an oracle and not a continuous
+in-batch price constraint. Residual execution may move the pool outside the
+range; every user's continuing safety boundary is their signed
+`minAmountOut` and `maxAmmInput`.
 
 ## Hookathon scope
 
@@ -67,6 +82,7 @@ mechanism.
 - Stablecoin internal netting through `beforeSwap` return deltas.
 - Residual-only routing to Uniswap v4.
 - Permissionless solver execution with outputs sent directly to signers.
+- Solver-independent allocation through Hook-enforced ascending order hashes.
 - EIP-712/low-s ECDSA/ERC-1271 validation, nonce cancellation and replay protection.
 - Per-order total-output and AMM-exposure bounds.
 - Real v4 integration, fuzz, maximum-16-order gas, and stateful invariant tests.
@@ -116,16 +132,19 @@ make verify
 
 | Suite | Current result |
 |---|---:|
-| Foundry | 225 passed, 0 failed, 0 skipped |
-| Netting stateful invariants | 5 properties × 256 calls, 0 reverts |
-| CLI | 52 passed |
+| Foundry | 228 passed, 0 failed, 0 skipped |
+| Netting stateful invariants | 6 properties × 256 calls, 0 reverts |
+| CLI | 53 passed |
 | SDK | 18 passed |
 | Circuit oracle | 8 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
 
-The 16-order integration case currently uses about 1.42M gas in the Foundry
-test environment. `make verify` also checks release/deployment consistency,
-package contents, Git history, secrets, and dependency SBOMs.
+The integration suite proves that the final pool state and manager balance
+changes for the `100/70` batch exactly equal a vanilla 30-token0 residual swap
+from the same initialized state. The 16-order case currently uses about 1.53M
+gas in the Foundry test environment. `make verify` also checks release/
+deployment consistency, package contents, Git history, secrets, and dependency
+SBOMs.
 
 ## Deployment status
 
@@ -156,7 +175,8 @@ provided and the evidence checklist is completed.
 ## Security and scope
 
 This is unaudited testnet software. Do not use it with production funds or
-identity data. The tick guard is a narrow depeg circuit breaker, not an oracle.
+identity data. The tick guard is a batch-start depeg circuit breaker, not an
+oracle or a continuous price bound.
 The Hook is immutable and a serious defect requires a new Hook and pool; see
 [`docs/INCIDENT_AND_MIGRATION_RUNBOOK.md`](docs/INCIDENT_AND_MIGRATION_RUNBOOK.md).
 

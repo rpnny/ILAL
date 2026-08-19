@@ -29,7 +29,7 @@ npm test
 ## Atomic netting (Hookathon candidate)
 
 Institutions sign exact-input orders locally; the JSON contains no private key.
-The solver previews the ordered batch commitment and submits it permissionlessly:
+The solver previews the canonical batch commitment and submits it permissionlessly:
 
 ```bash
 ilal --keystore institution-a.json --password-file a.password \
@@ -46,8 +46,10 @@ ilal --keystore institution-a.json --password-file a.password \
 ```
 
 `preview` prints submitted gross, matched gross, residuals, exposure reduction
-and `batchId`. `execute` verifies the same preview on-chain before broadcast and
-prints decoded Router settlement events and the transaction hash. See
+and `batchId`. Input file order is irrelevant: the CLI keeps each signature with
+its order and sorts strict ascending `orderHash`, matching the Router and Hook.
+Duplicate hashes are rejected. `execute` verifies the same preview on-chain
+before broadcast and prints decoded Router settlement events and the transaction hash. See
 [`../docs/HOOKATHON_NETTING.md`](../docs/HOOKATHON_NETTING.md).
 
 ## Signers

@@ -177,11 +177,28 @@ function orderHash(order: NettingOrder): Hex {
   ));
 }
 
+function compareOrderHashes(left: NettingOrder, right: NettingOrder): number {
+  const leftHash = orderHash(left).toLowerCase();
+  const rightHash = orderHash(right).toLowerCase();
+  return leftHash < rightHash ? -1 : leftHash > rightHash ? 1 : 0;
+}
+
+function canonicalOrders(orders: NettingOrder[]): NettingOrder[] {
+  const ordered = [...orders].sort(compareOrderHashes);
+  for (let index = 1; index < ordered.length; index += 1) {
+    if (orderHash(ordered[index - 1]!) === orderHash(ordered[index]!)) {
+      throw new Error(`Duplicate order hash at canonical index ${index}.`);
+    }
+  }
+  return ordered;
+}
+
 export function previewNettingOrders(orders: NettingOrder[]): NettingPreview {
   let total0 = 0n;
   let total1 = 0n;
   let batchId = ZERO_HASH;
-  for (const order of orders) {
+  const ordered = canonicalOrders(orders);
+  for (const order of ordered) {
     if (order.zeroForOne) total0 += order.amountIn;
     else total1 += order.amountIn;
     batchId = keccak256(concat([batchId, orderHash(order)]));
@@ -248,6 +265,12 @@ function loadBatch(paths: string[]): { files: SignedOrderFile[]; orders: Netting
       die("All orders in a batch must use the same Hook and chain domain.");
     }
   }
+  parsed.sort((left, right) => compareOrderHashes(left.order, right.order));
+  for (let index = 1; index < parsed.length; index += 1) {
+    if (orderHash(parsed[index - 1]!.order) === orderHash(parsed[index]!.order)) {
+      die(`Duplicate order hash at canonical index ${index}.`);
+    }
+  }
   return {
     files: parsed.map(item => item.file),
     orders: parsed.map(item => item.order),
@@ -256,6 +279,7 @@ function loadBatch(paths: string[]): { files: SignedOrderFile[]; orders: Netting
 }
 
 function printPreview(preview: NettingPreview): void {
+  console.log("ordering:                 orderHash ascending");
   console.log(`submitted gross:          ${(preview.total0 + preview.total1).toString()}`);
   console.log(`internally matched gross: ${preview.exposureReduction.toString()}`);
   console.log(`matched each side:        ${preview.matchedEachSide.toString()}`);

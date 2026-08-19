@@ -7,6 +7,7 @@ import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {PoolManager} from "v4-core/src/PoolManager.sol";
 import {PoolModifyLiquidityTest} from "v4-core/src/test/PoolModifyLiquidityTest.sol";
+import {PoolSwapTest} from "v4-core/src/test/PoolSwapTest.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
 import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
 import {Currency} from "v4-core/src/types/Currency.sol";
@@ -49,6 +50,13 @@ contract InstitutionalNettingTest is Test {
     bytes32 internal poolId;
     address internal alice;
     address internal bob;
+
+    struct VanillaPool {
+        IPoolManager manager;
+        PoolSwapTest swapRouter;
+        PoolKey key;
+        PoolId id;
+    }
 
     function setUp() public {
         alice = vm.addr(ALICE_KEY);
@@ -138,6 +146,36 @@ contract InstitutionalNettingTest is Test {
         assertEq(token1.balanceOf(address(hook)), 0);
     }
 
+    function test_100By70_poolStateEqualsVanilla30ResidualSwap() public {
+        VanillaPool memory vanilla = _deployVanillaPool();
+        uint256[4] memory balancesBefore = [
+            token0.balanceOf(address(manager)),
+            token1.balanceOf(address(manager)),
+            token0.balanceOf(address(vanilla.manager)),
+            token1.balanceOf(address(vanilla.manager))
+        ];
+
+        (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70();
+        batchRouter.executeBatch(key, orders, signatures);
+        vanilla.swapRouter
+            .swap(
+                vanilla.key,
+                SwapParams({zeroForOne: true, amountSpecified: -int256(30 * UNIT), sqrtPriceLimitX96: 4295128740}),
+                PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+                ""
+            );
+
+        _assertPoolStatesEqual(manager, PoolId.wrap(poolId), vanilla.manager, vanilla.id);
+        assertEq(
+            int256(token0.balanceOf(address(manager))) - int256(balancesBefore[0]),
+            int256(token0.balanceOf(address(vanilla.manager))) - int256(balancesBefore[2])
+        );
+        assertEq(
+            int256(token1.balanceOf(address(manager))) - int256(balancesBefore[1]),
+            int256(token1.balanceOf(address(vanilla.manager))) - int256(balancesBefore[3])
+        );
+    }
+
     function test_fullyBalancedBatch_doesNotMoveTick() public {
         NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](2);
         orders[0] = _order(alice, true, 70 * UNIT, 70 * UNIT, 0, bytes32(uint256(3)));
@@ -149,15 +187,67 @@ contract InstitutionalNettingTest is Test {
         assertEq(afterTick, beforeTick);
     }
 
-    function test_multipleOrders_allocateMatchInArrayOrder() public {
+    function test_multipleOrders_useCanonicalOrderIndependentOfSolverPermutation() public {
+        address carol = vm.addr(CAROL_KEY);
+        issuer.setValid(carol, true);
+        _fundAndApprove(carol, token0, 1_000 * UNIT);
+        _fundAndApprove(carol, token1, 1_000 * UNIT);
         NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](3);
-        orders[0] = _order(alice, true, 40 * UNIT, 40 * UNIT, 0, bytes32(uint256(5)));
-        orders[1] = _order(bob, false, 70 * UNIT, 69 * UNIT, 30 * UNIT, bytes32(uint256(6)));
-        orders[2] = _order(alice, true, 60 * UNIT, 59 * UNIT, 30 * UNIT, bytes32(uint256(7)));
+        orders[0] = _order(alice, true, 40 * UNIT, 0, 40 * UNIT, bytes32(uint256(5)));
+        orders[1] = _order(bob, false, 70 * UNIT, 0, 70 * UNIT, bytes32(uint256(6)));
+        orders[2] = _order(carol, true, 60 * UNIT, 0, 60 * UNIT, bytes32(uint256(7)));
+        bytes[] memory signatures = _signOrders(orders);
         NettingTypes.BatchHeader memory preview = batchRouter.previewBatch(orders);
         assertEq(preview.matchedEachSide, 70 * UNIT);
         assertEq(preview.residual0, 30 * UNIT);
-        batchRouter.executeBatch(key, orders, _signOrders(orders));
+
+        uint256 snapshot = vm.snapshotState();
+        batchRouter.executeBatch(key, orders, signatures);
+        uint256 alice0After = token0.balanceOf(alice);
+        uint256 alice1After = token1.balanceOf(alice);
+        uint256 bob0After = token0.balanceOf(bob);
+        uint256 bob1After = token1.balanceOf(bob);
+        uint256 carol0After = token0.balanceOf(carol);
+        uint256 carol1After = token1.balanceOf(carol);
+        (uint160 sqrtPriceAfter, int24 tickAfter,,) = manager.getSlot0(PoolId.wrap(poolId));
+
+        assertTrue(vm.revertToState(snapshot));
+        _reverseOrderPairs(orders, signatures);
+        assertEq(batchRouter.previewBatch(orders).batchId, preview.batchId);
+        batchRouter.executeBatch(key, orders, signatures);
+        assertEq(token0.balanceOf(alice), alice0After);
+        assertEq(token1.balanceOf(alice), alice1After);
+        assertEq(token0.balanceOf(bob), bob0After);
+        assertEq(token1.balanceOf(bob), bob1After);
+        assertEq(token0.balanceOf(carol), carol0After);
+        assertEq(token1.balanceOf(carol), carol1After);
+        (uint160 permutedSqrtPrice, int24 permutedTick,,) = manager.getSlot0(PoolId.wrap(poolId));
+        assertEq(permutedSqrtPrice, sqrtPriceAfter);
+        assertEq(permutedTick, tickAfter);
+    }
+
+    function test_hookRejectsNonCanonicalOrderingAndDuplicateHashes() public {
+        (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70();
+        if (hook.hashOrder(orders[0]) < hook.hashOrder(orders[1])) {
+            _reverseOrderPairs(orders, signatures);
+        }
+        NettingTypes.BatchHeader memory header = batchRouter.previewBatch(orders);
+
+        // InstitutionalBatchRouter stores its private execution flag in slot zero.
+        vm.store(address(batchRouter), bytes32(0), bytes32(uint256(1)));
+        vm.prank(address(batchRouter));
+        vm.expectPartialRevert(NettingTypes.OrdersNotStrictlySorted.selector);
+        hook.openBatch(header, orders, signatures);
+        vm.store(address(batchRouter), bytes32(0), bytes32(0));
+
+        NettingTypes.NettingOrder[] memory duplicates = new NettingTypes.NettingOrder[](2);
+        duplicates[0] = orders[0];
+        duplicates[1] = orders[0];
+        bytes[] memory duplicateSignatures = new bytes[](2);
+        duplicateSignatures[0] = signatures[0];
+        duplicateSignatures[1] = signatures[0];
+        vm.expectPartialRevert(NettingTypes.OrdersNotStrictlySorted.selector);
+        batchRouter.executeBatch(key, duplicates, duplicateSignatures);
     }
 
     function test_revertsWhenMaxAmmInputExceeded_andRollsBackNonces() public {
@@ -362,6 +452,7 @@ contract InstitutionalNettingTest is Test {
         NettingTypes.BatchHeader memory header = batchRouter.previewBatch(orders);
         assertEq(header.matchedEachSide * 2 + header.residual0 + header.residual1, uint256(amount0) + uint256(amount1));
         assertEq(header.matchedEachSide, amount0 < amount1 ? amount0 : amount1);
+        assertTrue(header.residual0 == 0 || header.residual1 == 0);
     }
 
     function test_previewCommitment_matchesCliVector() public view {
@@ -434,7 +525,17 @@ contract InstitutionalNettingTest is Test {
     function _signOrders(NettingTypes.NettingOrder[] memory orders) internal view returns (bytes[] memory signatures) {
         signatures = new bytes[](orders.length);
         for (uint256 i; i < orders.length; ++i) {
-            signatures[i] = _sign(orders[i], orders[i].user == alice ? ALICE_KEY : BOB_KEY);
+            uint256 privateKey = orders[i].user == alice ? ALICE_KEY : orders[i].user == bob ? BOB_KEY : CAROL_KEY;
+            signatures[i] = _sign(orders[i], privateKey);
+        }
+    }
+
+    function _reverseOrderPairs(NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) internal pure {
+        uint256 length = orders.length;
+        for (uint256 i; i < length / 2; ++i) {
+            uint256 opposite = length - 1 - i;
+            (orders[i], orders[opposite]) = (orders[opposite], orders[i]);
+            (signatures[i], signatures[opposite]) = (signatures[opposite], signatures[i]);
         }
     }
 
@@ -448,6 +549,51 @@ contract InstitutionalNettingTest is Test {
         token.mint(user, amount);
         vm.prank(user);
         token.approve(address(batchRouter), type(uint256).max);
+    }
+
+    function _deployVanillaPool() internal returns (VanillaPool memory vanilla) {
+        vanilla.manager = new PoolManager(address(this));
+        PoolModifyLiquidityTest vanillaLiquidityRouter = new PoolModifyLiquidityTest(vanilla.manager);
+        vanilla.swapRouter = new PoolSwapTest(vanilla.manager);
+        vanilla.key = PoolKey({
+            currency0: Currency.wrap(address(token0)),
+            currency1: Currency.wrap(address(token1)),
+            fee: FEE,
+            tickSpacing: TICK_SPACING,
+            hooks: IHooks(address(0))
+        });
+        vanilla.id = vanilla.key.toId();
+        vanilla.manager.initialize(vanilla.key, SQRT_PRICE_1_1);
+        token0.approve(address(vanillaLiquidityRouter), type(uint256).max);
+        token1.approve(address(vanillaLiquidityRouter), type(uint256).max);
+        vanillaLiquidityRouter.modifyLiquidity(
+            vanilla.key,
+            ModifyLiquidityParams({tickLower: -1000, tickUpper: 1000, liquidityDelta: 1e20, salt: bytes32(0)}),
+            ""
+        );
+        token0.approve(address(vanilla.swapRouter), type(uint256).max);
+        token1.approve(address(vanilla.swapRouter), type(uint256).max);
+    }
+
+    function _assertPoolStatesEqual(
+        IPoolManager nettingManager,
+        PoolId nettingId,
+        IPoolManager vanillaManager,
+        PoolId vanillaId
+    ) internal view {
+        (uint160 nettingSqrtPrice, int24 nettingTick, uint24 nettingProtocolFee, uint24 nettingLpFee) =
+            nettingManager.getSlot0(nettingId);
+        (uint160 vanillaSqrtPrice, int24 vanillaTick, uint24 vanillaProtocolFee, uint24 vanillaLpFee) =
+            vanillaManager.getSlot0(vanillaId);
+        assertEq(nettingSqrtPrice, vanillaSqrtPrice);
+        assertEq(nettingTick, vanillaTick);
+        assertEq(nettingProtocolFee, vanillaProtocolFee);
+        assertEq(nettingLpFee, vanillaLpFee);
+        assertEq(nettingManager.getLiquidity(nettingId), vanillaManager.getLiquidity(vanillaId));
+        (uint256 nettingFeeGrowth0, uint256 nettingFeeGrowth1) = nettingManager.getFeeGrowthGlobals(nettingId);
+        (uint256 vanillaFeeGrowth0, uint256 vanillaFeeGrowth1) = vanillaManager.getFeeGrowthGlobals(vanillaId);
+        assertEq(nettingFeeGrowth0, vanillaFeeGrowth0);
+        assertEq(nettingFeeGrowth1, vanillaFeeGrowth1);
     }
 
     function _swapParams() internal pure returns (SwapParams memory) {

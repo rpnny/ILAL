@@ -23,6 +23,20 @@ token0 and negative token1 delta; the opposite direction produces the exact
 inverse. `closeBatch` checks both matched totals, the ordered order-hash
 commitment and every observed amount before the PoolManager unlock can finish.
 
+## Deterministic allocation
+
+The solver does not control which order receives internal 1:1 matching first.
+Before opening the batch, the Router sorts each order together with its
+signature by strict ascending EIP-712 `orderHash`. `previewBatch` applies the
+same canonicalization, so every permutation of the same signed set produces
+one `batchId`. The Hook independently requires the received hashes to be
+strictly ascending before it consumes nonces or allocates matching. Equal
+hashes are rejected; there is no solver-selected tie-break.
+
+Because the nonce is part of `orderHash`, a signer can influence its own hash
+before signing. The property guaranteed here is solver-independence for a
+fixed signed order set, not a time-priority auction or randomness guarantee.
+
 ## Signed order
 
 The EIP-712 domain is `ILAL Institutional Netting`, version `1`, current chain
@@ -59,6 +73,12 @@ The BatchRouter is permissionless. It cannot replace signed fields, it never
 becomes the output recipient, and it finishes without Token inventory. The
 Hook also has no long-term custody, cross-transaction queue or inventory.
 
+The ±100 check happens once, in `openBatch`, before any residual swap. It is a
+batch-start depeg guard only. It does not query an oracle and it is not checked
+again after each order, so residual execution can move the ending tick outside
+that range. Signed `minAmountOut` and `maxAmmInput` remain the per-user price
+and AMM-exposure bounds for the entire batch.
+
 ## CLI demo
 
 Build the CLI and configure `.ilal.json` with the candidate Hook, BatchRouter,
@@ -81,7 +101,9 @@ node cli/dist/index.js --keystore institution-b.json --password-file b.password 
 ```
 
 Order JSON files contain the public order, domain and signature only. They do
-not contain a private key or keystore password.
+not contain a private key or keystore password. Preview and execution
+canonicalize files by ascending `orderHash`, print that ordering rule, and keep
+each signature paired with its order.
 
 ## Base Sepolia deployment
 
@@ -140,6 +162,9 @@ make verify
 ```
 
 The representative integration tests execute against the real v4 PoolManager,
-not a swap mock. Stateful invariants repeatedly assert the gross/matched/
-residual identity, closed batch context, one-use nonces, zero Hook/Router
-inventory and full Token conservation.
+not a swap mock. A shadow vanilla pool starts with the same price, fee, tick
+spacing and liquidity; after the `100/70` batch its `sqrtPriceX96`, tick,
+liquidity, fee growth and manager balance changes must exactly equal one direct
+30-token0 residual swap. Stateful invariants generate 3–16 orders and repeatedly
+assert the gross/matched/residual identity, one-sided residual, closed batch
+context, one-use nonces, zero Hook/Router inventory and full Token conservation.

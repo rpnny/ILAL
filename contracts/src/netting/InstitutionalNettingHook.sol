@@ -217,9 +217,13 @@ contract InstitutionalNettingHook is IHooks {
             revert InvalidBatchSize();
         }
 
+        // This is deliberately a batch-start depeg guard, not an oracle or a
+        // continuously enforced post-swap price bound.
         (, int24 tick,,) = StateLibrary.getSlot0(poolManager, PoolId.wrap(supportedPoolId));
         if (tick > maxAbsTick || tick < -maxAbsTick) revert PegTickExceeded(tick, maxAbsTick);
 
+        // The immutable Router canonicalizes order/signature pairs. Requiring the
+        // strict order again here makes allocation a Hook-enforced protocol rule.
         NettingTypes.NettingOrder[] memory orderCopies = orders;
         NettingTypes.BatchHeader memory expected = NettingTypes.preview(orderCopies);
         if (!_headersEqual(header, expected)) revert InvalidBatchHeader();

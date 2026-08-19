@@ -77,6 +77,7 @@ contract InstitutionalBatchRouter is IUnlockCallback {
         returns (NettingTypes.BatchHeader memory)
     {
         NettingTypes.NettingOrder[] memory copies = orders;
+        _sortOrders(copies);
         return NettingTypes.preview(copies);
     }
 
@@ -96,11 +97,15 @@ contract InstitutionalBatchRouter is IUnlockCallback {
                 || hook.supportedPoolId() != poolId
         ) revert InvalidPool();
 
-        NettingTypes.BatchHeader memory header = previewBatch(orders);
+        (NettingTypes.NettingOrder[] memory ordered, bytes[] memory orderedSignatures) =
+            _canonicalize(orders, signatures);
+        NettingTypes.BatchHeader memory header = NettingTypes.preview(ordered);
         _executing = true;
         poolManager.unlock(
             abi.encode(
-                CallbackData({executor: msg.sender, key: key, header: header, orders: orders, signatures: signatures})
+                CallbackData({
+                    executor: msg.sender, key: key, header: header, orders: ordered, signatures: orderedSignatures
+                })
             )
         );
         _executing = false;
@@ -192,5 +197,42 @@ contract InstitutionalBatchRouter is IUnlockCallback {
     function _safeTransferFrom(address token, address from, address to, uint256 amount) internal {
         (bool success, bytes memory result) = token.call(abi.encodeCall(IERC20Minimal.transferFrom, (from, to, amount)));
         if (!success || (result.length != 0 && !abi.decode(result, (bool)))) revert ERC20TransferFailed();
+    }
+
+    function _canonicalize(NettingTypes.NettingOrder[] calldata orders, bytes[] calldata signatures)
+        internal
+        pure
+        returns (NettingTypes.NettingOrder[] memory ordered, bytes[] memory orderedSignatures)
+    {
+        ordered = orders;
+        orderedSignatures = signatures;
+        uint256 length = ordered.length;
+        for (uint256 i = 1; i < length; ++i) {
+            NettingTypes.NettingOrder memory order = ordered[i];
+            bytes memory signature = orderedSignatures[i];
+            bytes32 orderHash = NettingTypes.hash(order);
+            uint256 j = i;
+            while (j != 0 && orderHash < NettingTypes.hash(ordered[j - 1])) {
+                ordered[j] = ordered[j - 1];
+                orderedSignatures[j] = orderedSignatures[j - 1];
+                --j;
+            }
+            ordered[j] = order;
+            orderedSignatures[j] = signature;
+        }
+    }
+
+    function _sortOrders(NettingTypes.NettingOrder[] memory orders) internal pure {
+        uint256 length = orders.length;
+        for (uint256 i = 1; i < length; ++i) {
+            NettingTypes.NettingOrder memory order = orders[i];
+            bytes32 orderHash = NettingTypes.hash(order);
+            uint256 j = i;
+            while (j != 0 && orderHash < NettingTypes.hash(orders[j - 1])) {
+                orders[j] = orders[j - 1];
+                --j;
+            }
+            orders[j] = order;
+        }
     }
 }

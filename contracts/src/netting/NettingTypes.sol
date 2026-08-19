@@ -3,6 +3,8 @@ pragma solidity ^0.8.24;
 
 /// @notice Shared signed-order and batch summary types for institutional netting.
 library NettingTypes {
+    error OrdersNotStrictlySorted(uint256 index, bytes32 previousHash, bytes32 currentHash);
+
     bytes32 internal constant ORDER_TYPEHASH = keccak256(
         "NettingOrder(address user,bytes32 poolId,bool zeroForOne,uint128 amountIn,uint128 minAmountOut,uint128 maxAmmInput,uint64 deadline,bytes32 nonce)"
     );
@@ -48,11 +50,17 @@ library NettingTypes {
     function preview(NettingOrder[] memory orders) internal pure returns (BatchHeader memory header) {
         uint256 length = orders.length;
         bytes32 commitment;
+        bytes32 previousHash;
         for (uint256 i; i < length; ++i) {
             NettingOrder memory order = orders[i];
+            bytes32 orderHash = hash(order);
+            if (i != 0 && orderHash <= previousHash) {
+                revert OrdersNotStrictlySorted(i, previousHash, orderHash);
+            }
             if (order.zeroForOne) header.total0 += order.amountIn;
             else header.total1 += order.amountIn;
-            commitment = keccak256(abi.encodePacked(commitment, hash(order)));
+            commitment = keccak256(abi.encodePacked(commitment, orderHash));
+            previousHash = orderHash;
         }
 
         header.batchId = commitment;

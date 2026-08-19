@@ -37,6 +37,8 @@ contract InstitutionalNettingHandler is Test {
     uint256 public submittedGross;
     uint256 public matchedGross;
     uint256 public residualGross;
+    uint256 public lastResidual0;
+    uint256 public lastResidual1;
     bytes32 public lastAliceNonce;
     bytes32 public lastBobNonce;
 
@@ -48,44 +50,47 @@ contract InstitutionalNettingHandler is Test {
         bob = vm.addr(BOB_KEY);
     }
 
-    function execute(uint64 rawAmount0, uint64 rawAmount1) external {
-        uint256 amount0 = bound(uint256(rawAmount0), 1, MAX_ORDER_AMOUNT);
-        uint256 amount1 = bound(uint256(rawAmount1), 1, MAX_ORDER_AMOUNT);
+    function execute(uint64 rawAmount0, uint64 rawAmount1, uint8 rawOrderCount) external {
+        uint256 orderCount = bound(uint256(rawOrderCount), 3, 16);
         uint256 sequence = ++calls;
-        lastAliceNonce = bytes32(sequence);
-        lastBobNonce = bytes32(sequence | (uint256(1) << 255));
-
-        NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](2);
-        orders[0] = NettingTypes.NettingOrder({
-            user: alice,
-            poolId: hook.supportedPoolId(),
-            zeroForOne: true,
-            amountIn: uint128(amount0),
-            minAmountOut: 0,
-            maxAmmInput: uint128(amount0),
-            deadline: type(uint64).max,
-            nonce: lastAliceNonce
-        });
-        orders[1] = NettingTypes.NettingOrder({
-            user: bob,
-            poolId: hook.supportedPoolId(),
-            zeroForOne: false,
-            amountIn: uint128(amount1),
-            minAmountOut: 0,
-            maxAmmInput: uint128(amount1),
-            deadline: type(uint64).max,
-            nonce: lastBobNonce
-        });
-        bytes[] memory signatures = new bytes[](2);
-        signatures[0] = _sign(orders[0], ALICE_KEY);
-        signatures[1] = _sign(orders[1], BOB_KEY);
+        uint256 total0;
+        uint256 total1;
+        NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](orderCount);
+        bytes[] memory signatures = new bytes[](orderCount);
+        for (uint256 i; i < orderCount; ++i) {
+            bool zeroForOne = i % 2 == 0;
+            address user = zeroForOne ? alice : bob;
+            uint256 rawAmount = zeroForOne ? rawAmount0 : rawAmount1;
+            uint256 amount = uint256(keccak256(abi.encode(rawAmount, sequence, i))) % MAX_ORDER_AMOUNT + 1;
+            bytes32 nonce = keccak256(abi.encode(sequence, i, user));
+            orders[i] = NettingTypes.NettingOrder({
+                user: user,
+                poolId: hook.supportedPoolId(),
+                zeroForOne: zeroForOne,
+                amountIn: uint128(amount),
+                minAmountOut: 0,
+                maxAmmInput: uint128(amount),
+                deadline: type(uint64).max,
+                nonce: nonce
+            });
+            signatures[i] = _sign(orders[i], zeroForOne ? ALICE_KEY : BOB_KEY);
+            if (zeroForOne) {
+                total0 += amount;
+                lastAliceNonce = nonce;
+            } else {
+                total1 += amount;
+                lastBobNonce = nonce;
+            }
+        }
 
         router.executeBatch(key, orders, signatures);
 
-        uint256 matched = amount0 < amount1 ? amount0 : amount1;
-        submittedGross += amount0 + amount1;
+        uint256 matched = total0 < total1 ? total0 : total1;
+        lastResidual0 = total0 - matched;
+        lastResidual1 = total1 - matched;
+        submittedGross += total0 + total1;
         matchedGross += matched * 2;
-        residualGross += amount0 + amount1 - matched * 2;
+        residualGross += lastResidual0 + lastResidual1;
         assertEq(submittedGross, matchedGross + residualGross);
         assertTrue(hook.nonceUsed(alice, lastAliceNonce));
         assertTrue(hook.nonceUsed(bob, lastBobNonce));
@@ -177,6 +182,10 @@ contract InstitutionalNettingInvariantTest is StdInvariant, Test {
 
     function invariant_grossEqualsMatchedPlusResidual() public view {
         assertEq(handler.submittedGross(), handler.matchedGross() + handler.residualGross());
+    }
+
+    function invariant_onlyOneSideCanHaveResidual() public view {
+        assertTrue(handler.lastResidual0() == 0 || handler.lastResidual1() == 0);
     }
 
     function invariant_batchContextAlwaysClosed() public view {
