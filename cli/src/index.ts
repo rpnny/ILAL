@@ -41,6 +41,7 @@ import { fmt } from "./ui.js";
 import { COINBASE_SCHEMA_UID } from "./constants.js";
 import { configureSignerOptions, type GlobalSignerOptions } from "./signer.js";
 import { safePropose } from "./safe.js";
+import { nettingBatchExecute, nettingBatchPreview, nettingNonceCancel, nettingOrderSign } from "./commands/netting.js";
 import { base, baseSepolia } from "viem/chains";
 
 const program = new Command();
@@ -150,6 +151,61 @@ const err = (e: unknown) => {
   console.error(fmt.red(`\nError: ${e instanceof Error ? e.message : String(e)}\n`));
   process.exit(1);
 };
+
+// ─── atomic netting ──────────────────────────────────────────────────────────
+
+const netting = program.command("netting").description("Atomic stablecoin order netting through the Hookathon pool");
+const nettingOrder = netting.command("order").description("Create signed institutional netting orders");
+const nettingBatch = netting.command("batch").description("Preview or execute an atomic order batch");
+const nettingNonce = netting.command("nonce").description("Manage signed-order nonces");
+
+nettingOrder
+  .command("sign")
+  .description("Sign an EIP-712 exact-input order and write a private-key-free JSON file")
+  .requiredOption("--amount-in <raw>", "Exact input in raw token units")
+  .requiredOption("--min-amount-out <raw>", "Minimum total output in raw token units")
+  .requiredOption("--max-amm-input <raw>", "Maximum input permitted to reach the AMM")
+  .option("--zero-for-one", "Sell currency0 for currency1", false)
+  .option("--one-for-zero", "Sell currency1 for currency0", false)
+  .option("-p, --pool <bytes32>", "Pool ID (defaults to .ilal.json)")
+  .option("-H, --hook <address>", "InstitutionalNettingHook address")
+  .option("-u, --user <address>", "Order owner (must match the selected signer)")
+  .option("--deadline <unix>", "Absolute Unix deadline")
+  .option("--ttl <seconds>", "Lifetime when --deadline is omitted", "600")
+  .option("--nonce <bytes32>", "Order nonce (random by default)")
+  .requiredOption("-o, --output <path>", "Signed order JSON output")
+  .option("-c, --chain <chainId>", "Chain ID")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts) => { await nettingOrderSign(opts).catch(err); });
+
+nettingBatch
+  .command("preview")
+  .description("Compute matched gross, residuals and ordered batch commitment offline")
+  .requiredOption("--orders <files...>", "Two to sixteen signed order JSON files")
+  .action(async (opts: { orders: string[] }) => { await nettingBatchPreview(opts).catch(err); });
+
+nettingBatch
+  .command("execute")
+  .description("Permissionlessly submit a signed atomic batch")
+  .requiredOption("--orders <files...>", "Two to sixteen signed order JSON files")
+  .option("--router <address>", "InstitutionalBatchRouter address")
+  .option("-H, --hook <address>", "InstitutionalNettingHook address")
+  .option("--token-a <address>", "currency0 address")
+  .option("--token-b <address>", "currency1 address")
+  .option("--fee <uint24>", "Static pool fee", "500")
+  .option("--tick-spacing <int24>", "Pool tick spacing", "10")
+  .option("-c, --chain <chainId>", "Chain ID")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts) => { await nettingBatchExecute(opts).catch(err); });
+
+nettingNonce
+  .command("cancel")
+  .description("Cancel one nonce for the selected signer")
+  .requiredOption("--nonce <bytes32>", "Nonce to cancel")
+  .option("-H, --hook <address>", "InstitutionalNettingHook address")
+  .option("-c, --chain <chainId>", "Chain ID")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts) => { await nettingNonceCancel(opts).catch(err); });
 
 // ─── issuer ──────────────────────────────────────────────────────────────────
 

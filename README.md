@@ -1,97 +1,144 @@
-# ILAL — Institutional Liquidity Access Layer
+# ILAL — Verified Flow, Netted Before the AMM
 
 [![verify](https://github.com/rpnny/ILAL/actions/workflows/ci.yml/badge.svg)](https://github.com/rpnny/ILAL/actions/workflows/ci.yml)
-[![release](https://img.shields.io/badge/release-v0.3.3-2563eb)](releases/v0.3.3.json)
-[![v2 preview](https://img.shields.io/badge/v2%20preview-v0.4.0--v2--poc.4-111827)](releases/v0.4.0-v2-poc.4.json)
 [![network](https://img.shields.io/badge/network-Base%20Sepolia-0052ff)](deployments/base-sepolia/v0.3.3.json)
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
-ILAL is an experimental Uniswap v4 access layer for verified institutional
-flow. It combines compliance credentials, one-time session authorization,
-pool policy, and bounded execution without moving price discovery away from
-Uniswap.
+Institutions can submit mutually offsetting orders without sending all of that
+gross flow through an external market. ILAL verifies every participant, nets
+compatible stablecoin orders atomically, and routes only the unmatched residual
+to Uniswap v4.
 
-> Compliance is the hook. Prove eligibility, sign locally, and execute through
-> Uniswap v4.
+> **100 token0 → token1 + 70 token1 → token0 = 140 gross matched internally,
+> 30 token0 residual sent to the AMM.**
 
-## What works today
+## Hookathon provenance
 
-- `ComplianceHook` gates swaps and liquidity actions using live pool policy and
-  credential state.
-- One-time EIP-712 sessions bind the user, router, chain, hook, pool, action,
-  deadline, and nonce.
-- EOA signatures enforce canonical low-s ECDSA; contract wallets use ERC-1271.
-- `ILALRouter` enforces swap slippage and LP spend/receive limits on-chain.
-- Liquidity positions are caller-scoped, and signed LP exits remain available
-  after later policy changes or credential invalidation.
-- `CNFIssuer` supports non-transferable credentials issued from EAS
-  attestations or Groth16 proofs, with timelocked ZK configuration.
-- The CLI supports encrypted Web3 v3 keystores, capability-checked RPC-managed
-  accounts, and offline Safe administrative proposals.
+| Before Hookathon | Built during Hookathon |
+|---|---|
+| [`v0.4.0-v2-poc.4`](releases/v0.4.0-v2-poc.4.json), commit `0a9a749`: CNF credentials, PolicyRegistry, one-time sessions, bounded Router, v1/v2 ZK experiments, CLI and historical demos. | InstitutionalNettingHook and BatchRouter; deterministic signed-order allocation; atomic 1:1 stablecoin netting; residual-only v4 routing; netting CLI and invariant suite; live Base Sepolia candidate with forward/reverse batches and Sourcify exact-match verification. |
 
-The isolated v2 policy-grant path is implemented, constraint-tested, and
-deployed as a public Base Sepolia PoC candidate. It remains separate from the
-active v1 CLI preset because its proving key uses an unsafe development
-ceremony and its testnet admin is an EOA. See the
-[`v2 deployment manifest`](deployments/base-sepolia/v0.4.0-v2-poc.1.json) and
-[`V2 testnet runbook`](docs/V2_TESTNET_RUNBOOK.md). Issuers can operate an
-encrypted deterministic credential tree and export wallet-bound private
-witnesses with the [`Issuer Integration Kit`](docs/ISSUER_INTEGRATION.md).
-The kit is distributed as an explicitly non-production npm preview:
-`npm install -g @ilalv3/cli@next`.
+The pre-Hookathon code is eligibility and execution infrastructure. The new
+submission mechanism is the netting path above; the active historical v0.3.3
+deployment remains unchanged.
 
-The issuer workflow has been exercised end to end on a separate Base Sepolia
-V2 sandbox with distinct admin, institution, market-maker, and control
-wallets: encrypted decision import, policy publication, wallet-bound witness,
-local Groth16 proof, grant activation, LP add, swap, control-wallet rejection,
-root rotation, and stale-grant rejection all passed. This is testnet acceptance
-evidence, not an audit or a production ceremony.
+| Reviewer path | Start here |
+|---|---|
+| Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
+| Live Hook | [`0xb385…4088` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
+| Canonical `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
+| Reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |
+| Deployment evidence | [`candidate-manifest.json`](docs/hookathon/candidate-manifest.json) |
+| One-command test | `make verify` |
+| Before / built during | [Hookathon scope](#hookathon-scope) |
+| Atomic executor | [`contracts/src/netting/InstitutionalBatchRouter.sol`](contracts/src/netting/InstitutionalBatchRouter.sol) |
+| Integration tests | [`contracts/test/InstitutionalNetting.t.sol`](contracts/test/InstitutionalNetting.t.sol) |
+| Stateful invariants | [`contracts/test/InstitutionalNettingInvariant.t.sol`](contracts/test/InstitutionalNettingInvariant.t.sol) |
+| Demo | [`scripts/demo-netting.sh`](scripts/demo-netting.sh) |
+| Mechanism and runbook | [`docs/HOOKATHON_NETTING.md`](docs/HOOKATHON_NETTING.md) |
 
-## How it works
+## The mechanism
 
 ```text
-EAS attestation or ZK proof
-              │
-              ▼
-         CNFIssuer
-              │
-              ▼
-       one-time session
-              │
-              ▼
-         ILALRouter ───── bounded swap / LP settlement
-              │
-              ▼
-      ComplianceHook ─── policy, credential, signature, nonce
-              │
-              ▼
-      Uniswap v4 PoolManager
+signed + currently eligible orders
+                │
+                ▼
+      InstitutionalBatchRouter
+       ├─ sort orderHash ascending
+       └─ keep signatures paired
+                │ one PoolManager.unlock
+                ▼
+      InstitutionalNettingHook
+       ├─ verify EIP-712 / ERC-1271
+       ├─ verify current v1 Policy + CNF
+       ├─ consume nonce
+       └─ match raw units 1:1
+                │
+                ▼
+      only residual → Uniswap v4 AMM
 ```
 
-The active v1 execution path is documented in
-[`docs/CODEBASE_GUIDE.md`](docs/CODEBASE_GUIDE.md).
+The Hook uses v4 `beforeSwap` return deltas (`0x88` flags). Opposing Hook
+deltas cancel inside one unlock; the Hook and Router finish with no Token
+inventory. Any bad signature, expired or reused nonce, invalid credential,
+policy change, non-canonical or duplicate order hash, opening peg violation,
+insufficient balance, partial AMM fill, or output slippage failure reverts the
+whole batch.
 
-## Live demo and evidence
+The permissionless solver cannot choose match priority. The Router
+canonicalizes order/signature pairs by strict ascending `orderHash`; the Hook
+independently verifies that order before allocating matched input. Reordering
+the same signed set therefore produces the same `batchId`, per-user allocation,
+and pool result. Duplicate hashes are rejected rather than tie-broken.
 
-| Surface | Current status |
-|---|---|
-| Source and CLI | npm `latest`: `v0.3.3`; V2 issuer preview: `v0.4.0-v2-poc.4` on `next` |
-| Active deployment | Base Sepolia v0.3.3 demo |
-| V2 candidate | Base Sepolia `v0.4.0-v2-poc.1`; public proof/grant/LP/swap evidence |
-| Administration | Safe-controlled |
-| Attestation | MockEAS demo issuance |
-| ZK | V1 active stack: disabled; V2 public candidate: Groth16 development ceremony |
-| Audit | Unaudited |
-| Production readiness | Not production-ready |
+This MVP supports one equal-decimal ERC-20 stablecoin pool, exact-input orders,
+raw-unit 1:1 matching, zero netting fee, 2–16 orders, and a ±100 tick opening
+guard. `minAmountOut` protects total matched-plus-AMM output;
+`maxAmmInput` caps each order's residual exposure.
 
-The versioned
-[`v0.3.3 deployment manifest`](deployments/base-sepolia/v0.3.3.json)
-contains addresses, transactions, constructor data, role checks, bytecode
-hashes, and source-verification evidence. The
-[`demo runbook`](DEMO.md) covers the positive and negative flows.
+The tick bound is checked exactly once in `openBatch`, before the first order.
+It is a **batch-start depeg guard**, not an oracle and not a continuous
+in-batch price constraint. Residual execution may move the pool outside the
+range; every user's continuing safety boundary is their signed
+`minAmountOut` and `maxAmmInput`.
 
-The v0.3.2 deployment is retained only as deprecated historical evidence and
-is never selected by the current CLI.
+## Hookathon scope
+
+### Before Hookathon
+
+Tag [`v0.4.0-v2-poc.4`](releases/v0.4.0-v2-poc.4.json), commit `0a9a749`,
+already contained ILAL's CNF credentials, policy registries, one-time sessions,
+bounded Router, v1/v2 ZK experiments, CLI, and historical Base Sepolia demos.
+Those components are supporting infrastructure, not the new submission
+mechanism.
+
+### Built during Hookathon
+
+- Atomic signed institutional order batches.
+- Stablecoin internal netting through `beforeSwap` return deltas.
+- Residual-only routing to Uniswap v4.
+- Permissionless solver execution with outputs sent directly to signers.
+- Solver-independent allocation through Hook-enforced ascending order hashes.
+- EIP-712/low-s ECDSA/ERC-1271 validation, nonce cancellation and replay protection.
+- Per-order total-output and AMM-exposure bounds.
+- Real v4 integration, fuzz, maximum-16-order gas, and stateful invariant tests.
+- Four CLI commands and a terminal demo.
+- A live Base Sepolia candidate, two opposite-residual batches, complete evidence
+  manifest, and Sourcify creation/runtime exact matches for all first-party contracts.
+
+### Final state
+
+ILAL's submission path is now deliberately narrow:
+
+> **verify → match → net → route residual to Uniswap**
+
+The prior v1/v2 credential and policy work remains in the repository for
+provenance and as reusable eligibility infrastructure. It is not presented as
+multiple competing Hookathon Hooks.
+
+## Demo
+
+Each institution signs its own private-key-free order JSON:
+
+```bash
+ilal --keystore institution-a.json --password-file institution-a.password \
+  netting order sign --zero-for-one --amount-in 100000000 \
+  --min-amount-out 99000000 --max-amm-input 30000000 --output order-a.json
+
+ilal --keystore institution-b.json --password-file institution-b.password \
+  netting order sign --one-for-zero --amount-in 70000000 \
+  --min-amount-out 70000000 --max-amm-input 0 --output order-b.json
+```
+
+The solver previews and broadcasts without receiving user output:
+
+```bash
+./scripts/demo-netting.sh order-a.json order-b.json \
+  --keystore solver.json --password-file solver.password
+```
+
+The output prints submitted gross, internally matched gross, residuals, AMM
+exposure reduction, `batchId`, settlement events, and the transaction hash.
 
 ## Verification
 
@@ -101,79 +148,60 @@ Prerequisites: Foundry, Node.js, npm, Circom, and git.
 make verify
 ```
 
-Current verified suites:
-
-| Suite | Result |
+| Suite | Current result |
 |---|---:|
-| Foundry | 188 passed, 0 failed, 0 skipped |
-| CLI | 46 passed |
+| Foundry | 229 passed, 0 failed, 0 skipped |
+| Netting stateful invariants | 6 properties × 256 calls, 0 reverts |
+| CLI | 53 passed |
 | SDK | 18 passed |
-| Circuit oracle | 7 passed |
+| Circuit oracle | 8 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
-| Fuzzing | 256 runs per fuzz test |
 
-`make verify` also validates deployment/release metadata, package contents,
-Git history, secret scanning, and dependency SBOM generation.
+The integration suite proves that the final pool state and manager balance
+changes for the `100/70` batch exactly equal a vanilla 30-token0 residual swap
+from the same initialized state. The 16-order case currently uses about 1.53M
+gas in the Foundry test environment. `make verify` also checks release/
+deployment consistency, package contents, Git history, secrets, and dependency
+SBOMs.
 
-## Code map
+## Deployment status
+
+The Hookathon stack has a Base Sepolia-only deployment script at
+[`contracts/script/DeployHookathonNetting.s.sol`](contracts/script/DeployHookathonNetting.s.sol).
+It binds the official PoolManager, PositionManager and Permit2 addresses,
+deploys two 6-decimal mock stablecoins, MockEAS, CNFIssuer, PolicyRegistry,
+BatchRouter and a CREATE2-mined `0x88` Hook, onboards two distinct institutions,
+and seeds liquidity through the standard v4 PositionManager.
+
+The Hookathon deployment is a separate, source-verified **candidate** and does
+not replace the active v0.3.3 Base Sepolia demo. The canonical `100/70` batch
+matched 140,000,000 gross raw units and sent only 30,000,000 token0 units to
+the AMM. The reverse `60/90` batch sent only 30,000,000 token1 units. All seven
+first-party contracts are Sourcify creation/runtime `exact_match`; addresses,
+transactions, decoded events, pool states, CREATE2 salt and bytecode hashes are
+recorded in the
+[`candidate manifest`](docs/hookathon/candidate-manifest.json).
+
+## Supporting infrastructure
 
 | Path | Purpose |
 |---|---|
-| [`contracts/src/`](contracts/src) | Router, hooks, issuer, policy registries, and verifier adapters |
-| [`contracts/test/`](contracts/test) | Foundry unit, integration, regression, and fuzz tests |
-| [`cli/src/`](cli/src) | CLI commands, signing, Safe proposals, and deployment tooling |
-| [`sdk/src/`](sdk/src) | Session signing, hook-data encoding, and credential reads |
-| [`circuits/`](circuits) | v1 and isolated v2 Circom sources and constraint tests |
-| [`deployments/`](deployments) | Versioned deployment manifests and schema |
-| [`releases/`](releases) | Software release manifests |
-| [`docs/data-room/`](docs/data-room) | Threat model, privileged roles, and public diligence material |
-| [`docs/ISSUER_INTEGRATION.md`](docs/ISSUER_INTEGRATION.md) | PII-free JSON/CSV issuer decisions, encrypted trees, witness export, and Safe publication |
-| [`audit/`](audit) | Current audit scope plus explicitly dated historical review material |
-| [`site/`](site) | Static project website |
-
-The isolated V2 path can be exercised without a public-chain key:
-
-```bash
-./scripts/simulate-v2-fork.sh
-```
-
-It performs a real Groth16 proof, cached policy grant, liquidity add, swap,
-policy revision, and revocation against a fresh Base Sepolia fork. Fork
-transaction hashes are local evidence only; the separate V2 candidate manifest
-contains the public Base Sepolia evidence.
-
-V2 transaction preflight reads policy and wallet grant state at one pinned
-block and rechecks the expected policy hash and revision immediately before
-broadcast. A root rotation therefore invalidates the old grant locally before
-the Router transaction is sent, while the Hook remains the final on-chain
-enforcement layer.
-
-Start with [`contracts/src/ComplianceHook.sol`](contracts/src/ComplianceHook.sol),
-[`contracts/src/ILALRouter.sol`](contracts/src/ILALRouter.sol), and
-[`docs/CODEBASE_GUIDE.md`](docs/CODEBASE_GUIDE.md).
-
-## Hookathon partner integrations
-
-No partner integrations.
-
-ILAL's completed supporting integrations are Uniswap v4 core/periphery, EAS
-attestation reads, ERC-1271 wallet validation, and optional Safe transaction
-proposal submission. Their implementations are located in `contracts/src/`,
-`cli/src/safe.ts`, and `cli/src/signer.ts`; they are not presented as
-Hookathon partner integrations.
+| [`contracts/src/CNFIssuer.sol`](contracts/src/CNFIssuer.sol) | Soulbound v1 compliance credential used by the netting Hook |
+| [`contracts/src/PolicyRegistry.sol`](contracts/src/PolicyRegistry.sol) | Current pool eligibility policy with delayed updates |
+| [`contracts/src/`](contracts/src) | Historical v1 execution and isolated v2 policy-grant infrastructure |
+| [`cli/src/`](cli/src) | Signing, netting, policy, credential and deployment commands |
+| [`circuits/`](circuits) | Legacy v1 and isolated v2 ZK research artifacts |
+| [`deployments/`](deployments) | Versioned public deployment evidence; v0.3.3 remains active |
+| [`audit/`](audit) | Current scope and dated historical review material |
 
 ## Security and scope
 
-This repository contains unaudited testnet software. Do not use it with
-production funds or identity data. See [`SECURITY.md`](SECURITY.md),
-[`RELEASE.md`](RELEASE.md), and the
-[`public threat model`](docs/data-room/THREAT_MODEL.md).
+This is unaudited testnet software. Do not use it with production funds or
+identity data. The tick guard is a batch-start depeg circuit breaker, not an
+oracle or a continuous price bound.
+The Hook is immutable and a serious defect requires a new Hook and pool; see
+[`docs/INCIDENT_AND_MIGRATION_RUNBOOK.md`](docs/INCIDENT_AND_MIGRATION_RUNBOOK.md).
 
-Exact-input ERC-20 execution is the current Router scope. Native ETH pools and
-exact-output swaps are not supported.
-
-## License
-
-First-party code is Apache-2.0. Generated verifier files and third-party
-dependencies retain their respective licenses. See
-[`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) and [`NOTICE`](NOTICE).
+See [`SECURITY.md`](SECURITY.md), [`NOTICE`](NOTICE), and
+[`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md). First-party code is
+Apache-2.0.

@@ -26,6 +26,32 @@ npm test
 
 `ilal init` selects only the active v0.3.3 manifest on Base Sepolia. Deprecated presets are never selected automatically.
 
+## Atomic netting (Hookathon candidate)
+
+Institutions sign exact-input orders locally; the JSON contains no private key.
+The solver previews the canonical batch commitment and submits it permissionlessly:
+
+```bash
+ilal --keystore institution-a.json --password-file a.password \
+  netting order sign --zero-for-one --amount-in 100000000 \
+  --min-amount-out 99000000 --max-amm-input 30000000 -o order-a.json
+
+ilal netting batch preview --orders order-a.json order-b.json
+
+ilal --keystore solver.json --password-file solver.password \
+  netting batch execute --orders order-a.json order-b.json
+
+ilal --keystore institution-a.json --password-file a.password \
+  netting nonce cancel --nonce 0x...
+```
+
+`preview` prints submitted gross, matched gross, residuals, exposure reduction
+and `batchId`. Input file order is irrelevant: the CLI keeps each signature with
+its order and sorts strict ascending `orderHash`, matching the Router and Hook.
+Duplicate hashes are rejected. `execute` verifies the same preview on-chain
+before broadcast and prints decoded Router settlement events and the transaction hash. See
+[`../docs/HOOKATHON_NETTING.md`](../docs/HOOKATHON_NETTING.md).
+
 ## Signers
 
 ### Encrypted EOA keystore

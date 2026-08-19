@@ -1,0 +1,253 @@
+{
+  "status": "candidate",
+  "candidate": "hookathon-institutional-netting",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "deployedAt": "2026-08-19T10:57:50.902Z",
+  "explorer": "https://sepolia.basescan.org",
+  "sourceCommit": "4eb6f5852eebc15b088bbe0ae34c07a12de6a1af",
+  "sourceTreeHash": "0x03f4396f69be1074c9f3d3a2af0a4388b0fdac0481c5f1f0c1f6b999e2f2ca2d",
+  "sourceTreeHashAlgorithm": "sha256(git archive of contracts/src, contracts/script, contracts/foundry.toml, contracts/scripts/install-deps.sh)",
+  "hookFlags": "0x0088",
+  "create2Salt": "0x0000000000000000000000000000000000000000000000000000000000001c5b",
+  "deployer": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+  "infrastructure": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "positionManager": "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80",
+    "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+  },
+  "roles": {
+    "safeAdmin": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+    "safeThreshold": 1,
+    "institutionA": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+    "institutionB": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+    "solver": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+    "lp": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D"
+  },
+  "contracts": {
+    "token0": {
+      "address": "0xd372cB87e06fa25018c208d0774BE5dce80e0a70",
+      "transactionHash": "0x95d49691e87fc9f6d80df4f67f04866ecfbc563da56c8957e4aa5ae4e541c15b",
+      "blockNumber": 45684349,
+      "constructorArguments": ["ILAL Hookathon USD A", "hUSDA", 6],
+      "creationBytecodeHash": "0x62bf391f86a8701d7caf26592d62fa9f9ac0895b31babaee3fa9da27968107b2",
+      "runtimeBytecodeHash": "0x08c425a3271b7882741a61895518abbd01598eacc9f98d0da40d966bf954a34a",
+      "abiHash": "0x105c2d62bad8a9fa1cfcb819e501dac019576253a6eee6c15d185a61c309a784"
+    },
+    "token1": {
+      "address": "0xF843Fa9ee104E6D6D13189304583EaEd00233B2F",
+      "transactionHash": "0x081a7ceca9bc8024d694b1bb3db332de367bf2efcd45e877283f9b279cbae57f",
+      "blockNumber": 45684351,
+      "constructorArguments": ["ILAL Hookathon USD B", "hUSDB", 6],
+      "creationBytecodeHash": "0x62bf391f86a8701d7caf26592d62fa9f9ac0895b31babaee3fa9da27968107b2",
+      "runtimeBytecodeHash": "0x08c425a3271b7882741a61895518abbd01598eacc9f98d0da40d966bf954a34a",
+      "abiHash": "0x105c2d62bad8a9fa1cfcb819e501dac019576253a6eee6c15d185a61c309a784"
+    },
+    "mockEAS": {
+      "address": "0xF5E562579661960145AdFd697e9ecc6803F4b931",
+      "transactionHash": "0x3940bb5a6018d4c528f94bfbdd9ed999e00e282ead45cb36e02f6e92cbdec2b6",
+      "blockNumber": 45684353,
+      "constructorArguments": [],
+      "creationBytecodeHash": "0xd0c70cf8a2d7fd3259a8a46c524d8354882aef8c369ce68deb632f783f036ad0",
+      "runtimeBytecodeHash": "0x08450ee7e2660c9e34a063a672f80c02cfdcbd4ab8db6ca319e29fca911d6f5b",
+      "abiHash": "0x3a1ae1cd1d83465a713f6deb448055ebe18de89a6daf5c7c51a833e3d2968b01"
+    },
+    "cnfIssuer": {
+      "address": "0x2e802311AfdA7013CF1430Ff535ae2912650060f",
+      "transactionHash": "0x1503ac5364cb02174cd1b2a077c109c6ab9ad2e4491105a0f1804129868de7ea",
+      "blockNumber": 45684354,
+      "constructorArguments": {
+        "eas": "0xF5E562579661960145AdFd697e9ecc6803F4b931",
+        "schemaUID": "0x042d473b2f3618dde613284bd1c04b64cdded9d5c89fc09205ac9aa30ffac1ed",
+        "trustedAttester": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+        "maxCredentialDuration": 7776000,
+        "issuerMetadata": ["ILAL Hookathon Demo Issuer", "Base Sepolia testnet", "ILAL Institutional CNF v1", "https://github.com/rpnny/ILAL"],
+        "zkConfig": ["0x0000000000000000000000000000000000000000", 0, 0, 0]
+      },
+      "creationBytecodeHash": "0x07fefcc3d084184805061d744cc117eb39f9d9aeda1bedae54c7ccc467f69ded",
+      "runtimeBytecodeHash": "0x2d948e4a1efb686bbb7e01cf1e9d855be96c5a63fcf3d7d284266a6e4f4b84fa",
+      "abiHash": "0x5810313d040777657ff89bb54399dacac225f8603d9505530b73d6b483db52b5"
+    },
+    "policyRegistry": {
+      "address": "0x1B6EF895266e15Bd0B0cE1B8C6EB80c01F3d29F5",
+      "transactionHash": "0x7a3e3eb61884b077ab957bb79c4a612a10cc92b0928280bf8f4ba69dfcb5582b",
+      "blockNumber": 45684355,
+      "constructorArguments": [],
+      "creationBytecodeHash": "0xbd962b1a4941849b90963a8d659ba0c9a0395fe0ac0e3a3ca526f5606eedd828",
+      "runtimeBytecodeHash": "0xab8e9fe26429b931f70f8d8c33b4468f57cef4ee062a8218621efdde279cb6d7",
+      "abiHash": "0x0bb4aa5225bd1d6a6ba4e64501227df9f7346b4e4074b5dd55e45b769f6d3603"
+    },
+    "batchRouter": {
+      "address": "0xA64676eA840426D94800dB00a11ea70a1E746e8D",
+      "transactionHash": "0x7a0c87a0f5c87baab60b7b709cb07a3d8dcc8df33f0f5137a2d03fdecae15b19",
+      "blockNumber": 45684356,
+      "constructorArguments": ["0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408"],
+      "creationBytecodeHash": "0x65858e72053b218b62596d34dae49ac08e0c1df5aaa155af76c9a608c18963a8",
+      "runtimeBytecodeHash": "0x63394e1b2768488e81a37abd0e1a234475110266797a4db9a302c2271519c5f6",
+      "abiHash": "0x72f73479edf5280e82d1545ab4e37ad0eb0d7a0322d1eb9418f5a9c25520b439"
+    },
+    "nettingHook": {
+      "address": "0xb385043E7489E2683473a0158710e3F9932F4088",
+      "transactionHash": "0xf1650a92716aebe8bf37147f3aef7befed65a8775e09f144d1cb2e99d8739816",
+      "blockNumber": 45684357,
+      "constructorArguments": [
+        "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+        "0x1B6EF895266e15Bd0B0cE1B8C6EB80c01F3d29F5",
+        "0xA64676eA840426D94800dB00a11ea70a1E746e8D",
+        "0xd372cB87e06fa25018c208d0774BE5dce80e0a70",
+        "0xF843Fa9ee104E6D6D13189304583EaEd00233B2F",
+        500,
+        10,
+        100
+      ],
+      "create2Salt": "0x0000000000000000000000000000000000000000000000000000000000001c5b",
+      "creationBytecodeHash": "0x2ff5bf2a23fe263eb011c4595c58ab4388a2238b9fa8cc74aed070c2f511e81e",
+      "runtimeBytecodeHash": "0xcb359e986114111f0454a4a532422095ce8570ea66f774c24465db56008296a6",
+      "abiHash": "0xfff23b6bf3e17733b831dbfa03a38cf94dac1b96ee9aba931f9be3302d3304f8"
+    }
+  },
+  "bytecodeHashAlgorithm": {
+    "creation": "keccak256(artifact bytecode.object)",
+    "runtime": "keccak256(eth_getCode result)",
+    "abi": "keccak256(JSON with recursively sorted object keys)"
+  },
+  "pool": {
+    "poolId": "0xea91d660d1b2be8b5b3bfbab44433b2ece30a5461feddd11b4b3160977059326",
+    "key": {
+      "currency0": "0xd372cB87e06fa25018c208d0774BE5dce80e0a70",
+      "currency1": "0xF843Fa9ee104E6D6D13189304583EaEd00233B2F",
+      "fee": 500,
+      "tickSpacing": 10,
+      "hook": "0xb385043E7489E2683473a0158710e3F9932F4088"
+    },
+    "initialization": {
+      "transactionHash": "0x9d627b4a02fa1945f04cd64ee07139d2b533a5b014f9a7d358cd7e2fcf98ac50",
+      "blockNumber": 45684359,
+      "sqrtPriceX96": "79228162514264337593543950336",
+      "tick": 0
+    },
+    "liquidity": {
+      "transactionHash": "0xc63f582d0533eacd97da128298bc4f5c1810863ecf428da3b2f2fafd8143f7d1",
+      "blockNumber": 45684391,
+      "positionManager": "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80",
+      "tickLower": -1000,
+      "tickUpper": 1000,
+      "liquidity": "1000000000000"
+    }
+  },
+  "compliance": {
+    "policy": {
+      "transactionHash": "0x6585709e2a53f6fc1b330ba576c01c17825ddd15f85379fed2b1082447d4bbf0",
+      "blockNumber": 45684360,
+      "cnfIssuer": "0x2e802311AfdA7013CF1430Ff535ae2912650060f",
+      "requiredCredentialType": "0x042d473b2f3618dde613284bd1c04b64cdded9d5c89fc09205ac9aa30ffac1ed",
+      "enabled": true
+    },
+    "institutionA": {
+      "attestationUID": "0x1316fe8760354ad39201876e9e5ac646071c29cf6b3b912538c93c3dfbe7e821",
+      "attestationTransactionHash": "0xd8e4d766a5bb967c0f7b10ed48a267aad2ac9b92ad1093eaa2ef02f23f97780b",
+      "attestationBlockNumber": 45684361,
+      "credentialTokenId": 1,
+      "credentialTransactionHash": "0x79fede14ee99d611ac1893d600f2a2ed5dd611e6aa80d913e8717e13040d7691",
+      "credentialBlockNumber": 45684379,
+      "validAfterDemo": true
+    },
+    "institutionB": {
+      "attestationUID": "0x6220fc40e4df9dc6f6f22880c02775e5317a1bfa81a8e67c1bfd1a1faff7ad0b",
+      "attestationTransactionHash": "0xaef8f837f294e8c8deefae98a5d30b9399f1b9e1737446dbc99e099e862a80a0",
+      "attestationBlockNumber": 45684362,
+      "credentialTokenId": 2,
+      "credentialTransactionHash": "0x0c233445f34922728288a3ad42b2cdaf6df424776a61c7cd5e33b5ec4e642a84",
+      "credentialBlockNumber": 45684383,
+      "validAfterDemo": true
+    },
+    "ownershipTransfers": {
+      "policyRegistry": "0x712c1b5cc6f847d2e76ca7056d9ad4ba01564ac5a2e8c3f79e3d4cc1bc6050e3",
+      "cnfIssuer": "0x4bf8cc3e42d032240ccf8333123a07181b253f53b1978f25dc122c58cea7b2c5",
+      "mockEAS": "0x88618a169c6e4ac180379861a43ccd35e3becb435a6eac3d778d13263d280b9c"
+    }
+  },
+  "batches": {
+    "forward100By70": {
+      "transactionHash": "0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9",
+      "blockNumber": 45684461,
+      "gasUsed": 589186,
+      "batchId": "0x6f4035fbe3b1a42e40f3eb294a1d105aa6e3561411e6c94b9996aec2857683e0",
+      "ordering": "strict ascending orderHash",
+      "submitted": {"token0": "100000000", "token1": "70000000", "gross": "170000000"},
+      "matched": {"eachSide": "70000000", "gross": "140000000"},
+      "residual": {"token0": "30000000", "token1": "0"},
+      "orderNetted": [
+        {"index": 0, "user": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3", "zeroForOne": true, "amountIn": "100000000", "matchedInput": "70000000", "ammInput": "30000000"},
+        {"index": 1, "user": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC", "zeroForOne": false, "amountIn": "70000000", "matchedInput": "70000000", "ammInput": "0"}
+      ],
+      "orderSettled": [
+        {"index": 0, "amountOut": "99984100", "matchedOutput": "70000000", "ammOutput": "29984100"},
+        {"index": 1, "amountOut": "70000000", "matchedOutput": "70000000", "ammOutput": "0"}
+      ],
+      "batchNetted": {"total0": "100000000", "total1": "70000000", "matchedEachSide": "70000000", "residual0": "30000000", "residual1": "0", "exposureReduction": "140000000"},
+      "batchExecuted": {"executor": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797", "orderCount": 2},
+      "poolStateAfter": {"sqrtPriceX96": "79225786929043270231086071221", "tick": -1, "liquidity": "1000000000000"}
+    },
+    "reverse60By90": {
+      "transactionHash": "0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8",
+      "blockNumber": 45684496,
+      "gasUsed": 557404,
+      "batchId": "0xeae12c0c100a9ea4b702a3c2240ab585e336c4c8679ead49d5e5e2c51b2e953f",
+      "ordering": "strict ascending orderHash",
+      "submitted": {"token0": "60000000", "token1": "90000000", "gross": "150000000"},
+      "matched": {"eachSide": "60000000", "gross": "120000000"},
+      "residual": {"token0": "0", "token1": "30000000"},
+      "orderNetted": [
+        {"index": 0, "user": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3", "zeroForOne": true, "amountIn": "60000000", "matchedInput": "60000000", "ammInput": "0"},
+        {"index": 1, "user": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC", "zeroForOne": false, "amountIn": "90000000", "matchedInput": "60000000", "ammInput": "30000000"}
+      ],
+      "orderSettled": [
+        {"index": 0, "amountOut": "60000000", "matchedOutput": "60000000", "ammOutput": "0"},
+        {"index": 1, "amountOut": "89985899", "matchedOutput": "60000000", "ammOutput": "29985899"}
+      ],
+      "batchNetted": {"total0": "60000000", "total1": "90000000", "matchedEachSide": "60000000", "residual0": "0", "residual1": "30000000", "exposureReduction": "120000000"},
+      "batchExecuted": {"executor": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797", "orderCount": 2},
+      "poolStateAfter": {"sqrtPriceX96": "79228162585496260447248813636", "tick": 0, "liquidity": "1000000000000"}
+    }
+  },
+  "postconditions": {
+    "hookToken0Balance": "0",
+    "hookToken1Balance": "0",
+    "routerToken0Balance": "0",
+    "routerToken1Balance": "0",
+    "hookBatchActive": false,
+    "routerUnlockActive": false,
+    "allFourOrderNoncesUsed": true
+  },
+  "sourceVerification": {
+    "verifier": "Sourcify",
+    "status": "exact_match",
+    "contracts": {
+      "token0": {"jobId": "3c97d509-928f-4c4e-ab0a-97daca126f95", "matchId": "43810807", "verifiedAt": "2026-08-19T11:03:49Z"},
+      "token1": {"jobId": "e4a990d7-b3bb-4de8-931a-191d6d511a4e", "matchId": "43810821", "verifiedAt": "2026-08-19T11:04:05Z"},
+      "mockEAS": {"jobId": "0b4634af-a503-4511-948b-268dee3171fb", "matchId": "43810779", "verifiedAt": "2026-08-19T11:02:54Z"},
+      "cnfIssuer": {"jobId": "c35afd21-3019-46f3-81d6-41112e4fb215", "matchId": "43810822", "verifiedAt": "2026-08-19T11:04:21Z"},
+      "policyRegistry": {"jobId": "e8dc7fac-b964-48bf-929d-55a8bbdac9e8", "matchId": "43810834", "verifiedAt": "2026-08-19T11:04:36Z"},
+      "batchRouter": {"jobId": "d6abce9b-5046-47b7-ac95-90ba1c9b0004", "matchId": "43810846", "verifiedAt": "2026-08-19T11:04:53Z"},
+      "nettingHook": {"jobId": "2d7d3bc5-323b-4a87-9ac9-68b96955a0a6", "matchId": "43810864", "verifiedAt": "2026-08-19T11:05:10Z"}
+    },
+    "links": {
+      "hook": "https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088",
+      "router": "https://sourcify.dev/server/v2/contract/84532/0xA64676eA840426D94800dB00a11ea70a1E746e8D"
+    }
+  },
+  "toolchain": {
+    "solc": "0.8.26",
+    "optimizerEnabled": true,
+    "optimizerRuns": 200,
+    "viaIR": false,
+    "evmVersion": "cancun"
+  },
+  "notes": [
+    "This is a Hookathon candidate and does not replace the active v0.3.3 deployment.",
+    "Mock stablecoins and MockEAS are Base Sepolia demonstration infrastructure only.",
+    "The Safe is a testnet Safe with threshold 1; production governance requires a reviewed multi-owner threshold.",
+    "The +/-100 tick check is a batch-start depeg guard, not an oracle or continuous in-batch price constraint."
+  ]
+}

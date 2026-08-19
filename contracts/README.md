@@ -6,6 +6,9 @@ Solidity smart contracts for the ILAL Protocol — Uniswap v4 compliance hook.
 
 | Contract | Description |
 |----------|-------------|
+| `netting/InstitutionalNettingHook.sol` | Hookathon core: verifies signed v1-CNF orders, nets stablecoin raw units 1:1 with `beforeSwap` deltas, and permits only residual flow to reach the AMM. Required flags: `0x0088`. |
+| `netting/InstitutionalBatchRouter.sol` | Permissionless atomic batch executor. Canonicalizes order/signature pairs by ascending order hash, opens one PoolManager unlock, settles every signer directly, enforces total output, and closes only after Hook accounting cancels. |
+| `netting/NettingTypes.sol` | Shared EIP-712 order, batch header, canonical preview and strictly ordered commitment logic. |
 | `ILALRouter.sol` | Executes bounded swaps and liquidity changes through the Uniswap v4 unlock/settlement flow and charges the immutable protocol fee on actual swap input. |
 | `CNFIssuer.sol` | Soulbound ERC-721 compliance credential. EAS credentials track their source attestation; ZK credentials are bound to the active Merkle root and the hardened seven-signal circuit revision. |
 | `ComplianceHook.sol` | Uniswap v4 `IHooks` implementation. Gates `beforeSwap`, `beforeAddLiquidity`, `beforeRemoveLiquidity` behind EIP-712 session tokens. Supports EOA (ECDSA) and smart wallets (ERC-1271). Nonce bitmap prevents session replay. |
@@ -37,10 +40,19 @@ forge test --summary
 │ ILALRouterTest     │ 33     │ 0      │ 0       │
 │ PolicyGrantV2      │ 15     │ 0      │ 0       │
 │ PolicyRegistryTest │ 24     │ 0      │ 0       │
+│ Netting integration│ 24     │ 0      │ 0       │
+│ Netting invariants │ 6      │ 0      │ 0       │
+│ MockEAS deployment │ 1      │ 0      │ 0       │
 ╰────────────────────┴────────┴────────┴─────────╯
 ```
 
-Current total: `198 passed, 0 failed, 0 skipped`.
+Current total: `229 passed, 0 failed, 0 skipped`.
+
+Each netting invariant runs 256 handler calls over 3–16 order batches and covers
+cumulative accounting, one-sided residuals, closed batch context, replay
+protection, zero Hook/Router inventory, and Token conservation. The integration
+suite also compares `100/70` against a vanilla 30-token0 residual pool state;
+the maximum 16-order case is gas-tested.
 
 The checked-in v1 verifier is generated with the explicitly unsafe development
 beacon for deterministic repository testing only. Before any deployment, run a
@@ -49,6 +61,18 @@ zkey, verifier, and artifact hashes. Legacy six-signal proving artifacts are
 incompatible with `CNFIssuer` and are not downloaded by the CLI.
 
 ## Deployment
+
+The Hookathon candidate uses the dedicated Base Sepolia script:
+
+```bash
+forge script script/DeployHookathonNetting.s.sol:DeployHookathonNetting \
+  --rpc-url https://base-sepolia-rpc.publicnode.com --broadcast -vv
+```
+
+It uses the official PoolManager/PositionManager/Permit2 stack, mines the
+Hook's exact `0x0088` address flags, onboards two independent CNFs, and seeds
+liquidity through the standard PositionManager. See
+[`../docs/HOOKATHON_NETTING.md`](../docs/HOOKATHON_NETTING.md).
 
 The supported deployment path uses the CLI with an encrypted Web3 v3
 keystore. A Base Sepolia MockEAS rehearsal looks like:
@@ -88,3 +112,11 @@ Required mask: 0x0A80
 ```
 
 `HookMiner.find()` iterates CREATE2 salts until it finds one that produces an address satisfying this constraint.
+
+The Hookathon `InstitutionalNettingHook` enables only:
+
+```text
+beforeSwap               → bit 7 (0x0080)
+beforeSwap returns delta → bit 3 (0x0008)
+Required mask: 0x0088
+```
