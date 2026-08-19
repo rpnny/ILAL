@@ -11,10 +11,13 @@ import {SwapParams, ModifyLiquidityParams} from "v4-core/src/types/PoolOperation
 import {IERC20Minimal} from "v4-core/src/interfaces/external/IERC20Minimal.sol";
 
 /// @title ILALRouter
-/// @notice Routes compliant swaps and liquidity operations through Uniswap v4.
+/// @notice Routes swaps and liquidity operations through Uniswap v4.
+/// @dev The Router does not certify that a pool uses an ILAL ComplianceHook.
+///      Compliance is enforced only when `key.hooks` is a reviewed ILAL Hook;
+///      indexers and integrations must validate that binding independently.
 ///
-/// Every call includes a `hookData` blob (ILAL session token + signature) that
-/// the ComplianceHook verifies.  Callers must:
+/// ILAL pools expect each call to include a `hookData` blob (session token +
+/// signature) that their ComplianceHook verifies. Callers must:
 ///   1. Approve this contract to spend the input token.
 ///   2. Sign a SessionToken off-chain (or use `ilal swap / ilal pool add-liquidity`).
 ///   3. Call `swap()` or `addLiquidity()`.
@@ -53,9 +56,13 @@ contract ILALRouter is IUnlockCallback {
     uint24 public constant MAX_PROTOCOL_FEE_PIPS = 1_000; // 0.10%
 
     event ProtocolFeePaid(address indexed payer, address indexed token, address indexed treasury, uint256 amount);
-    event SwapExecuted(
+    /// @notice Emitted after a pool swap routed by this contract.
+    /// @dev This event is not standalone proof of compliance. Indexers must verify
+    ///      `hook`, the pool key, and the corresponding Hook verification event.
+    event SwapRouted(
         bytes32 indexed poolId,
         address indexed user,
+        address indexed hook,
         address tokenIn,
         address tokenOut,
         int128 amountIn,
@@ -96,7 +103,7 @@ contract ILALRouter is IUnlockCallback {
 
     // ─── External entry points ────────────────────────────────────────────────
 
-    /// @notice Execute a compliant swap.
+    /// @notice Execute a swap. Compliance depends on the Hook bound in `key`.
     /// @param key          The pool to swap in.
     /// @param params       Swap parameters (zeroForOne, amountSpecified, sqrtPriceLimitX96).
     /// @param minAmountOut Minimum output token amount the caller will accept. Pass 0 to skip.
@@ -108,6 +115,10 @@ contract ILALRouter is IUnlockCallback {
         payable
         returns (BalanceDelta delta)
     {
+        // This router exposes an exact-input slippage bound (`minAmountOut`).
+        // Exact-output swaps need a different bound (`maxAmountIn`), so accepting
+        // them here would leave callers without an input-spend limit.
+        if (params.amountSpecified >= 0) revert ExactOutputNotSupported();
         _ensureERC20Pool(key);
         _verifySessionBinding(hookData);
         bytes memory result = poolManager.unlock(
@@ -130,10 +141,12 @@ contract ILALRouter is IUnlockCallback {
         delta = abi.decode(result, (BalanceDelta));
         (address tokenIn, address tokenOut, int128 amountIn, int128 amountOut) = _swapAmounts(key, params, delta);
         _collectProtocolFee(tokenIn, uint256(int256(amountIn)), msg.sender);
-        emit SwapExecuted(PoolId.unwrap(key.toId()), msg.sender, tokenIn, tokenOut, amountIn, amountOut);
+        emit SwapRouted(
+            PoolId.unwrap(key.toId()), msg.sender, address(key.hooks), tokenIn, tokenOut, amountIn, amountOut
+        );
     }
 
-    /// @notice Add liquidity to a compliant pool.
+    /// @notice Add liquidity. Compliance depends on the Hook bound in `key`.
     /// @param key       The pool.
     /// @param params    Position parameters. The supplied salt is scoped to msg.sender on-chain.
     /// @param maxAmount0 Maximum currency0 the caller permits the position to spend.
@@ -170,7 +183,7 @@ contract ILALRouter is IUnlockCallback {
         (callerDelta, feesAccrued) = abi.decode(result, (BalanceDelta, BalanceDelta));
     }
 
-    /// @notice Remove liquidity from a compliant pool.
+    /// @notice Remove liquidity. Compliance depends on the Hook bound in `key`.
     /// @param key       The pool.
     /// @param params    Position parameters. Delta must be negative; salt is scoped to msg.sender.
     /// @param minAmount0 Minimum currency0 the caller must receive.
@@ -271,7 +284,7 @@ contract ILALRouter is IUnlockCallback {
 
     /// @notice Returns the PoolManager salt used for a user's ILAL position.
     /// @dev PoolManager sees this router as the position owner for every user. Binding
-    ///      the user into the salt prevents one compliant caller from modifying another
+    ///      the user into the salt prevents one caller from modifying another
     ///      caller's position by copying its public ticks and user-provided salt.
     function positionSalt(address user, bytes32 userSalt) public pure returns (bytes32) {
         return keccak256(abi.encode(user, userSalt));
@@ -312,7 +325,7 @@ contract ILALRouter is IUnlockCallback {
         view
         returns (address tokenIn, uint256 feeAmount)
     {
-        if (params.amountSpecified > 0) revert ExactOutputNotSupported();
+        if (params.amountSpecified >= 0) revert ExactOutputNotSupported();
         tokenIn = Currency.unwrap(params.zeroForOne ? key.currency0 : key.currency1);
         uint256 amountIn = uint256(-params.amountSpecified);
         feeAmount = amountIn * protocolFeePips / PIPS_DENOMINATOR;

@@ -2,7 +2,7 @@ name: release candidate
 
 on:
   push:
-    tags: ["v*-rc.*"]
+    tags: ["v*-rc.*", "v*-v2-poc.*"]
   workflow_dispatch:
     inputs:
       tag:
@@ -31,8 +31,8 @@ jobs:
         run: |
           tag="${REQUESTED_TAG:-$GITHUB_REF_NAME}"
           case "$tag" in
-            v*-rc.*) ;;
-            *) echo "Not an RC tag: $tag" >&2; exit 1 ;;
+            v*-rc.*|v*-v2-poc.*) ;;
+            *) echo "Not a prerelease tag: $tag" >&2; exit 1 ;;
           esac
           tag_commit="$(git rev-parse "refs/tags/$tag^{commit}")"
           checkout_commit="$(git rev-parse HEAD)"
@@ -43,7 +43,7 @@ jobs:
         env:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
-          node -e 'const fs=require("fs"); const tag=process.env.TAG; const pkg=require("./cli/package.json"); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); if (tag !== `v${pkg.version}` || release.npmPublication !== "not published" || release.releaseCommit !== null || !/^[0-9a-f]{40}$/.test(release.sourceCommit)) process.exit(1)'
+          node -e 'const fs=require("fs"); const tag=process.env.TAG; const pkg=require("./cli/package.json"); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); const npm=tag.includes("-v2-poc.") ? "next" : "not published"; if (tag !== `v${pkg.version}` || release.npmPublication !== npm || release.releaseCommit !== null || !/^[0-9a-f]{40}$/.test(release.sourceCommit)) process.exit(1)'
       - name: Build prerelease assets
         env:
           TAG: ${{ steps.release.outputs.tag }}

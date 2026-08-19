@@ -59,7 +59,7 @@ contract CNFIssuerTest is Test {
 
     // ─── ZK proof helpers ─────────────────────────────────────────────────────
 
-    // Builds a valid-looking proof + 6-element publicInputs array.
+    // Builds a valid-looking proof + 7-element publicInputs array.
     // inputs[0] must be overwritten per-caller before use.
     function _buildProof() internal view returns (bytes memory proof, uint256[] memory inputs) {
         uint256[2] memory a = [uint256(1), uint256(2)];
@@ -67,13 +67,14 @@ contract CNFIssuerTest is Test {
         uint256[2] memory c = [uint256(7), uint256(8)];
         proof = abi.encode(a, b, c);
 
-        inputs = new uint256[](6);
+        inputs = new uint256[](7);
         // inputs[0] = walletHash — filled per-caller
         inputs[1] = MOCK_ISSUER_HASH; // issuerHash
         inputs[2] = MOCK_SCHEMA_HASH; // schemaHash
         inputs[3] = uint256(block.timestamp + 90 days); // expiresAt
         inputs[4] = 0; // revealFlags
         inputs[5] = MOCK_MERKLE_ROOT; // merkleRoot
+        inputs[6] = 2; // domain-bound circuit revision
     }
 
     function _walletHash(address wallet) internal pure returns (uint256) {
@@ -444,6 +445,7 @@ contract CNFIssuerTest is Test {
         assertEq(tokenId, 1);
         assertTrue(issuer.isValid(alice));
         assertEq(issuer.ownerOf(tokenId), alice);
+        assertEq(issuer.zkCredentialRoot(tokenId), MOCK_MERKLE_ROOT);
     }
 
     function test_mintWithProof_setsExpiry() public {
@@ -548,6 +550,16 @@ contract CNFIssuerTest is Test {
         vm.prank(alice);
         vm.expectRevert(CNFIssuer.InvalidPublicInputs.selector);
         issuer.mintWithProof(proof, shortInputs);
+    }
+
+    function test_mintWithProof_revert_legacyCircuitVersion() public {
+        (bytes memory proof, uint256[] memory inputs) = _buildProof();
+        inputs[0] = _walletHash(alice);
+        inputs[6] = 1;
+
+        vm.prank(alice);
+        vm.expectRevert(CNFIssuer.UnsupportedZKCircuitVersion.selector);
+        issuer.mintWithProof(proof, inputs);
     }
 
     function test_mintWithProof_revert_wrongMerkleRoot() public {
@@ -735,6 +747,47 @@ contract CNFIssuerTest is Test {
 
         assertEq(issuer.merkleRoot(), newRoot);
         assertEq(issuer.pendingRootActivatesAt(), 0);
+    }
+
+    function test_rootRotation_invalidatesExistingZKCredentialUntilRenewed() public {
+        (bytes memory proof, uint256[] memory inputs) = _buildProof();
+        inputs[0] = _walletHash(alice);
+        vm.prank(alice);
+        issuer.mintWithProof(proof, inputs);
+        assertTrue(issuer.isValid(alice));
+
+        uint256 newRoot = 0xc0ffee;
+        vm.startPrank(admin);
+        issuer.proposeMerkleRoot(newRoot);
+        vm.warp(block.timestamp + issuer.ROOT_DELAY() + 1);
+        issuer.activateMerkleRoot();
+        vm.stopPrank();
+
+        assertFalse(issuer.isValid(alice));
+
+        (bytes memory renewalProof, uint256[] memory renewalInputs) = _buildProof();
+        renewalInputs[0] = _walletHash(alice);
+        renewalInputs[5] = newRoot;
+        vm.prank(alice);
+        issuer.renewWithProof(renewalProof, renewalInputs);
+
+        assertEq(issuer.zkCredentialRoot(1), newRoot);
+        assertTrue(issuer.isValid(alice));
+    }
+
+    function test_rootRotation_doesNotInvalidateEASCredential() public {
+        _setupAttestation(ATT_UID_1, alice);
+        vm.prank(alice);
+        issuer.mintWithEAS(ATT_UID_1);
+
+        vm.startPrank(admin);
+        issuer.proposeMerkleRoot(0xc0ffee);
+        vm.warp(block.timestamp + issuer.ROOT_DELAY() + 1);
+        issuer.activateMerkleRoot();
+        vm.stopPrank();
+
+        assertEq(issuer.zkCredentialRoot(1), 0);
+        assertTrue(issuer.isValid(alice));
     }
 
     function test_activateMerkleRoot_revert_tooEarly() public {

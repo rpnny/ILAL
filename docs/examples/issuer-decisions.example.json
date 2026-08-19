@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "provider": "sandbox-kyc-provider",
+  "credentials": [
+    {
+      "wallet": "0x1111111111111111111111111111111111111111",
+      "kycLevel": 3,
+      "countryCode": 840,
+      "expiresAt": 2000000000,
+      "status": "approved",
+      "verificationId": "sandbox-case-a"
+    },
+    {
+      "wallet": "0x2222222222222222222222222222222222222222",
+      "kycLevel": 2,
+      "countryCode": 826,
+      "expiresAt": 2000000000,
+      "status": "approved",
+      "verificationId": "sandbox-case-b"
+    }
+  ]
+}

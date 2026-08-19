@@ -26,8 +26,11 @@ const legacy = deployments.deployments.find(item => item.version === "0.3.2");
 if (!legacy || legacy.status !== "deprecated") fail("Legacy v0.3.2 deployment must remain explicitly deprecated.");
 const isPrerelease = cli.version.includes("-");
 if (isPrerelease) {
-  if (Object.keys(deployments.active ?? {}).length !== 0) fail("RC must not advertise an active deployment before the Safe deployment gate.");
-  if (release.npmPublication !== "not published") fail("RC plan forbids npm publication.");
+  if (release.softwareStatus !== "prerelease") fail("Prerelease software status is inconsistent.");
+  if (!["not published", "next"].includes(release.npmPublication)) fail("Prerelease npm publication must be disabled or use the next channel.");
+  const deployment = readJson(`deployments/${release.deploymentManifest}`);
+  if (deployment.status !== "candidate") fail("Prerelease must reference a candidate deployment.");
+  if (deployment.protocolVersion !== 2) fail("V2 prerelease must reference a V2 candidate deployment.");
 } else {
   const active = Object.values(deployments.active ?? {}).map(path => readJson(`deployments/${path}`));
   const deployment = active.find(item => item.version === cli.version);

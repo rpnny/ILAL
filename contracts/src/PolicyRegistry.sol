@@ -10,30 +10,53 @@ import {IPolicyRegistry} from "./interfaces/IPolicyRegistry.sol";
 ///
 ///         Two-tier permission model:
 ///           • Owner (protocol admin) — registers/deregisters issuers and can set any policy.
-///           • Registered issuers — can self-service `setPolicy` only for their own issuer address.
+///           • Registered issuer operators — can self-service `setPolicy` only for the
+///             CNFIssuer contract they own.
 ///             This enables permissionless pool onboarding once an issuer has been vetted.
 contract PolicyRegistry is IPolicyRegistry, Ownable {
     // ─── Errors ───────────────────────────────────────────────────────────────
 
     error PolicyNotFound();
     error InvalidIssuer();
+    error InvalidIssuerInterface();
+    error InvalidIssuerOperator();
     error NotRegisteredIssuer();
+    error IssuerOperatorMismatch(address operator, address issuerOwner);
     error PolicyOwnedByAnotherIssuer(address currentIssuer);
+    error PolicyUpdateRequiresDelay();
+    error PendingPolicyExists();
+    error NoPendingPolicy();
+    error PolicyUpdateTooEarly(uint256 activatesAt);
 
     // ─── Events ───────────────────────────────────────────────────────────────
 
     event PolicySet(bytes32 indexed poolId, address indexed cnfIssuer, bytes32 credentialType);
     event PolicyDisabled(bytes32 indexed poolId);
-    event IssuerRegistered(address indexed issuer);
-    event IssuerDeregistered(address indexed issuer);
+    event IssuerRegistered(address indexed operator, address indexed cnfIssuer);
+    event IssuerDeregistered(address indexed operator, address indexed cnfIssuer);
+    event PolicyUpdateProposed(
+        bytes32 indexed poolId, address indexed cnfIssuer, bytes32 credentialType, uint256 activatesAt
+    );
+    event PolicyUpdateCancelled(bytes32 indexed poolId);
 
     // ─── Storage ──────────────────────────────────────────────────────────────
 
     mapping(bytes32 => Policy) private _policies;
 
-    /// @notice Addresses approved to call the self-service `setPolicy(bytes32,bytes32)` overload.
-    ///         An issuer sets msg.sender as cnfIssuer — they cannot impersonate other issuers.
-    mapping(address => bool) public registeredIssuers;
+    /// @notice CNFIssuer contract assigned to each self-service operator.
+    mapping(address => address) public issuerForOperator;
+
+    /// @notice Current self-service operator for each CNFIssuer contract.
+    mapping(address => address) public operatorForIssuer;
+
+    struct PendingPolicy {
+        address cnfIssuer;
+        bytes32 requiredCredentialType;
+        uint64 activatesAt;
+    }
+
+    uint64 public constant POLICY_UPDATE_DELAY = 48 hours;
+    mapping(bytes32 => PendingPolicy) public pendingPolicies;
 
     // ─── Constructor ──────────────────────────────────────────────────────────
 
@@ -41,51 +64,156 @@ contract PolicyRegistry is IPolicyRegistry, Ownable {
 
     // ─── Owner-only admin ─────────────────────────────────────────────────────
 
-    /// @notice Full-control policy setter for the owner. Can set any cnfIssuer address.
+    /// @notice Configure a pool that has never had a policy. Existing policy changes
+    ///         must use proposePolicyUpdate/activatePolicyUpdate.
     function setPolicy(bytes32 poolId, address cnfIssuer, bytes32 credentialType) external onlyOwner {
-        if (cnfIssuer == address(0)) revert InvalidIssuer();
-        _policies[poolId] = Policy({cnfIssuer: cnfIssuer, requiredCredentialType: credentialType, enabled: true});
-        emit PolicySet(poolId, cnfIssuer, credentialType);
+        _validateIssuerContract(cnfIssuer);
+        _setInitialPolicy(poolId, cnfIssuer, credentialType);
     }
 
     function disablePolicy(bytes32 poolId) external onlyOwner {
         if (!_policies[poolId].enabled) revert PolicyNotFound();
+        if (pendingPolicies[poolId].activatesAt != 0) {
+            delete pendingPolicies[poolId];
+            emit PolicyUpdateCancelled(poolId);
+        }
         _policies[poolId].enabled = false;
         emit PolicyDisabled(poolId);
     }
 
-    /// @notice Approve an issuer address for self-service pool registration.
-    function registerIssuer(address issuer) external onlyOwner {
-        if (issuer == address(0)) revert InvalidIssuer();
-        registeredIssuers[issuer] = true;
-        emit IssuerRegistered(issuer);
+    /// @notice Bind an operator to the CNFIssuer contract it owns.
+    /// @dev The ownership check is repeated on every self-service policy update, so a
+    ///      transferred issuer cannot retain privileges through a stale registration.
+    function registerIssuer(address operator, address cnfIssuer) external onlyOwner {
+        if (operator == address(0)) revert InvalidIssuerOperator();
+        _validateIssuerContract(cnfIssuer);
+        address issuerOwner = _issuerOwner(cnfIssuer);
+        if (issuerOwner != operator) revert IssuerOperatorMismatch(operator, issuerOwner);
+
+        address previousIssuer = issuerForOperator[operator];
+        if (previousIssuer != address(0) && operatorForIssuer[previousIssuer] == operator) {
+            delete operatorForIssuer[previousIssuer];
+        }
+        address previousOperator = operatorForIssuer[cnfIssuer];
+        if (previousOperator != address(0) && previousOperator != operator) {
+            delete issuerForOperator[previousOperator];
+        }
+
+        issuerForOperator[operator] = cnfIssuer;
+        operatorForIssuer[cnfIssuer] = operator;
+        emit IssuerRegistered(operator, cnfIssuer);
     }
 
     /// @notice Revoke a previously registered issuer's self-service rights.
     ///         Does NOT retroactively disable their existing policies.
-    function deregisterIssuer(address issuer) external onlyOwner {
-        registeredIssuers[issuer] = false;
-        emit IssuerDeregistered(issuer);
+    function deregisterIssuer(address operator) external onlyOwner {
+        address cnfIssuer = issuerForOperator[operator];
+        delete issuerForOperator[operator];
+        if (operatorForIssuer[cnfIssuer] == operator) delete operatorForIssuer[cnfIssuer];
+        emit IssuerDeregistered(operator, cnfIssuer);
+    }
+
+    /// @notice Queue an issuer migration, credential-type change, or re-enable.
+    function proposePolicyUpdate(bytes32 poolId, address cnfIssuer, bytes32 credentialType) external onlyOwner {
+        _validateIssuerContract(cnfIssuer);
+        _proposePolicyUpdate(poolId, cnfIssuer, credentialType);
+    }
+
+    /// @notice Cancel a queued policy change before it is activated.
+    function cancelPolicyUpdate(bytes32 poolId) external onlyOwner {
+        if (pendingPolicies[poolId].activatesAt == 0) revert NoPendingPolicy();
+        delete pendingPolicies[poolId];
+        emit PolicyUpdateCancelled(poolId);
+    }
+
+    /// @notice Activate a queued policy change after the review delay. Permissionless
+    ///         execution avoids making the owner key an availability dependency.
+    function activatePolicyUpdate(bytes32 poolId) external {
+        PendingPolicy memory pending = pendingPolicies[poolId];
+        if (pending.activatesAt == 0) revert NoPendingPolicy();
+        if (block.timestamp < pending.activatesAt) revert PolicyUpdateTooEarly(pending.activatesAt);
+        delete pendingPolicies[poolId];
+        _setPolicy(poolId, pending.cnfIssuer, pending.requiredCredentialType);
     }
 
     // ─── Self-service (registered issuers) ───────────────────────────────────
 
-    /// @notice Registered issuers can claim an unconfigured pool or update a pool they already own.
-    ///         Existing ownership survives policy disablement; only the protocol owner can migrate
-    ///         a pool to another issuer through the owner-only overload above.
+    /// @notice Registered issuers can claim an unconfigured pool. Existing policy
+    ///         changes must use the delayed self-service proposal overload below.
     function setPolicy(bytes32 poolId, bytes32 credentialType) external {
-        if (!registeredIssuers[msg.sender]) revert NotRegisteredIssuer();
+        address cnfIssuer = _registeredIssuerFor(msg.sender);
+        _setInitialPolicy(poolId, cnfIssuer, credentialType);
+    }
+
+    /// @notice Queue a delayed credential-type change or re-enable for a pool owned
+    ///         by the caller's registered CNFIssuer contract.
+    function proposePolicyUpdate(bytes32 poolId, bytes32 credentialType) external {
+        address cnfIssuer = _registeredIssuerFor(msg.sender);
         address currentIssuer = _policies[poolId].cnfIssuer;
-        if (currentIssuer != address(0) && currentIssuer != msg.sender) {
-            revert PolicyOwnedByAnotherIssuer(currentIssuer);
-        }
-        _policies[poolId] = Policy({cnfIssuer: msg.sender, requiredCredentialType: credentialType, enabled: true});
-        emit PolicySet(poolId, msg.sender, credentialType);
+        if (currentIssuer != cnfIssuer) revert PolicyOwnedByAnotherIssuer(currentIssuer);
+        _proposePolicyUpdate(poolId, cnfIssuer, credentialType);
     }
 
     // ─── Views ────────────────────────────────────────────────────────────────
 
     function getPolicy(bytes32 poolId) external view returns (Policy memory) {
         return _policies[poolId];
+    }
+
+    /// @notice Backwards-compatible registration view for existing integrations.
+    function registeredIssuers(address operator) external view returns (bool) {
+        return issuerForOperator[operator] != address(0);
+    }
+
+    function _validateIssuerContract(address cnfIssuer) internal view {
+        if (cnfIssuer == address(0) || cnfIssuer.code.length == 0) revert InvalidIssuer();
+
+        (bool validOk, bytes memory validData) =
+            cnfIssuer.staticcall(abi.encodeWithSignature("isValid(address)", address(0)));
+        (bool tokenOk, bytes memory tokenData) =
+            cnfIssuer.staticcall(abi.encodeWithSignature("credentialOf(address)", address(0)));
+        (bool credentialOk, bytes memory credentialData) =
+            cnfIssuer.staticcall(abi.encodeWithSignature("getCredential(uint256)", uint256(0)));
+        if (
+            !validOk || validData.length != 32 || !tokenOk || tokenData.length != 32 || !credentialOk
+                || credentialData.length < 192
+        ) revert InvalidIssuerInterface();
+    }
+
+    function _issuerOwner(address cnfIssuer) internal view returns (address issuerOwner) {
+        (bool ok, bytes memory data) = cnfIssuer.staticcall(abi.encodeWithSignature("owner()"));
+        if (!ok || data.length != 32) revert InvalidIssuerInterface();
+        issuerOwner = abi.decode(data, (address));
+    }
+
+    function _registeredIssuerFor(address operator) internal view returns (address cnfIssuer) {
+        cnfIssuer = issuerForOperator[operator];
+        if (cnfIssuer == address(0)) revert NotRegisteredIssuer();
+        address issuerOwner = _issuerOwner(cnfIssuer);
+        if (issuerOwner != operator) revert IssuerOperatorMismatch(operator, issuerOwner);
+    }
+
+    function _setInitialPolicy(bytes32 poolId, address cnfIssuer, bytes32 credentialType) internal {
+        address currentIssuer = _policies[poolId].cnfIssuer;
+        if (currentIssuer != address(0)) {
+            if (currentIssuer != cnfIssuer) revert PolicyOwnedByAnotherIssuer(currentIssuer);
+            revert PolicyUpdateRequiresDelay();
+        }
+        if (pendingPolicies[poolId].activatesAt != 0) revert PendingPolicyExists();
+        _setPolicy(poolId, cnfIssuer, credentialType);
+    }
+
+    function _proposePolicyUpdate(bytes32 poolId, address cnfIssuer, bytes32 credentialType) internal {
+        if (_policies[poolId].cnfIssuer == address(0)) revert PolicyNotFound();
+        if (pendingPolicies[poolId].activatesAt != 0) revert PendingPolicyExists();
+        uint64 activatesAt = uint64(block.timestamp + POLICY_UPDATE_DELAY);
+        pendingPolicies[poolId] =
+            PendingPolicy({cnfIssuer: cnfIssuer, requiredCredentialType: credentialType, activatesAt: activatesAt});
+        emit PolicyUpdateProposed(poolId, cnfIssuer, credentialType, activatesAt);
+    }
+
+    function _setPolicy(bytes32 poolId, address cnfIssuer, bytes32 credentialType) internal {
+        _policies[poolId] = Policy({cnfIssuer: cnfIssuer, requiredCredentialType: credentialType, enabled: true});
+        emit PolicySet(poolId, cnfIssuer, credentialType);
     }
 }

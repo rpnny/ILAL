@@ -13,6 +13,7 @@
     "build:tree": "npx tsx oracle/build_tree.ts",
     "build:witness": "npx tsx oracle/generate_witness.ts",
     "test:oracle": "npx --no-install tsx --test oracle/*.test.ts",
+    "test:v1": "bash scripts/test_v1.sh",
     "test:v2": "bash scripts/test_v2.sh",
     "prove:v2:demo": "bash scripts/generate_v2_demo_proof.sh"
   },
@@ -28,5 +29,10 @@
     "snarkjs": "^0.7.6",
     "tsx": "^4.7.0",
     "typescript": "^5.4.0"
+  },
+  "overrides": {
+    "brace-expansion": "^2.1.4",
+    "underscore": "1.13.8",
+    "ws": "^8.21.0"
   }
 }

@@ -14,6 +14,24 @@ const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
 const REGISTRY_ABI = [
   {
+    name: "proposePolicyUpdate",
+    type: "function" as const,
+    stateMutability: "nonpayable" as const,
+    inputs: [
+      { name: "poolId", type: "bytes32" as const },
+      { name: "cnfIssuer", type: "address" as const },
+      { name: "credentialType", type: "bytes32" as const },
+    ],
+    outputs: [],
+  },
+  {
+    name: "activatePolicyUpdate",
+    type: "function" as const,
+    stateMutability: "nonpayable" as const,
+    inputs: [{ name: "poolId", type: "bytes32" as const }],
+    outputs: [],
+  },
+  {
     name: "setPolicy",
     type: "function" as const,
     stateMutability: "nonpayable" as const,
@@ -115,6 +133,92 @@ export async function poolPolicySet(opts: {
   log.kv("tx", fmt.hash(hash));
   log.result("Policy registered", "", "green");
   console.log();
+}
+
+export async function poolPolicyPropose(opts: {
+  pool: string;
+  issuer: string;
+  credType: string;
+  registry: string;
+  chain: string;
+  rpc?: string;
+  privateKey?: string;
+}) {
+  if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
+  if (!isAddress(opts.registry)) die(`Invalid registry address: ${opts.registry}`);
+  if (!isHex(opts.pool) || opts.pool.length !== 66) die("poolId must be 0x + 32 bytes.");
+  if (!isHex(opts.credType) || opts.credType.length !== 66) die("credType must be 0x + 32 bytes.");
+
+  const chain = CHAINS[opts.chain] ?? baseSepolia;
+  const args = [
+    opts.pool as `0x${string}`,
+    opts.issuer as `0x${string}`,
+    opts.credType as `0x${string}`,
+  ] as const;
+  if (await proposeConfiguredSafeContractCall({
+    chain,
+    rpc: opts.rpc,
+    address: opts.registry as `0x${string}`,
+    abi: REGISTRY_ABI,
+    functionName: "proposePolicyUpdate",
+    args,
+  })) return;
+
+  const { walletClient, publicClient } = await createExecutionClients({
+    chain,
+    rpc: opts.rpc,
+    legacyPrivateKey: opts.privateKey,
+  });
+  const spin = new Spinner("Queuing delayed policy update…").start();
+  const hash = await walletClient.writeContract({
+    address: opts.registry as `0x${string}`,
+    abi: REGISTRY_ABI,
+    functionName: "proposePolicyUpdate",
+    args,
+  });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== "success") die(`Transaction reverted. Hash: ${hash}`);
+  spin.succeed("Policy update queued; activate after POLICY_UPDATE_DELAY");
+  log.kv("tx", fmt.hash(hash));
+}
+
+export async function poolPolicyActivate(opts: {
+  pool: string;
+  registry: string;
+  chain: string;
+  rpc?: string;
+  privateKey?: string;
+}) {
+  if (!isAddress(opts.registry)) die(`Invalid registry address: ${opts.registry}`);
+  if (!isHex(opts.pool) || opts.pool.length !== 66) die("poolId must be 0x + 32 bytes.");
+
+  const chain = CHAINS[opts.chain] ?? baseSepolia;
+  const args = [opts.pool as `0x${string}`] as const;
+  if (await proposeConfiguredSafeContractCall({
+    chain,
+    rpc: opts.rpc,
+    address: opts.registry as `0x${string}`,
+    abi: REGISTRY_ABI,
+    functionName: "activatePolicyUpdate",
+    args,
+  })) return;
+
+  const { walletClient, publicClient } = await createExecutionClients({
+    chain,
+    rpc: opts.rpc,
+    legacyPrivateKey: opts.privateKey,
+  });
+  const spin = new Spinner("Activating queued policy update…").start();
+  const hash = await walletClient.writeContract({
+    address: opts.registry as `0x${string}`,
+    abi: REGISTRY_ABI,
+    functionName: "activatePolicyUpdate",
+    args,
+  });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== "success") die(`Transaction reverted. Hash: ${hash}`);
+  spin.succeed("Policy update activated");
+  log.kv("tx", fmt.hash(hash));
 }
 
 export async function poolPolicyGet(opts: {

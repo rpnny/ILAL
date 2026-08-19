@@ -1,5 +1,22 @@
 # ILAL release handoff
 
+## Current V2 preview
+
+| Field | Value |
+|---|---|
+| Version | `v0.4.0-v2-poc.4` |
+| npm | `@ilalv3/cli@next` |
+| Deployment | Base Sepolia V2 PoC candidate `v0.4.0-v2-poc.1` |
+| ZK | Groth16 V2 with an unsafe development ceremony |
+| Production | Not production-ready |
+| Audit | Unaudited |
+
+The preview adds the issuer-operated encrypted tree, PII-free JSON/CSV import,
+revocation, Safe-ready policy commitments, private witness export, local V2
+proof generation, and same-block policy/grant preflight with a final revision
+check before broadcast. It does not replace npm `latest` or the active v0.3.3
+demo preset.
+
 ## Current release
 
 | Field | Value |
@@ -41,9 +58,17 @@ Required baselines:
 
 ## Release separation
 
-`release-rc.yml` creates only a GitHub prerelease and has no npm OIDC permission. `publish-npm-stable.yml` accepts only a stable semver tag, uses the protected `npm-production` environment, and receives only `contents: read` and `id-token: write`. npm Trusted Publishing must be bound to `rpnny/ilal`, that workflow, the protected environment, and the npm publish action.
+`release-rc.yml` creates GitHub prerelease assets and has no npm OIDC
+permission. `publish-npm-stable.yml` publishes stable tags to `latest` and
+explicit V2 PoC tags to `next`; it uses the protected `npm-production`
+environment and receives only `contents: read` and `id-token: write`. npm
+Trusted Publishing must be bound to `rpnny/ilal`, that workflow, the protected
+environment, and the npm publish action.
 
-RC publication does not authorize deployment, npm publication, website activation, legacy-repository archival, or secret rotation through external systems. Those are separate gates in `docs/RELEASE_PROCESS.md`.
+Ordinary RC publication does not authorize deployment, npm publication,
+website activation, legacy-repository archival, or secret rotation through
+external systems. A V2 PoC tag may publish only to `next` when it references a
+recorded candidate deployment and passes the dedicated tag gate.
 
 ## Remaining production blockers
 

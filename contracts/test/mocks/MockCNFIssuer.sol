@@ -2,14 +2,17 @@
 pragma solidity ^0.8.24;
 
 import {ICNFIssuer} from "../../src/interfaces/ICNFIssuer.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MockCNFIssuer is ICNFIssuer {
+contract MockCNFIssuer is ICNFIssuer, Ownable {
     mapping(address => bool) private _valid;
     mapping(address => uint256) private _tokenId;
     mapping(uint256 => Credential) private _credentials;
     uint256 private _nextTokenId;
 
     bytes32 public defaultCredentialType = keccak256("coinbase.kyc");
+
+    constructor() Ownable(msg.sender) {}
 
     function setValid(address wallet, bool valid) external {
         _valid[wallet] = valid;

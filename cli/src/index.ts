@@ -13,7 +13,7 @@ import {
 import { mintCredential, renewCredential } from "./commands/mint.js";
 import { proofMint, proofRenew } from "./commands/proof.js";
 import { sessionSign } from "./commands/session.js";
-import { poolPolicySet, poolPolicyGet } from "./commands/pool.js";
+import { poolPolicySet, poolPolicyGet, poolPolicyPropose, poolPolicyActivate } from "./commands/pool.js";
 import { deploy } from "./commands/deploy.js";
 import { demo, demoCheck, demoFaucet, demoAttest } from "./commands/demo.js";
 import { init } from "./commands/init.js";
@@ -21,6 +21,14 @@ import { status } from "./commands/status.js";
 import { swap } from "./commands/swap.js";
 import { addLiquidity, removeLiquidity } from "./commands/liquidity.js";
 import { issuerAttest, issuerCreate, issuerGet, issuerSetJurisdiction, issuerSetType } from "./commands/issuer.js";
+import {
+  issuerTreeAdd,
+  issuerTreeExportWitness,
+  issuerTreeImport,
+  issuerTreeInit,
+  issuerTreeRevoke,
+  issuerTreeRoot,
+} from "./commands/issuerKit.js";
 import {
   policyDisableV2,
   policyGrantActivate,
@@ -40,7 +48,7 @@ const program = new Command();
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.3.3")
+  .version("0.4.0-v2-poc.4")
   .option("--keystore <path>", "Encrypted Web3 Secret Storage v3 keystore")
   .option("--password-file <path>", "Keystore password file (must be mode 600)")
   .option("--rpc-account <address>", "Account managed by the configured JSON-RPC node")
@@ -197,6 +205,82 @@ issuer
     await issuerGet(opts).catch(err);
   });
 
+const issuerTree = issuer
+  .command("tree")
+  .description("Operate an encrypted local v2 credential and jurisdiction tree");
+
+issuerTree
+  .command("init")
+  .description("Initialize an encrypted issuer tree and policy profile")
+  .requiredOption("--issuer <name>", "Issuer or trust-domain name")
+  .requiredOption("--schema <name>", "Credential schema name or version")
+  .requiredOption("--allow-countries <codes>", "Comma-separated ISO 3166-1 numeric country codes")
+  .option("--min-kyc-level <level>", "Minimum pool KYC level (1-3)", "2")
+  .option("--max-grant-ttl <seconds>", "Maximum short-lived grant TTL", "86400")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .option("--force", "Replace an existing issuer store", false)
+  .action(async (opts: { issuer: string; schema: string; allowCountries: string; minKycLevel?: string; maxGrantTtl?: string; store?: string; storePasswordFile: string; force?: boolean }) => {
+    await issuerTreeInit(opts).catch(err);
+  });
+
+issuerTree
+  .command("add")
+  .description("Add or update one wallet credential in the encrypted tree")
+  .requiredOption("--wallet <address>", "Credential wallet")
+  .requiredOption("--kyc-level <level>", "Private KYC level (0-3)")
+  .requiredOption("--country <code>", "Private ISO 3166-1 numeric country code")
+  .option("--expires-at <time>", "Unix timestamp or ISO-8601 source expiry")
+  .option("--expires-in-days <days>", "Source credential lifetime", "365")
+  .option("--verification-id <id>", "Provider reference; only its hash is stored")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { wallet: string; kycLevel: string; country: string; expiresAt?: string; expiresInDays?: string; verificationId?: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeAdd(opts).catch(err);
+  });
+
+issuerTree
+  .command("import")
+  .description("Import approved or revoked credentials from JSON or CSV")
+  .requiredOption("--file <path>", "JSON or CSV credential decision file")
+  .option("--default-expires-in-days <days>", "Default lifetime when a row omits expiry", "365")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { file: string; defaultExpiresInDays?: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeImport(opts).catch(err);
+  });
+
+issuerTree
+  .command("revoke")
+  .description("Remove one wallet from the active credential tree")
+  .requiredOption("--wallet <address>", "Credential wallet")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { wallet: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeRevoke(opts).catch(err);
+  });
+
+issuerTree
+  .command("root")
+  .description("Print the current policy commitment and Safe-ready admin command")
+  .option("--out <path>", "Write public policy fields to a mode-600 JSON file")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { out?: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeRoot(opts).catch(err);
+  });
+
+issuerTree
+  .command("export-witness")
+  .description("Export one wallet-bound private v2 circuit input")
+  .requiredOption("--wallet <address>", "Credential wallet")
+  .requiredOption("--out <path>", "Private circuit input JSON output")
+  .option("--store <path>", "Encrypted issuer store", ".ilal-issuer-v2.enc.json")
+  .requiredOption("--store-password-file <path>", "Issuer-store password file (mode 600)")
+  .action(async (opts: { wallet: string; out: string; store?: string; storePasswordFile: string }) => {
+    await issuerTreeExportWitness(opts).catch(err);
+  });
+
 // ─── credential ───────────────────────────────────────────────────────────────
 
 const credential = program.command("credential").description("Manage compliance credentials (CNF)");
@@ -233,9 +317,9 @@ credential
   .command("zk-root")
   .description("Compute the Merkle root needed for a one-wallet ZK credential demo")
   .requiredOption("-w, --wallet <address>", "Wallet address included in the ZK tree")
-  .option("-i, --issuer <address>", "Issuer address, used to print matching public-input hashes")
+  .requiredOption("-i, --issuer <address>", "Issuer address committed into the ZK leaf")
   .requiredOption("--expires-at <unix>", "Future Unix timestamp; pass the same value to credential prove")
-  .action(async (opts: { wallet: string; issuer?: string; expiresAt: string }) => {
+  .action(async (opts: { wallet: string; issuer: string; expiresAt: string }) => {
     await credentialRoot(opts).catch(err);
   });
 
@@ -362,7 +446,7 @@ policyProofV2
   .option("--vkey <path>", "Explicit verification key path")
   .option("--out-dir <path>", "Output directory for proof.json and public.json", "artifacts/v2-proof")
   .action(async (opts: { input: string; circuitDir?: string; wasm?: string; zkey?: string; vkey?: string; outDir?: string }) => {
-    await policyProofGenerate(opts).catch(err);
+    await policyProofGenerate({ ...opts, exitAfter: true }).catch(err);
   });
 
 grantsV2
@@ -413,7 +497,7 @@ const policy = pool.command("policy").description("Pool compliance policy comman
 
 policy
   .command("set")
-  .description("Register a compliance policy for a pool (pool operator only)")
+  .description("Register the first compliance policy for a pool")
   .requiredOption("-p, --pool <bytes32>", "Pool ID (bytes32 hex)")
   .requiredOption("-i, --issuer <address>", "CNFIssuer contract address")
   .requiredOption("-R, --registry <address>", "PolicyRegistry contract address")
@@ -422,6 +506,30 @@ policy
   .option("-r, --rpc <url>", "Custom RPC URL")
   .action(async (opts: { pool: string; issuer: string; registry: string; credType: string; chain: string; rpc?: string; privateKey?: string }) => {
     await poolPolicySet(opts).catch(err);
+  });
+
+policy
+  .command("propose")
+  .description("Queue a delayed issuer or credential-type policy update")
+  .requiredOption("-p, --pool <bytes32>", "Pool ID (bytes32 hex)")
+  .requiredOption("-i, --issuer <address>", "Replacement CNFIssuer contract address")
+  .requiredOption("-R, --registry <address>", "PolicyRegistry contract address")
+  .option("-T, --cred-type <bytes32>", "Required credential type", COINBASE_SCHEMA_UID)
+  .option("-c, --chain <chainId>", "Chain ID", "8453")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { pool: string; issuer: string; registry: string; credType: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await poolPolicyPropose(opts).catch(err);
+  });
+
+policy
+  .command("activate")
+  .description("Activate a queued policy update after the review delay")
+  .requiredOption("-p, --pool <bytes32>", "Pool ID (bytes32 hex)")
+  .requiredOption("-R, --registry <address>", "PolicyRegistry contract address")
+  .option("-c, --chain <chainId>", "Chain ID", "8453")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { pool: string; registry: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await poolPolicyActivate(opts).catch(err);
   });
 
 policy

@@ -6,17 +6,21 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.3.3` | Current local source and npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
+| `0.4.0-v2-poc.4` | npm `next` preview | V2 issuer integration kit; Base Sepolia PoC only, unsafe development ceremony, unaudited |
+| `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
 | `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
 
-The v0.3.3 local source and npm package share the current ABI and active manifest. Published `0.2.21` remains a separate legacy line; copying its commands or addresses into v0.3.3 will fail.
+The V2 preview keeps the stable v0.3.3 deployment preset isolated while adding
+issuer-operated policy tooling for the recorded V2 candidate. Install it with
+`npm install -g @ilalv3/cli@next`. Published `0.2.21` remains a separate legacy
+line; copying its commands or addresses into current releases will fail.
 
 ```bash
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.3.3
+node dist/index.js --version  # 0.4.0-v2-poc.4
 npm test
 ```
 
@@ -84,6 +88,49 @@ This signs and submits one owner proposal; it does not execute the Safe transact
 
 Configured policy management commands can use the same Safe proposal options. Safe proposal handling is for administrative transactions; it is not a swap-session multisig collector.
 
+## V2 issuer integration kit
+
+The issuer kit converts PII-free JSON or CSV decisions into an encrypted,
+deterministic credential tree. Exact KYC tier, country, wallet records, and
+Merkle paths remain in the issuer environment. Only policy commitments are
+published on-chain.
+
+```bash
+ilal issuer tree init \
+  --issuer "Partner Sandbox Issuer" \
+  --schema institutional-kyc-v1 \
+  --allow-countries 840,826,756 \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+
+ilal issuer tree import \
+  --file ./issuer-decisions.csv \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+
+ilal issuer tree root \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+
+ilal issuer tree export-witness \
+  --wallet 0xInstitution \
+  --out ./private/issuer-witness.json \
+  --store ./private/issuer.enc.json \
+  --store-password-file ./issuer-store.password
+```
+
+The encrypted store uses AES-256-GCM with a scrypt-derived key. Password,
+store, policy export, and witness files must be managed as issuer secrets; the
+CLI rejects group-readable password files and writes generated artifacts with
+mode `600`. Provider references are domain-separated and hashed before being
+stored. See the repository's `docs/ISSUER_INTEGRATION.md` for the data schema,
+Safe policy publication, revocation, and sandbox acceptance workflow.
+
+V2 swap and liquidity preflight pins policy and grant reads to one block. The
+CLI rechecks the policy hash, revision, and grant immediately before broadcast,
+so a newly published root rejects an old grant before the Router transaction is
+sent. The Hook performs the same enforcement on-chain.
+
 ## ERC-1271 sessions
 
 External `--hook-data` validation distinguishes EOAs from contract wallets. EOAs require canonical 65-byte low-s ECDSA. Contract wallets are validated on-chain with `isValidSignature(sessionDigest, signature)`, so an ERC-1271 signature is not forced into EOA length or recovery rules.
@@ -117,7 +164,12 @@ The active public v0.3.3 Base Sepolia demo is recorded in `deployments/base-sepo
 
 ## Release policy
 
-RC tags create GitHub prereleases only. Stable npm publication uses GitHub OIDC Trusted Publishing, provenance, a protected environment, and exact version consistency across Git tag, `package.json`, release manifest, and deployment manifest. See the root `RELEASE.md` and `docs/RELEASE_PROCESS.md`.
+Ordinary RC tags create GitHub prereleases only. Stable releases publish to
+`latest`; explicitly versioned V2 PoC releases publish to `next`. Both npm
+channels use GitHub OIDC Trusted Publishing, provenance, a protected
+environment, and exact consistency across the Git tag, `package.json`, release
+manifest, and the referenced active or candidate deployment. See the root
+`RELEASE.md` and `docs/RELEASE_PROCESS.md`.
 
 ## License
 

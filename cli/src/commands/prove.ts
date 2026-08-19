@@ -43,7 +43,7 @@ import { base, baseSepolia } from "viem/chains";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — no bundled types for this package
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
-import { poseidon2, poseidon4 } from "poseidon-lite";
+import { poseidon2, poseidon6 } from "poseidon-lite";
 import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
 import { withConfig } from "../config.js";
 import { COINBASE_SCHEMA_UID } from "../constants.js";
@@ -265,18 +265,17 @@ async function findCircuitDir(opts: {
     resolve(__dirname, "../../../circuits/build"),
     resolve(process.cwd(), "circuits/build"),
     resolve(process.cwd(), "build"),
-    resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE),
   ];
   for (const p of candidates) {
-    const isCache = resolve(p) === resolve(opts.artifactCache ?? DEFAULT_ARTIFACT_CACHE);
-    if ((isCache && hasTrustedHostedArtifacts(p)) || (!isCache && hasCircuitArtifacts(p))) {
-      const source = isCache ? "cache" : "local";
-      return { dir: p, source };
+    if (hasCircuitArtifacts(p)) {
+      return { dir: p, source: "local" };
     }
   }
 
-  const dir = await ensureHostedArtifacts(opts);
-  return { dir, source: "download" };
+  die(
+    "The retired six-signal v1 proving artifacts are no longer downloaded automatically.\n" +
+    "  Build the domain-bound seven-signal circuit with a reviewed Phase-2 ceremony, then pass --circuit-dir <path>."
+  );
 }
 
 // ─── Core proof generation ─────────────────────────────────────────────────────
@@ -294,9 +293,14 @@ function resolveExpiresAt(expiresAt?: string): bigint {
   return parsed;
 }
 
-function computeZKLeafAndRoot(walletAddr: string, expiresAt: bigint): { leaf: bigint; merkleRoot: bigint } {
+function computeZKLeafAndRoot(
+  walletAddr: string,
+  expiresAt: bigint,
+  issuerHash: bigint,
+  schemaHashValue: bigint,
+): { leaf: bigint; merkleRoot: bigint } {
   const walletField = addressToField(walletAddr);
-  const leaf = poseidon4([walletField, 2n, 840n, expiresAt]);
+  const leaf = poseidon6([walletField, 2n, 840n, expiresAt, issuerHash, schemaHashValue]);
   const tree = new IncrementalMerkleTree(poseidon2, DEPTH, 0n, 2);
   tree.insert(leaf);
   return { leaf, merkleRoot: tree.root };
@@ -321,7 +325,7 @@ function generateProof(opts: {
   const expiresAt    = resolveExpiresAt(opts.expiresAt);
 
   // Build single-leaf Poseidon Merkle tree
-  const { leaf, merkleRoot } = computeZKLeafAndRoot(walletAddr, expiresAt);
+  const { leaf, merkleRoot } = computeZKLeafAndRoot(walletAddr, expiresAt, issuerHash, schemaHashValue);
   const tree = new IncrementalMerkleTree(poseidon2, DEPTH, 0n, 2);
   tree.insert(leaf);
   const merkleProof = tree.createProof(0);
@@ -340,6 +344,7 @@ function generateProof(opts: {
     expiresAt:          expiresAt.toString(),
     revealFlags:        "0",
     merkleRoot:         merkleRoot.toString(),
+    circuitVersion:     "2",
   };
 
   const inputPath  = resolve(outDir, "input.json");
@@ -370,6 +375,9 @@ function generateProof(opts: {
   });
 
   const publicJson = JSON.parse(readFileSync(publicPath, "utf8")) as string[];
+  if (publicJson.length !== 7 || BigInt(publicJson[6]!) !== 2n) {
+    die("Proving artifacts use the retired six-signal circuit; rebuild with the domain-bound circuit revision.");
+  }
   // Read merkleRoot from circuit output (public.json[5]) — guaranteed to match
   // what we'll pass to the contract, eliminating any JS/circuit hash discrepancy.
   const circuitMerkleRoot = BigInt(publicJson[5]!);
@@ -554,8 +562,12 @@ export async function credentialRoot(opts: {
 }) {
   if (!opts.wallet) die("Wallet address required. Use --wallet <address>.");
   if (!isAddress(opts.wallet)) die(`Invalid wallet address: ${opts.wallet}`);
+  if (!opts.issuer) die("Issuer address required. The issuer/schema domain is committed into every leaf.");
+  if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
   const expiresAt = resolveExpiresAt(opts.expiresAt);
-  const { leaf, merkleRoot } = computeZKLeafAndRoot(opts.wallet, expiresAt);
+  const issuerHash = poseidonField(addressToField(opts.issuer));
+  const schemaHashValue = schemaHash(COINBASE_SCHEMA_UID);
+  const { leaf, merkleRoot } = computeZKLeafAndRoot(opts.wallet, expiresAt, issuerHash, schemaHashValue);
 
   header("ILAL ZK Root Preparation", "operator pre-deploy / pre-root");
   log.kv("wallet", fmt.cyan(opts.wallet));
@@ -565,11 +577,9 @@ export async function credentialRoot(opts: {
   log.kv("leaf", leaf.toString());
   log.kv("merkleRoot", fmt.cyan(merkleRoot.toString()));
 
-  if (opts.issuer) {
-    if (!isAddress(opts.issuer)) die(`Invalid issuer address: ${opts.issuer}`);
-    log.kv("issuerHash", poseidonField(addressToField(opts.issuer)).toString());
-    log.kv("schemaHash", schemaHash(COINBASE_SCHEMA_UID).toString());
-  }
+  log.kv("issuerHash", issuerHash.toString());
+  log.kv("schemaHash", schemaHashValue.toString());
+  log.kv("circuitVersion", "2");
 
   log.line();
   log.command(`INITIAL_MERKLE_ROOT=${merkleRoot.toString()} forge script contracts/script/DeployDemo.s.sol ...`);

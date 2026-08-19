@@ -39,7 +39,10 @@ import {
   type SessionTokenV1,
   type SessionTokenV2,
 } from "../sessionProtocol.js";
-import { readEligibilityPolicyV2 } from "./policyV2.js";
+import {
+  policyGrantSnapshotIssue,
+  readPolicyGrantSnapshotV2,
+} from "./policyV2.js";
 import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
@@ -88,17 +91,6 @@ const CNF_ABI = [
 ] as const;
 
 // ─── Session helpers ──────────────────────────────────────────────────────────
-
-const GRANT_MANAGER_V2_ABI = [{
-  name: "isPolicyGrantValid",
-  type: "function" as const,
-  stateMutability: "view" as const,
-  inputs: [
-    { name: "poolId", type: "bytes32" as const },
-    { name: "user", type: "address" as const },
-  ],
-  outputs: [{ type: "bool" as const }],
-}] as const;
 
 const ERC1271_ABI = [{
   name: "isValidSignature",
@@ -330,15 +322,14 @@ export async function swap(opts: {
       preflightErrors.push("wallet CNF credential exists but is not valid.");
     }
   } else {
-    const [policy, grantValid] = await Promise.all([
-      readEligibilityPolicyV2(pubClient, cfg.registry as `0x${string}`, cfg.poolId as `0x${string}`),
-      pubClient.readContract({
-        address: cfg.grantManager as `0x${string}`,
-        abi: GRANT_MANAGER_V2_ABI,
-        functionName: "isPolicyGrantValid",
-        args: [cfg.poolId as `0x${string}`, account.address],
-      }) as Promise<boolean>,
-    ]);
+    const snapshot = await readPolicyGrantSnapshotV2(
+      pubClient,
+      cfg.registry as `0x${string}`,
+      cfg.grantManager as `0x${string}`,
+      cfg.poolId as `0x${string}`,
+      account.address
+    );
+    const { policy, valid: grantValid } = snapshot;
     policyHash = policy.policyHash;
     policyRevision = policy.revision;
     accessValid = policy.enabled && policy.revision > 0n && grantValid;
@@ -523,6 +514,21 @@ export async function swap(opts: {
     approveSpin.succeed(`Approved exact debit ${tokenAmount(totalDebit, decimals, symbol)} ${fmt.gray(fmt.hash(approveHash))}`);
   } else {
     approveSpin.succeed(`Allowance: ${allowanceLabel(allowed, decimals, symbol)}`);
+  }
+
+  if (version === "2") {
+    const latest = await readPolicyGrantSnapshotV2(
+      pubClient,
+      cfg.registry as `0x${string}`,
+      cfg.grantManager as `0x${string}`,
+      cfg.poolId as `0x${string}`,
+      account.address
+    );
+    const issue = policyGrantSnapshotIssue(latest, {
+      policyHash: policyHash!,
+      revision: policyRevision!,
+    });
+    if (issue) die(`Swap not sent: ${issue}. Generate and activate a proof for the current policy.`);
   }
 
   // Build PoolKey

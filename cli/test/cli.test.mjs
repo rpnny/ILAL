@@ -372,6 +372,13 @@ test("v2 policy administration and proof commands are discoverable", () => {
   assert.match(output(grant), /revoke/);
 });
 
+test("v1 delayed policy update commands are discoverable", () => {
+  const result = run(["pool", "policy", "--help"]);
+  assert.equal(result.status, 0, output(result));
+  assert.match(output(result), /propose/);
+  assert.match(output(result), /activate/);
+});
+
 test("v2 policy set rejects an invalid KYC tier before signer access", () => {
   const result = run([
     "policy", "admin", "set",
@@ -386,6 +393,22 @@ test("v2 policy set rejects an invalid KYC tier before signer access", () => {
   ]);
   assert.notEqual(result.status, 0);
   assert.match(output(result), /--min-kyc-level must be between 1 and 3/);
+});
+
+test("v2 policy set rejects a mismatched policy hash before signer access", () => {
+  const result = run([
+    "policy", "admin", "set",
+    "--pool", `0x${"11".repeat(32)}`,
+    "--registry", "0x1111111111111111111111111111111111111111",
+    "--issuer-hash", "1",
+    "--schema-hash", "2",
+    "--credential-root", "3",
+    "--min-kyc-level", "2",
+    "--jurisdiction-root", "5",
+    "--policy-hash", "6",
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(output(result), /policy-hash does not match/);
 });
 
 test("v2 proof generation reports missing private input before proving", () => {

@@ -18,6 +18,8 @@ mkdir -p "$OUT_DIR"
 cd "$CIRCUITS_DIR"
 
 WALLET="${1:-0x1b869CaC69Df23Ad9D727932496AEb3605538c8D}"
+ISSUER_ADDRESS="${ISSUER_ADDRESS:-0x319c0F1cb46c85B42E051251c4db04BA6BD265a2}"
+SCHEMA_UID="${SCHEMA_UID:-0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9}"
 
 echo
 echo "  ILAL Test Proof Generator"
@@ -44,16 +46,6 @@ WALLET_HASH=$(python3 -c "print(int('${KECCAK_HEX}', 16) >> 4)")
 # ── Build minimal Merkle tree with just this wallet ───────────────────────────
 EXPIRES_AT=$(date -v+90d +%s 2>/dev/null || date -d '+90 days' +%s)
 
-# Compute leaf = Poseidon(walletField, 2, 840, expiresAt) using snarkjs poseidon
-LEAF=$(node -e "
-const { buildPoseidon } = require('circomlibjs');
-buildPoseidon().then(poseidon => {
-  const F = poseidon.F;
-  const leaf = poseidon([BigInt('$WALLET_FIELD'), 2n, 840n, ${EXPIRES_AT}n]);
-  console.log(F.toObject(leaf).toString());
-});
-" 2>/dev/null || echo "0")
-
 echo "walletField: $WALLET_FIELD"
 echo "expiresAt:   $EXPIRES_AT"
 
@@ -68,14 +60,20 @@ async function main() {
 
   // IncrementalMerkleTree v1.x passes an array to the hash function
   const poseidon2 = (inputs) => F.toObject(poseidon(inputs));
-  const poseidon4 = (inputs) => F.toObject(poseidon(inputs));
+  const poseidonN = (inputs) => F.toObject(poseidon(inputs));
 
   const walletField = BigInt('$WALLET_FIELD');
   const kycLevel    = 2n;
   const countryCode = 840n;
   const expiresAt   = ${EXPIRES_AT}n;
+  const issuerField = BigInt('$ISSUER_ADDRESS');
+  const issuerHash  = poseidonN([issuerField, 0n]);
+  const schemaHex   = '$SCHEMA_UID'.replace(/^0x/, '').padStart(64, '0');
+  const schemaLo    = BigInt('0x' + schemaHex.slice(32));
+  const schemaHi    = BigInt('0x' + schemaHex.slice(0, 32));
+  const schemaHash  = poseidonN([schemaLo, schemaHi]);
 
-  const leaf = poseidon4([walletField, kycLevel, countryCode, expiresAt]);
+  const leaf = poseidonN([walletField, kycLevel, countryCode, expiresAt, issuerHash, schemaHash]);
 
   const tree = new IncrementalMerkleTree(poseidon2, 20, 0n, 2);
   tree.insert(leaf);
@@ -98,11 +96,12 @@ async function main() {
 
     // Public — must match circuit-computed keccak256(wallet) >> 4
     walletHash:   '${WALLET_HASH}',
-    issuerHash:   '0',
-    schemaHash:   '0',
+    issuerHash:   issuerHash.toString(),
+    schemaHash:   schemaHash.toString(),
     expiresAt:    expiresAt.toString(),
     revealFlags:  '0',
     merkleRoot:   root.toString(),
+    circuitVersion: '2',
   };
 
   const fs = require('fs');

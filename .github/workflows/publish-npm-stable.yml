@@ -1,4 +1,4 @@
-name: publish npm stable
+name: publish npm
 
 on:
   push:
@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   publish:
-    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     environment: npm-production
     steps:
@@ -31,4 +30,8 @@ jobs:
           node scripts/secret-scan.mjs
       - name: Publish with npm Trusted Publishing provenance
         working-directory: cli
-        run: npm publish --access public --provenance
+        run: |
+          case "$GITHUB_REF_NAME" in
+            *-*) npm publish --tag next --access public --provenance ;;
+            *) npm publish --access public --provenance ;;
+          esac

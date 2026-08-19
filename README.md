@@ -2,6 +2,7 @@
 
 [![verify](https://github.com/rpnny/ILAL/actions/workflows/ci.yml/badge.svg)](https://github.com/rpnny/ILAL/actions/workflows/ci.yml)
 [![release](https://img.shields.io/badge/release-v0.3.3-2563eb)](releases/v0.3.3.json)
+[![v2 preview](https://img.shields.io/badge/v2%20preview-v0.4.0--v2--poc.4-111827)](releases/v0.4.0-v2-poc.4.json)
 [![network](https://img.shields.io/badge/network-Base%20Sepolia-0052ff)](deployments/base-sepolia/v0.3.3.json)
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
@@ -33,7 +34,18 @@ deployed as a public Base Sepolia PoC candidate. It remains separate from the
 active v1 CLI preset because its proving key uses an unsafe development
 ceremony and its testnet admin is an EOA. See the
 [`v2 deployment manifest`](deployments/base-sepolia/v0.4.0-v2-poc.1.json) and
-[`V2 testnet runbook`](docs/V2_TESTNET_RUNBOOK.md).
+[`V2 testnet runbook`](docs/V2_TESTNET_RUNBOOK.md). Issuers can operate an
+encrypted deterministic credential tree and export wallet-bound private
+witnesses with the [`Issuer Integration Kit`](docs/ISSUER_INTEGRATION.md).
+The kit is distributed as an explicitly non-production npm preview:
+`npm install -g @ilalv3/cli@next`.
+
+The issuer workflow has been exercised end to end on a separate Base Sepolia
+V2 sandbox with distinct admin, institution, market-maker, and control
+wallets: encrypted decision import, policy publication, wallet-bound witness,
+local Groth16 proof, grant activation, LP add, swap, control-wallet rejection,
+root rotation, and stale-grant rejection all passed. This is testnet acceptance
+evidence, not an audit or a production ceremony.
 
 ## How it works
 
@@ -63,7 +75,7 @@ The active v1 execution path is documented in
 
 | Surface | Current status |
 |---|---|
-| Source and CLI | `v0.3.3` |
+| Source and CLI | npm `latest`: `v0.3.3`; V2 issuer preview: `v0.4.0-v2-poc.4` on `next` |
 | Active deployment | Base Sepolia v0.3.3 demo |
 | V2 candidate | Base Sepolia `v0.4.0-v2-poc.1`; public proof/grant/LP/swap evidence |
 | Administration | Safe-controlled |
@@ -94,7 +106,7 @@ Current verified suites:
 | Suite | Result |
 |---|---:|
 | Foundry | 188 passed, 0 failed, 0 skipped |
-| CLI | 38 passed |
+| CLI | 46 passed |
 | SDK | 18 passed |
 | Circuit oracle | 7 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
@@ -115,6 +127,7 @@ Git history, secret scanning, and dependency SBOM generation.
 | [`deployments/`](deployments) | Versioned deployment manifests and schema |
 | [`releases/`](releases) | Software release manifests |
 | [`docs/data-room/`](docs/data-room) | Threat model, privileged roles, and public diligence material |
+| [`docs/ISSUER_INTEGRATION.md`](docs/ISSUER_INTEGRATION.md) | PII-free JSON/CSV issuer decisions, encrypted trees, witness export, and Safe publication |
 | [`audit/`](audit) | Current audit scope plus explicitly dated historical review material |
 | [`site/`](site) | Static project website |
 
@@ -128,6 +141,12 @@ It performs a real Groth16 proof, cached policy grant, liquidity add, swap,
 policy revision, and revocation against a fresh Base Sepolia fork. Fork
 transaction hashes are local evidence only; the separate V2 candidate manifest
 contains the public Base Sepolia evidence.
+
+V2 transaction preflight reads policy and wallet grant state at one pinned
+block and rechecks the expected policy hash and revision immediately before
+broadcast. A root rotation therefore invalidates the old grant locally before
+the Router transaction is sent, while the Hook remains the final on-chain
+enforcement layer.
 
 Start with [`contracts/src/ComplianceHook.sol`](contracts/src/ComplianceHook.sol),
 [`contracts/src/ILALRouter.sol`](contracts/src/ILALRouter.sol), and

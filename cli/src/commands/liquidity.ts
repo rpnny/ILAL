@@ -27,7 +27,11 @@ import { base, baseSepolia } from "viem/chains";
 import { fmt, log, header, Spinner, die, dieOnContract } from "../ui.js";
 import { withConfig } from "../config.js";
 import { protocolVersion, signSessionAuthorization } from "../sessionProtocol.js";
-import { readEligibilityPolicyV2 } from "./policyV2.js";
+import {
+  policyGrantSnapshotIssue,
+  readEligibilityPolicyV2,
+  readPolicyGrantSnapshotV2,
+} from "./policyV2.js";
 import { createExecutionClients } from "../signer.js";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
@@ -104,17 +108,6 @@ const ROUTER_LIQUIDITY_ABI = [
 ] as const;
 
 // ─── Session helpers ──────────────────────────────────────────────────────────
-
-const GRANT_MANAGER_V2_ABI = [{
-  name: "isPolicyGrantValid",
-  type: "function" as const,
-  stateMutability: "view" as const,
-  inputs: [
-    { name: "poolId", type: "bytes32" as const },
-    { name: "user", type: "address" as const },
-  ],
-  outputs: [{ type: "bool" as const }],
-}] as const;
 
 function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
   if (process.env["ILAL_DISABLE_EXPLORER"] === "1") return undefined;
@@ -321,7 +314,16 @@ async function executeLiquidity(
       }
     }
   } else {
-    const policy = await readEligibilityPolicyV2(
+    const snapshot = action === "add"
+      ? await readPolicyGrantSnapshotV2(
+        pubClient,
+        cfg.registry as `0x${string}`,
+        cfg.grantManager as `0x${string}`,
+        cfg.poolId as `0x${string}`,
+        account.address
+      )
+      : undefined;
+    const policy = snapshot?.policy ?? await readEligibilityPolicyV2(
       pubClient,
       cfg.registry as `0x${string}`,
       cfg.poolId as `0x${string}`
@@ -329,12 +331,7 @@ async function executeLiquidity(
     policyHash = policy.policyHash;
     policyRevision = policy.revision;
     if (action === "add") {
-      const grantValid = await pubClient.readContract({
-        address: cfg.grantManager as `0x${string}`,
-        abi: GRANT_MANAGER_V2_ABI,
-        functionName: "isPolicyGrantValid",
-        args: [cfg.poolId as `0x${string}`, account.address],
-      }) as boolean;
+      const grantValid = snapshot!.valid;
       accessValid = policy.enabled && policy.revision > 0n && grantValid;
       accessDescription = accessValid
         ? `Policy grant valid (revision ${policy.revision.toString()})`
@@ -407,6 +404,21 @@ async function executeLiquidity(
         log.ok(`${sym} allowance: ${allowanceLabel(allowed, decimals, sym)}`);
       }
     }
+  }
+
+  if (version === "2" && action === "add") {
+    const latest = await readPolicyGrantSnapshotV2(
+      pubClient,
+      cfg.registry as `0x${string}`,
+      cfg.grantManager as `0x${string}`,
+      cfg.poolId as `0x${string}`,
+      account.address
+    );
+    const issue = policyGrantSnapshotIssue(latest, {
+      policyHash: policyHash!,
+      revision: policyRevision!,
+    });
+    if (issue) die(`Add liquidity not sent: ${issue}. Generate and activate a proof for the current policy.`);
   }
 
   // Sign session token

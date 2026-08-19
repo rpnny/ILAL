@@ -173,6 +173,7 @@ echo "  │     contracts/src/verifier/ILALVerifier.sol is ready               �
 echo "  │     Deploy it, then propose/activate the verifier after 72 hours   │"
 echo "  ├─ 2. Build attestation tree ────────────────────────────────────────┤"
 echo "  │     npx tsx oracle/build_tree.ts --input oracle/attestations.json  │"
+echo "  │       --issuer <CNFIssuer> --schema <schemaUID>                    │"
 echo "  │     Propose/activate the root after the 48-hour review delay       │"
 echo "  ├─ 3. Generate a proof ──────────────────────────────────────────────┤"
 echo "  │     npx tsx oracle/generate_witness.ts --wallet 0x... \\            │"

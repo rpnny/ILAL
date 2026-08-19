@@ -9,6 +9,13 @@ interface IPolicyRegistry {
     }
 
     function setPolicy(bytes32 poolId, address cnfIssuer, bytes32 credentialType) external;
+    function setPolicy(bytes32 poolId, bytes32 credentialType) external;
+    function proposePolicyUpdate(bytes32 poolId, address cnfIssuer, bytes32 credentialType) external;
+    function proposePolicyUpdate(bytes32 poolId, bytes32 credentialType) external;
+    function activatePolicyUpdate(bytes32 poolId) external;
+    function cancelPolicyUpdate(bytes32 poolId) external;
+    function registerIssuer(address operator, address cnfIssuer) external;
+    function deregisterIssuer(address operator) external;
     function disablePolicy(bytes32 poolId) external;
     function getPolicy(bytes32 poolId) external view returns (Policy memory);
 }
