@@ -93,8 +93,12 @@ contract DeployHookathonNetting is Script {
         stack.registry.setPolicy(poolId, address(stack.issuer), SCHEMA_UID);
 
         uint64 sourceExpiry = uint64(block.timestamp + 90 days);
+        bytes32 expectedAttestationA = stack.eas.nextUID(SCHEMA_UID, roles.institutionA, roles.admin, sourceExpiry, "");
         bytes32 attestationA = stack.eas.attest(SCHEMA_UID, roles.institutionA, roles.admin, sourceExpiry, "");
+        require(attestationA == expectedAttestationA, "DeployHookathonNetting: attestation A UID mismatch");
+        bytes32 expectedAttestationB = stack.eas.nextUID(SCHEMA_UID, roles.institutionB, roles.admin, sourceExpiry, "");
         bytes32 attestationB = stack.eas.attest(SCHEMA_UID, roles.institutionB, roles.admin, sourceExpiry, "");
+        require(attestationB == expectedAttestationB, "DeployHookathonNetting: attestation B UID mismatch");
         _mintDemoAssets(stack, roles);
         stack.registry.transferOwnership(roles.admin);
         stack.issuer.transferOwnership(roles.admin);

@@ -42,10 +42,11 @@ forge test --summary
 │ PolicyRegistryTest │ 24     │ 0      │ 0       │
 │ Netting integration│ 24     │ 0      │ 0       │
 │ Netting invariants │ 6      │ 0      │ 0       │
+│ MockEAS deployment │ 1      │ 0      │ 0       │
 ╰────────────────────┴────────┴────────┴─────────╯
 ```
 
-Current total: `228 passed, 0 failed, 0 skipped`.
+Current total: `229 passed, 0 failed, 0 skipped`.
 
 Each netting invariant runs 256 handler calls over 3–16 order batches and covers
 cumulative accounting, one-sided residuals, closed batch context, replay

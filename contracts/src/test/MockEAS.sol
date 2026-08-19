@@ -23,7 +23,7 @@ contract MockEAS is IEAS, Ownable {
         onlyOwner
         returns (bytes32 uid)
     {
-        uid = keccak256(abi.encodePacked(schema, recipient, attester, block.timestamp, _nonce++));
+        uid = _uid(schema, recipient, attester, expirationTime, data, _nonce++);
 
         _attestations[uid] = Attestation({
             uid: uid,
@@ -41,6 +41,17 @@ contract MockEAS is IEAS, Ownable {
         emit AttestationCreated(uid, recipient, attester);
     }
 
+    /// @notice Preview the UID that the next attestation with these fields will receive.
+    /// @dev The UID deliberately excludes block.timestamp so Foundry multi-signer
+    ///      broadcasts produce the same identifier during simulation and mining.
+    function nextUID(bytes32 schema, address recipient, address attester, uint64 expirationTime, bytes calldata data)
+        external
+        view
+        returns (bytes32)
+    {
+        return _uid(schema, recipient, attester, expirationTime, data, _nonce);
+    }
+
     /// @notice Revoke an existing attestation.
     function revoke(bytes32 uid) external onlyOwner {
         require(_attestations[uid].uid != bytes32(0), "MockEAS: attestation not found");
@@ -55,5 +66,16 @@ contract MockEAS is IEAS, Ownable {
     function isAttestationValid(bytes32 uid) external view returns (bool) {
         Attestation storage a = _attestations[uid];
         return a.uid != bytes32(0) && a.revocationTime == 0;
+    }
+
+    function _uid(
+        bytes32 schema,
+        address recipient,
+        address attester,
+        uint64 expirationTime,
+        bytes calldata data,
+        uint256 nonce
+    ) internal view returns (bytes32) {
+        return keccak256(abi.encode(address(this), schema, recipient, attester, expirationTime, keccak256(data), nonce));
     }
 }

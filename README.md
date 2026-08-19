@@ -132,7 +132,7 @@ make verify
 
 | Suite | Current result |
 |---|---:|
-| Foundry | 228 passed, 0 failed, 0 skipped |
+| Foundry | 229 passed, 0 failed, 0 skipped |
 | Netting stateful invariants | 6 properties × 256 calls, 0 reverts |
 | CLI | 53 passed |
 | SDK | 18 passed |
