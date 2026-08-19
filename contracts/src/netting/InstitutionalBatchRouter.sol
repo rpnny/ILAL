@@ -21,6 +21,7 @@ contract InstitutionalBatchRouter is IUnlockCallback {
     using PoolIdLibrary for PoolKey;
 
     error OnlyPoolManager();
+    error InvalidPoolManager();
     error ReentrantBatch();
     error InvalidPool();
     error NativeNotSupported();
@@ -62,6 +63,7 @@ contract InstitutionalBatchRouter is IUnlockCallback {
     }
 
     constructor(IPoolManager _poolManager) {
+        if (address(_poolManager).code.length == 0) revert InvalidPoolManager();
         poolManager = _poolManager;
     }
 

@@ -42,8 +42,11 @@ contract InstitutionalNettingHook is IHooks {
     error OnlyPoolManager();
     error OnlyBatchRouter();
     error NotInsideBatchUnlock();
+    error InvalidPoolManager();
+    error InvalidPolicyRegistry();
     error InvalidTokenPair();
     error TokenDecimalsMismatch();
+    error InvalidPoolConfiguration();
     error InvalidMaxTick();
     error UnsupportedPool();
     error BatchAlreadyActive();
@@ -128,11 +131,15 @@ contract InstitutionalNettingHook is IHooks {
         int24 _maxAbsTick
     ) {
         Hooks.validateHookPermissions(IHooks(address(this)), getHookPermissions());
+        if (address(_poolManager).code.length == 0) revert InvalidPoolManager();
+        if (address(_policyRegistry).code.length == 0) revert InvalidPolicyRegistry();
+        if (_authorizedRouter.code.length == 0) revert OnlyBatchRouter();
         if (_token0 == address(0) || _token0 >= _token1) revert InvalidTokenPair();
         if (IERC20Decimals(_token0).decimals() != IERC20Decimals(_token1).decimals()) {
             revert TokenDecimalsMismatch();
         }
         if (_authorizedRouter == address(0)) revert OnlyBatchRouter();
+        if (_poolFee != 500 || _poolTickSpacing != 10) revert InvalidPoolConfiguration();
         if (_maxAbsTick <= 0) revert InvalidMaxTick();
 
         poolManager = _poolManager;
