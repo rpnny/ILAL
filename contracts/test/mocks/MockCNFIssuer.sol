@@ -34,8 +34,23 @@ contract MockCNFIssuer is ICNFIssuer, Ownable {
             Credential(wallet, address(this), credentialType, uint64(block.timestamp), type(uint64).max, false);
     }
 
+    function setCredentialState(address wallet, uint64 expiresAt, bool revoked) external {
+        uint256 tokenId = _tokenId[wallet];
+        if (tokenId == 0) {
+            tokenId = ++_nextTokenId;
+            _tokenId[wallet] = tokenId;
+        }
+        Credential storage credential = _credentials[tokenId];
+        credential.holder = wallet;
+        credential.issuer = address(this);
+        if (credential.credentialType == bytes32(0)) credential.credentialType = defaultCredentialType;
+        credential.expiresAt = expiresAt;
+        credential.revoked = revoked;
+    }
+
     function isValid(address wallet) external view returns (bool) {
-        return _valid[wallet];
+        Credential storage credential = _credentials[_tokenId[wallet]];
+        return _valid[wallet] && !credential.revoked && credential.expiresAt > block.timestamp;
     }
 
     function mintWithEAS(bytes32) external pure returns (uint256) {
@@ -47,7 +62,11 @@ contract MockCNFIssuer is ICNFIssuer, Ownable {
         return 0;
     }
     function renewWithProof(bytes calldata, uint256[] calldata) external pure {}
-    function revoke(address) external pure {}
+
+    function revoke(address wallet) external {
+        _valid[wallet] = false;
+        _credentials[_tokenId[wallet]].revoked = true;
+    }
 
     function credentialOf(address wallet) external view returns (uint256) {
         return _tokenId[wallet];

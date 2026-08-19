@@ -17,3 +17,8 @@ remappings = [
 
 [profile.default.fuzz]
 runs = 256
+
+[profile.default.invariant]
+runs = 16
+depth = 16
+fail_on_revert = true
