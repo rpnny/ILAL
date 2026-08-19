@@ -364,6 +364,34 @@ contract InstitutionalNettingTest is Test {
         assertEq(header.matchedEachSide, amount0 < amount1 ? amount0 : amount1);
     }
 
+    function test_previewCommitment_matchesCliVector() public view {
+        bytes32 cliPoolId = bytes32(uint256(0x2222222222222222222222222222222222222222222222222222222222222222));
+        NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](2);
+        orders[0] = NettingTypes.NettingOrder({
+            user: 0x3333333333333333333333333333333333333333,
+            poolId: cliPoolId,
+            zeroForOne: true,
+            amountIn: 100_000_000,
+            minAmountOut: 0,
+            maxAmmInput: 100_000_000,
+            deadline: 4_000_000_000,
+            nonce: bytes32(uint256(1))
+        });
+        orders[1] = NettingTypes.NettingOrder({
+            user: 0x4444444444444444444444444444444444444444,
+            poolId: cliPoolId,
+            zeroForOne: false,
+            amountIn: 70_000_000,
+            minAmountOut: 0,
+            maxAmmInput: 70_000_000,
+            deadline: 4_000_000_000,
+            nonce: bytes32(uint256(2))
+        });
+        assertEq(
+            batchRouter.previewBatch(orders).batchId, 0x3279cb3136ff7a9bd6fdb9304478401b2e52b3efe9e1a78c9b8eb1464264e025
+        );
+    }
+
     function _orders100By70()
         internal
         view
