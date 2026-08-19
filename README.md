@@ -12,6 +12,16 @@ to Uniswap v4.
 > **100 token0 → token1 + 70 token1 → token0 = 140 gross matched internally,
 > 30 token0 residual sent to the AMM.**
 
+## Hookathon provenance
+
+| Before Hookathon | Built during Hookathon |
+|---|---|
+| [`v0.4.0-v2-poc.4`](releases/v0.4.0-v2-poc.4.json), commit `0a9a749`: CNF credentials, PolicyRegistry, one-time sessions, bounded Router, v1/v2 ZK experiments, CLI and historical demos. | InstitutionalNettingHook and BatchRouter; deterministic signed-order allocation; atomic 1:1 stablecoin netting; residual-only v4 routing; netting CLI and invariant suite; live Base Sepolia candidate with forward/reverse batches and Sourcify exact-match verification. |
+
+The pre-Hookathon code is eligibility and execution infrastructure. The new
+submission mechanism is the netting path above; the active historical v0.3.3
+deployment remains unchanged.
+
 | Reviewer path | Start here |
 |---|---|
 | Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
@@ -92,7 +102,9 @@ mechanism.
 - EIP-712/low-s ECDSA/ERC-1271 validation, nonce cancellation and replay protection.
 - Per-order total-output and AMM-exposure bounds.
 - Real v4 integration, fuzz, maximum-16-order gas, and stateful invariant tests.
-- Four CLI commands, a terminal demo, and a dedicated Base Sepolia deployment path.
+- Four CLI commands and a terminal demo.
+- A live Base Sepolia candidate, two opposite-residual batches, complete evidence
+  manifest, and Sourcify creation/runtime exact matches for all first-party contracts.
 
 ### Final state
 
