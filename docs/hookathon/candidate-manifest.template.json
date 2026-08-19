@@ -1,0 +1,62 @@
+{
+  "status": "candidate-pending-broadcast",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "sourceCommit": "<40-hex-commit>",
+  "sourceTreeHash": "<sha256>",
+  "hookFlags": "0x0088",
+  "contracts": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "positionManager": "0x4b2c77d209D3405F41A037Ec6c77F7F5b8e2ca80",
+    "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+    "token0": null,
+    "token1": null,
+    "mockEAS": null,
+    "cnfIssuer": null,
+    "policyRegistry": null,
+    "batchRouter": null,
+    "nettingHook": null
+  },
+  "constructorArguments": {},
+  "poolKey": {
+    "currency0": null,
+    "currency1": null,
+    "fee": 500,
+    "tickSpacing": 10,
+    "hook": null
+  },
+  "poolId": null,
+  "roles": {
+    "safeAdmin": null,
+    "institutionA": null,
+    "institutionB": null,
+    "solver": null,
+    "lp": null
+  },
+  "bytecodeHashes": {},
+  "transactions": {
+    "deployment": [],
+    "poolInitialization": null,
+    "policy": null,
+    "institutionACredential": null,
+    "institutionBCredential": null,
+    "liquidity": null,
+    "forward100By70": null,
+    "reverseDirection": null
+  },
+  "events": {
+    "forwardBatchId": null,
+    "orderNetted": [],
+    "orderSettled": [],
+    "batchNetted": null,
+    "batchExecuted": null
+  },
+  "sourceVerification": {
+    "status": "pending",
+    "links": []
+  },
+  "notes": [
+    "This template is not public-chain evidence until every null/placeholder is replaced from mined transactions.",
+    "The active v0.3.3 deployment remains unchanged."
+  ]
+}
