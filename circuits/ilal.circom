@@ -15,7 +15,8 @@ include "./helpers/merkle_proof.circom";
  * The ILAL operator maintains an off-chain Poseidon Merkle tree (depth 20)
  * of attested wallets.  Each leaf:
  *
- *   leaf = Poseidon(walletField, kycLevel, countryCode, expiresAt)
+ *   leaf = Poseidon(walletField, kycLevel, countryCode, expiresAt,
+ *                   issuerHash, schemaHash)
  *
  * The operator publishes the Merkle root on-chain (CNFIssuer.merkleRoot).
  * To mint a CNF anonymously, the user generates a Groth16 proof of:
@@ -33,6 +34,7 @@ include "./helpers/merkle_proof.circom";
  *   [3] expiresAt   — credential expiry (unix timestamp from attestation)
  *   [4] revealFlags — bitmask (0 = reveal nothing extra)
  *   [5] merkleRoot  — root of the approved attestation Merkle tree
+ *   [6] circuitVersion — fixed to 2 for the domain-bound v1 revision
  *
  * DEPTH = 20 supports 2^20 ≈ 1 M eligible wallets.
  */
@@ -58,11 +60,12 @@ template ILALEligibility(DEPTH) {
     // The circuit adds equality constraints to bind them to private values.
 
     signal input walletHash;   // PI[0]
-    signal input issuerHash;   // PI[1] — checked by CNFIssuer, not constrained here
-    signal input schemaHash;   // PI[2] — checked by CNFIssuer, not constrained here
+    signal input issuerHash;   // PI[1] — committed into every Merkle leaf
+    signal input schemaHash;   // PI[2] — committed into every Merkle leaf
     signal input expiresAt;    // PI[3]
     signal input revealFlags;  // PI[4] — must be 0 (no extra reveals)
     signal input merkleRoot;   // PI[5] — must match CNFIssuer.merkleRoot on-chain
+    signal input circuitVersion; // PI[6] — prevents legacy six-signal proofs
 
     // ─── 1. Verify walletBits encodes walletField ─────────────────────────────
     // Bits2Num expects bits[0]=LSB — matches our walletBits convention.
@@ -96,11 +99,15 @@ template ILALEligibility(DEPTH) {
     walletHash === hashNum.out;
 
     // ─── 3. Compute Merkle leaf ───────────────────────────────────────────────
-    component leaf = Poseidon(4);
+    // Domain separation is part of the membership statement. A leaf from one
+    // issuer/schema tree therefore cannot be reproved for another domain.
+    component leaf = Poseidon(6);
     leaf.inputs[0] <== walletField;
     leaf.inputs[1] <== kycLevel;
     leaf.inputs[2] <== countryCode;
     leaf.inputs[3] <== expiresAt;
+    leaf.inputs[4] <== issuerHash;
+    leaf.inputs[5] <== schemaHash;
 
     // ─── 4. Verify Merkle inclusion ───────────────────────────────────────────
     component merkle = MerkleProof(DEPTH);
@@ -126,11 +133,15 @@ template ILALEligibility(DEPTH) {
 
     // revealFlags must be 0 — no extra attributes revealed in this version
     revealFlags === 0;
+
+    // Version 2 is the hardened revision of this credential circuit. Keeping
+    // this as a constrained public signal makes legacy artifacts incompatible.
+    circuitVersion === 2;
 }
 
 // Public input ordering (must match PI_* constants in CNFIssuer.sol):
 //   [0]=walletHash  [1]=issuerHash  [2]=schemaHash
-//   [3]=expiresAt   [4]=revealFlags [5]=merkleRoot
+//   [3]=expiresAt   [4]=revealFlags [5]=merkleRoot [6]=circuitVersion
 component main {
-    public [walletHash, issuerHash, schemaHash, expiresAt, revealFlags, merkleRoot]
+    public [walletHash, issuerHash, schemaHash, expiresAt, revealFlags, merkleRoot, circuitVersion]
 } = ILALEligibility(20);

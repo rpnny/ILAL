@@ -75,7 +75,7 @@ Audit implication:
 
 ## 5. Registry Deregistration Does Not Disable Existing Pools
 
-`PolicyRegistry.deregisterIssuer(issuer)` removes future self-service rights, but does not automatically disable existing policies.
+`PolicyRegistry.deregisterIssuer(operator)` removes future self-service rights, but does not automatically disable existing policies. Registration explicitly binds an operator to a CNFIssuer contract and validates that the operator is the contract's current `owner()`; the ownership check is repeated on every self-service update.
 
 Reason:
 
@@ -89,6 +89,9 @@ Audit implication:
   - enumerate affected pools
   - disable or migrate policies
   - notify LPs/traders
+- Issuer migrations, credential-type changes, and policy re-enablement are
+  delayed through `proposePolicyUpdate` / `activatePolicyUpdate`; emergency
+  disablement remains immediate and cancels pending changes.
 
 ## 6. No Proxy Upgradeability
 
@@ -144,4 +147,3 @@ Audit implication:
 
 - No per-token identity data is stored in CNF metadata.
 - Mainnet issuer metadata URI should point to a stable policy/standard document.
-

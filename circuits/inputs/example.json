@@ -4,7 +4,8 @@
     "walletField":  "YOUR_WALLET_ADDRESS as decimal BigInt (e.g. uint160(0xYourAddr))",
     "issuerHash":   "Poseidon([uint160(CNFIssuer_address), 0]) — computed by generate_witness.ts",
     "schemaHash":   "Poseidon([schemaUID_lo, schemaUID_hi])   — computed by generate_witness.ts",
-    "merkleRoot":   "output of build_tree.ts, queued via proposeMerkleRoot then activated after ROOT_DELAY"
+    "merkleRoot":   "output of build_tree.ts, queued via proposeMerkleRoot then activated after ROOT_DELAY",
+    "circuitVersion": "fixed to 2; legacy six-signal proofs are rejected"
   },
   "walletField": "1234567890123456789012345678901234567890",
   "walletBits": [
@@ -44,5 +45,6 @@
   "schemaHash":  "FILL_FROM_DEPLOYMENT",
   "expiresAt":   "1800000000",
   "revealFlags": "0",
-  "merkleRoot":  "FILL_FROM_build_tree_output"
+  "merkleRoot":  "FILL_FROM_build_tree_output",
+  "circuitVersion": "2"
 }

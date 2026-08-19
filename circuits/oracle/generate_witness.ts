@@ -21,10 +21,14 @@
 import { readFileSync, writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { execFileSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
 import { poseidon2 } from "poseidon-lite";
-import { normalizeAddress, normalizeSchemaUID } from "./records.js";
+import {
+  buildZKDomain,
+  normalizeAddress,
+  normalizeSchemaUID,
+} from "./records.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
@@ -47,6 +51,10 @@ interface LeafRecord {
 }
 
 interface TreeData {
+  issuer: string;
+  schema: string;
+  issuerHash: string;
+  schemaHash: string;
   merkleRoot: string;
   depth: number;
   leaves: LeafRecord[];
@@ -65,13 +73,6 @@ function addressToBitsLSBFirst(addr: string): number[] {
     bits.push(Number((field >> BigInt(i)) & 1n)); // bit i, LSB-first
   }
   return bits;
-}
-
-function poseidonField(value: bigint): bigint {
-  // Single-element Poseidon: Poseidon([value])
-  // poseidon-lite exports poseidon1 for arity 1
-  // Use poseidon2 with 0 padding as a workaround if poseidon1 unavailable
-  return poseidon2([value, 0n]);
 }
 
 /**
@@ -117,6 +118,17 @@ function main() {
     process.exit(1);
   }
 
+  const requestedDomain = buildZKDomain(issuerAddr, schemaUID);
+  if (
+    treeData.issuer !== requestedDomain.issuer ||
+    treeData.schema !== requestedDomain.schema ||
+    treeData.issuerHash !== requestedDomain.issuerHash ||
+    treeData.schemaHash !== requestedDomain.schemaHash
+  ) {
+    console.error("Tree issuer/schema domain does not match --issuer and --schema. Rebuild the tree for this domain.");
+    process.exit(1);
+  }
+
   // ── Find this wallet in the tree ───────────────────────────────────────────
   const record = treeData.leaves.find(
     (l) => l.wallet.toLowerCase() === walletAddr
@@ -138,14 +150,8 @@ function main() {
   const walletField  = addressToField(walletAddr);
   const walletBits   = addressToBitsLSBFirst(walletAddr);
   const walletHash   = computeWalletHash(walletAddr);
-  const issuerField  = addressToField(issuerAddr);
-  const issuerHash   = poseidonField(issuerField);
-
-  // schemaUID is a bytes32 — split into two 128-bit halves for Poseidon
-  const schemaHex = schemaUID.replace("0x", "").padStart(64, "0");
-  const schemaLo  = BigInt("0x" + schemaHex.slice(32)); // lower 128 bits
-  const schemaHi  = BigInt("0x" + schemaHex.slice(0, 32)); // upper 128 bits
-  const schemaHash = poseidon2([schemaLo, schemaHi]);
+  const issuerHash   = BigInt(requestedDomain.issuerHash);
+  const schemaHash   = BigInt(requestedDomain.schemaHash);
 
   const merkleRoot = BigInt(treeData.merkleRoot);
 
@@ -166,6 +172,7 @@ function main() {
     expiresAt:    record.expiresAt.toString(),
     revealFlags:  "0",
     merkleRoot:   merkleRoot.toString(),
+    circuitVersion: "2",
   };
 
   const inputPath = resolve(ROOT, "outputs/input.json");

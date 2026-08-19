@@ -13,6 +13,7 @@ import { fmt, header, log, die, Spinner } from "../ui.js";
 import { loadSnarkjsProof } from "./proof.js";
 import { createExecutionClients } from "../signer.js";
 import { proposeConfiguredSafeContractCall } from "../safe.js";
+import { poseidon6 } from "poseidon-lite";
 
 const CHAINS: Record<string, Chain> = { "8453": base, "84532": baseSepolia };
 
@@ -387,6 +388,20 @@ export async function policySetV2(opts: {
     minKycLevel: positiveInteger(opts.minKycLevel, "--min-kyc-level", 3n),
     maxGrantTtl: positiveInteger(opts.maxGrantTtl, "--max-grant-ttl", 7n * 24n * 60n * 60n),
   };
+  const expectedPolicyHash = poseidon6([
+    2n,
+    values.issuerHash,
+    values.schemaHash,
+    values.credentialRoot,
+    values.minKycLevel,
+    values.jurisdictionRoot,
+  ]);
+  if (values.policyHash !== expectedPolicyHash) {
+    die(
+      `--policy-hash does not match the supplied v2 policy fields.\n` +
+      `  Expected: ${expectedPolicyHash.toString()}`
+    );
+  }
   const args = [
     poolId,
     values.issuerHash,

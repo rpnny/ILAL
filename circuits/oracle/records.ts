@@ -1,4 +1,4 @@
-import { poseidon4 } from "poseidon-lite";
+import { poseidon2, poseidon6 } from "poseidon-lite";
 
 export const TREE_DEPTH = 20;
 export const MAX_TREE_LEAVES = 2 ** TREE_DEPTH;
@@ -14,6 +14,13 @@ export interface LeafRecord extends AttestationRecord {
   walletField: string;
   leaf: string;
   leafIndex: number;
+}
+
+export interface ZKDomain {
+  issuer: string;
+  schema: string;
+  issuerHash: string;
+  schemaHash: string;
 }
 
 export function normalizeAddress(value: unknown, field = "wallet"): string {
@@ -73,11 +80,35 @@ export function addressToField(address: string): bigint {
   return BigInt(normalizeAddress(address));
 }
 
-export function computeLeaf(record: AttestationRecord): bigint {
-  return poseidon4([
+export function computeIssuerHash(issuer: string): bigint {
+  return poseidon2([addressToField(issuer), 0n]);
+}
+
+export function computeSchemaHash(schema: string): bigint {
+  const schemaHex = normalizeSchemaUID(schema).slice(2);
+  const schemaLo = BigInt(`0x${schemaHex.slice(32)}`);
+  const schemaHi = BigInt(`0x${schemaHex.slice(0, 32)}`);
+  return poseidon2([schemaLo, schemaHi]);
+}
+
+export function buildZKDomain(issuer: string, schema: string): ZKDomain {
+  const normalizedIssuer = normalizeAddress(issuer, "issuer");
+  const normalizedSchema = normalizeSchemaUID(schema);
+  return {
+    issuer: normalizedIssuer,
+    schema: normalizedSchema,
+    issuerHash: computeIssuerHash(normalizedIssuer).toString(),
+    schemaHash: computeSchemaHash(normalizedSchema).toString(),
+  };
+}
+
+export function computeLeaf(record: AttestationRecord, issuerHash: bigint, schemaHash: bigint): bigint {
+  return poseidon6([
     addressToField(record.wallet),
     BigInt(record.kycLevel),
     BigInt(record.countryCode),
     BigInt(record.expiresAt),
+    issuerHash,
+    schemaHash,
   ]);
 }

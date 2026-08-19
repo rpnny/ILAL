@@ -35,6 +35,7 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
     error InvalidZKVerifier();
     error CredentialPermanentlyRevoked();
     error InvalidZKDomain();
+    error UnsupportedZKCircuitVersion();
     error TooEarly(uint256 activatesAt);
     error NoPendingChange();
 
@@ -50,6 +51,7 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
     event ZKPublicInputHashesProposed(uint256 indexed issuerHash, uint256 indexed schemaHash, uint256 activatesAt);
     event ZKPublicInputHashesUpdated(uint256 indexed issuerHash, uint256 indexed schemaHash);
     event SourceAttestationLinked(uint256 indexed tokenId, bytes32 indexed attestationUID);
+    event ZKCredentialRootBound(uint256 indexed tokenId, uint256 indexed merkleRoot);
     event IssuerMetadataSet(string name, string jurisdiction, string credentialStandard, string uri);
 
     // ─── Types ────────────────────────────────────────────────────────────────
@@ -114,6 +116,9 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
     mapping(uint256 => Credential) private _credentials;
     mapping(bytes32 => bool) private _usedAttestations;
     mapping(uint256 => bytes32) public sourceAttestationUID;
+    /// @notice Merkle root under which each ZK credential was minted or renewed.
+    ///         A root rotation invalidates credentials bound to the previous root.
+    mapping(uint256 => uint256) public zkCredentialRoot;
     mapping(address => bool) public permanentlyBanned;
 
     // ─── Public input indices (must match Circom circuit ilal.circom) ────────
@@ -123,7 +128,9 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
     uint256 constant PI_EXPIRES_AT = 3;
     uint256 constant PI_REVEAL_FLAGS = 4;
     uint256 constant PI_MERKLE_ROOT = 5;
-    uint256 constant PI_MIN_INPUTS = 6;
+    uint256 constant PI_CIRCUIT_VERSION = 6;
+    uint256 constant PI_INPUTS = 7;
+    uint256 constant ZK_CIRCUIT_VERSION = 2;
 
     // ─── Constructor ──────────────────────────────────────────────────────────
 
@@ -233,7 +240,7 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
         uint64 sourceExpiresAt = _verifyAttestation(attestationUID, msg.sender);
         _usedAttestations[attestationUID] = true;
 
-        return _mint(msg.sender, sourceExpiresAt, attestationUID);
+        return _mint(msg.sender, sourceExpiresAt, attestationUID, 0);
     }
 
     function renewWithEAS(bytes32 attestationUID) external {
@@ -243,7 +250,7 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
         uint64 sourceExpiresAt = _verifyAttestation(attestationUID, msg.sender);
         _usedAttestations[attestationUID] = true;
 
-        _renew(tokenId, sourceExpiresAt, attestationUID);
+        _renew(tokenId, sourceExpiresAt, attestationUID, 0);
     }
 
     // ─── ZK proof path (MVP B) ────────────────────────────────────────────────
@@ -258,7 +265,7 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
 
         _verifyProof(proof, publicInputs);
 
-        return _mint(msg.sender, uint64(publicInputs[PI_EXPIRES_AT]), bytes32(0));
+        return _mint(msg.sender, uint64(publicInputs[PI_EXPIRES_AT]), bytes32(0), merkleRoot);
     }
 
     /// @notice Renew a CNF using a Groth16 ZK proof.
@@ -269,7 +276,7 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
         if (tokenId == 0) revert CredentialNotFound();
 
         _verifyProof(proof, publicInputs);
-        _renew(tokenId, uint64(publicInputs[PI_EXPIRES_AT]), bytes32(0));
+        _renew(tokenId, uint64(publicInputs[PI_EXPIRES_AT]), bytes32(0), merkleRoot);
     }
 
     // ─── Management ───────────────────────────────────────────────────────────
@@ -292,7 +299,10 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
         if (cred.revoked || cred.expiresAt <= block.timestamp) return false;
 
         bytes32 uid = sourceAttestationUID[tokenId];
-        if (uid == bytes32(0)) return true;
+        if (uid == bytes32(0)) {
+            uint256 credentialRoot = zkCredentialRoot[tokenId];
+            return credentialRoot != 0 && credentialRoot == merkleRoot;
+        }
         return _isSourceAttestationValid(uid, wallet);
     }
 
@@ -330,7 +340,10 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
 
     // ─── Internal helpers ─────────────────────────────────────────────────────
 
-    function _mint(address holder, uint64 sourceExpiresAt, bytes32 attestationUID) internal returns (uint256 tokenId) {
+    function _mint(address holder, uint64 sourceExpiresAt, bytes32 attestationUID, uint256 proofRoot)
+        internal
+        returns (uint256 tokenId)
+    {
         tokenId = ++_nextTokenId;
         uint64 expiresAt = _effectiveExpiry(sourceExpiresAt);
 
@@ -345,18 +358,22 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
 
         _holderToken[holder] = tokenId;
         sourceAttestationUID[tokenId] = attestationUID;
+        zkCredentialRoot[tokenId] = proofRoot;
         _safeMint(holder, tokenId);
         if (attestationUID != bytes32(0)) emit SourceAttestationLinked(tokenId, attestationUID);
+        if (proofRoot != 0) emit ZKCredentialRootBound(tokenId, proofRoot);
         emit CredentialMinted(holder, tokenId, expiresAt);
     }
 
-    function _renew(uint256 tokenId, uint64 sourceExpiresAt, bytes32 attestationUID) internal {
+    function _renew(uint256 tokenId, uint64 sourceExpiresAt, bytes32 attestationUID, uint256 proofRoot) internal {
         Credential storage cred = _credentials[tokenId];
         if (permanentlyBanned[cred.holder]) revert CredentialPermanentlyRevoked();
         cred.expiresAt = _effectiveExpiry(sourceExpiresAt);
         cred.revoked = false;
         sourceAttestationUID[tokenId] = attestationUID;
+        zkCredentialRoot[tokenId] = proofRoot;
         if (attestationUID != bytes32(0)) emit SourceAttestationLinked(tokenId, attestationUID);
+        if (proofRoot != 0) emit ZKCredentialRootBound(tokenId, proofRoot);
         emit CredentialRenewed(msg.sender, tokenId, cred.expiresAt);
     }
 
@@ -387,8 +404,11 @@ contract CNFIssuer is ICNFIssuer, ERC721, Ownable {
     }
 
     function _verifyProof(bytes calldata proof, uint256[] calldata publicInputs) internal view {
-        if (publicInputs.length < PI_MIN_INPUTS) revert InvalidPublicInputs();
+        if (publicInputs.length != PI_INPUTS) revert InvalidPublicInputs();
         if (zkIssuerHash == 0 || zkSchemaHash == 0) revert InvalidZKDomain();
+        if (publicInputs[PI_CIRCUIT_VERSION] != ZK_CIRCUIT_VERSION) {
+            revert UnsupportedZKCircuitVersion();
+        }
 
         // Wallet hash must match msg.sender — prevents using someone else's proof
         uint256 expectedWalletHash = uint256(keccak256(abi.encodePacked(msg.sender))) >> 4;

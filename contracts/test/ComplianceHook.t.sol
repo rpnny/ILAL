@@ -148,6 +148,36 @@ contract ComplianceHookTest is Test {
         assertEq(sel, IHooks.beforeSwap.selector);
     }
 
+    function test_beforeSwap_success_withSelfServiceOperatorAndIssuerContract() public {
+        address issuerOperator = makeAddr("issuerOperator");
+        vm.prank(issuerOperator);
+        MockCNFIssuer selfServiceIssuer = new MockCNFIssuer();
+        selfServiceIssuer.setValid(trader, true);
+
+        vm.prank(admin);
+        registry.registerIssuer(issuerOperator, address(selfServiceIssuer));
+
+        PoolKey memory selfServicePoolKey = PoolKey({
+            currency0: Currency.wrap(address(0x1)),
+            currency1: Currency.wrap(address(0x2)),
+            fee: 500,
+            tickSpacing: 10,
+            hooks: IHooks(address(hook))
+        });
+        bytes32 selfServicePoolId = PoolId.unwrap(selfServicePoolKey.toId());
+        vm.prank(issuerOperator);
+        registry.setPolicy(selfServicePoolId, CRED_TYPE);
+
+        SessionLib.SessionToken memory token =
+            _buildSessionForPool(SessionLib.ACTION_SWAP, uint64(block.timestamp + 600), selfServicePoolId);
+        token.cnfIssuer = address(selfServiceIssuer);
+        bytes memory hookData = abi.encode(token, _sign(token));
+
+        vm.prank(poolManager);
+        (bytes4 sel,,) = hook.beforeSwap(authorizedRouter, selfServicePoolKey, defaultSwapParams, hookData);
+        assertEq(sel, IHooks.beforeSwap.selector);
+    }
+
     function test_beforeSwap_staticPool_noFeeOverride() public {
         (bytes4 sel,, uint24 fee) = _callBeforeSwap(_hookData(SessionLib.ACTION_SWAP));
         assertEq(sel, IHooks.beforeSwap.selector);
@@ -191,8 +221,12 @@ contract ComplianceHookTest is Test {
     }
 
     function test_beforeRemoveLiquidity_allowsExitAfterIssuerRotation() public {
-        vm.prank(admin);
-        registry.setPolicy(poolId, makeAddr("replacementIssuer"), keccak256("replacement.credential"));
+        MockCNFIssuer replacementIssuer = new MockCNFIssuer();
+        vm.startPrank(admin);
+        registry.proposePolicyUpdate(poolId, address(replacementIssuer), keccak256("replacement.credential"));
+        vm.warp(block.timestamp + registry.POLICY_UPDATE_DELAY());
+        registry.activatePolicyUpdate(poolId);
+        vm.stopPrank();
         bytes4 sel = _callBeforeRemoveLiquidity(_hookData(SessionLib.ACTION_REMOVE_LIQUIDITY));
         assertEq(sel, IHooks.beforeRemoveLiquidity.selector);
     }

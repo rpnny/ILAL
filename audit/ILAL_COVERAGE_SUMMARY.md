@@ -30,15 +30,15 @@ Result date: 2026-07-21
 
 | Suite | Passed | Failed |
 |---|---:|---:|
-| `CNFIssuerTest` | 59 | 0 |
-| `ComplianceHookTest` | 29 | 0 |
+| `CNFIssuerTest` | 62 | 0 |
+| `ComplianceHookTest` | 30 | 0 |
 | `ComplianceHookV2Test` | 21 | 0 |
 | `FuzzCNFIssuer` | 9 | 0 |
 | `Groth16VerifierAdapterV2Test` | 4 | 0 |
-| `ILALRouterTest` | 31 | 0 |
+| `ILALRouterTest` | 33 | 0 |
 | `PolicyGrantManagerV2Test` | 15 | 0 |
-| `PolicyRegistryTest` | 20 | 0 |
-| Total | 188 | 0 |
+| `PolicyRegistryTest` | 24 | 0 |
+| Total | 198 | 0 |
 
 ## Notes for Auditors
 

@@ -157,6 +157,24 @@ contract ILALRouterTest is Test {
         router.quoteProtocolFee(erc20Key, SwapParams(false, 100 ether, 4295128740));
     }
 
+    function test_swap_revertsOnExactOutputBeforePoolManagerCall() public {
+        bytes memory hookData = _buildHookData(trader);
+
+        vm.prank(trader);
+        vm.expectRevert(ILALRouter.ExactOutputNotSupported.selector);
+        router.swap(erc20Key, SwapParams(false, 100 ether, 4295128740), 0, hookData);
+
+        assertEq(mockPM.swapCallCount(), 0);
+    }
+
+    function test_swap_revertsOnZeroAmountSpecified() public {
+        bytes memory hookData = _buildHookData(trader);
+
+        vm.prank(trader);
+        vm.expectRevert(ILALRouter.ExactOutputNotSupported.selector);
+        router.swap(erc20Key, SwapParams(false, 0, 4295128740), 0, hookData);
+    }
+
     function test_addLiquidity_revertsOnNativeCurrency() public {
         vm.expectRevert(ILALRouter.NativeNotSupported.selector);
         router.addLiquidity(
@@ -412,7 +430,7 @@ contract ILALRouterTest is Test {
         assertEq(token0.balanceOf(trader), 0);
     }
 
-    function test_swap_emitsSwapExecuted() public {
+    function test_swap_emitsSwapRoutedWithHookAddress() public {
         mockPM.setSwapResult(-int128(100 ether), int128(95 ether));
         deal(address(token0), trader, 200 ether);
         deal(address(token1), address(mockPM), 95 ether);
@@ -424,8 +442,10 @@ contract ILALRouterTest is Test {
             SwapParams({zeroForOne: true, amountSpecified: -int256(100 ether), sqrtPriceLimitX96: 4295128740});
 
         bytes32 expectedPoolId = PoolId.unwrap(erc20Key.toId());
-        vm.expectEmit(true, true, false, false);
-        emit ILALRouter.SwapExecuted(expectedPoolId, trader, address(token0), address(token1), 0, 0);
+        vm.expectEmit(true, true, true, false);
+        emit ILALRouter.SwapRouted(
+            expectedPoolId, trader, address(erc20Key.hooks), address(token0), address(token1), 0, 0
+        );
 
         vm.prank(trader);
         router.swap(erc20Key, params, 0, hookData);

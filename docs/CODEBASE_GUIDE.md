@@ -24,7 +24,8 @@ not copied from historical audit documents.
 1. `CNFIssuer` issues one non-transferable credential per wallet from either a
    validated EAS attestation or a Groth16 proof.
 2. `PolicyRegistry` maps a Uniswap v4 pool ID to the accepted issuer and
-   credential type.
+   credential type. Initial registration is immediate; issuer migrations,
+   credential-type changes, and re-enablement use a 48-hour propose/activate flow.
 3. The user signs a short-lived EIP-712 `SessionToken`. It binds the user,
    authorized router, issuer, chain, hook, pool, action, deadline, and nonce.
 4. The user calls `ILALRouter.swap`, `addLiquidity`, or `removeLiquidity` with
@@ -41,7 +42,9 @@ not copied from historical audit documents.
 
 The router charges its immutable protocol fee on actual swap input consumed,
 not the requested amount. Native ETH pools and exact-output swaps are outside
-the current router scope.
+the current router scope. `SwapRouted` proves routing only, not compliance;
+indexers must validate the Hook binding, deployment manifest, and matching Hook
+verification event.
 
 ## Isolated v2 Path
 
@@ -75,7 +78,13 @@ Changes to the protocol path should preserve these properties:
 - Router amount limits are checked on-chain, not only in the CLI.
 - Liquidity position salts remain scoped to the caller.
 - Credential revocation is live and permanent in v1.
+- ZK credentials are bound to the Merkle root under which they were minted or
+  renewed, so an activated root rotation invalidates the prior-root credential.
+- The hardened v1 circuit commits issuer and schema into each leaf and rejects
+  legacy six-signal proofs through its circuit-version public input.
 - ZK verifier, root, and domain changes retain their timelocks.
+- Existing v1 policy changes retain their 48-hour propose/activate delay while
+  emergency disablement remains immediate.
 - Administrative ownership and the router treasury are treated as separate
   roles, even when a testnet demo intentionally assigns one Safe to both.
 

@@ -23,7 +23,7 @@ sdk-test:
 	cd sdk && npm run build && npm test
 
 circuits-test:
-	cd circuits && npm run test:oracle && npm run test:v2
+	cd circuits && npm run test:oracle && npm run test:v1 && npm run test:v2
 
 package-check:
 	cd cli && npm pack --dry-run

@@ -43,10 +43,12 @@ make verify
 
 Expected current results:
 
-- Solidity tests: `188 passed, 0 failed, 0 skipped`; fuzz runs `256`
-- CLI tests: `29 passed, 0 failed`; release baseline remains `19`
+- Solidity tests: `198 passed, 0 failed, 0 skipped`; fuzz runs `256`
+- CLI tests: `48 passed, 0 failed`
 - SDK tests: `18 passed, 0 failed`
-- Oracle validation tests: `7 passed, 0 failed`
+- Oracle validation tests: `8 passed, 0 failed`
+- Credential circuit v1: valid domain-bound witness accepted; wrong issuer,
+  wrong schema, and legacy-version witnesses rejected
 - Policy circuit v2: valid witness accepted; 4 adversarial witnesses rejected
 - CLI build: pass
 - CLI audit: `0 vulnerabilities`
@@ -68,10 +70,15 @@ Expected current results:
 | Stolen hookData use | Router requires `token.user == msg.sender` |
 | Invalid credential | Hook checks `CNFIssuer.isValid(user)` |
 | Wrong credential type | Hook checks `credentialType == policy.requiredCredentialType` |
+| Instant policy migration | Existing policies require a 48-hour propose/activate delay; emergency disable remains immediate |
 | CNF transfer | ERC-721 approvals and transfers revert |
 | Revocation bypass | Permanent ban blocks renewals |
+| Stale ZK credential after root rotation | ZK credentials are bound to their mint/renew root and become invalid when it changes |
+| Cross-issuer/schema v1 proof reuse | Issuer and schema hashes are committed into the credential leaf and legacy six-signal proofs are rejected |
 | Verifier/root compromise | ZK verifier and Merkle root updates are timelocked |
 | Slippage | Router `minAmountOut` guard |
+| Exact-output spend without a maximum | Router rejects exact-output before entering `PoolManager` |
+| Router event mistaken for compliance proof | `SwapRouted` includes the Hook; indexers must also validate the deployment manifest and matching Hook event |
 | Protocol fee abuse | Protocol fee capped at `0.10%` |
 | Cross-user LP position access | Router scopes every liquidity salt to the signed caller |
 | Principal trapped after revocation | Remove-liquidity is an ownership-only exit path independent of mutable credential/policy state |
@@ -92,7 +99,9 @@ These items block production capital and any production-readiness claim:
 
 ## ZK Trusted Setup Status
 
-The current v1 circuit is suitable for demo and controlled PoC review. The
+The hardened v1 circuit is suitable for local testing and controlled PoC review,
+but its checked-in verifier was generated with an unsafe deterministic development
+beacon and must not be deployed. The
 isolated v2 policy circuit has constraint tests but no production proving key or
 deployed verifier. The development compile script explicitly blocks a known
 development beacon unless the unsafe local override is supplied.

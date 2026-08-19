@@ -288,7 +288,7 @@ Run destructive/admin tests on a local fork unless using a disposable deployment
 
 | ID | Scenario | Procedure | Expected Result | Severity If Fails |
 |---|---|---|---|---|
-| SOC-01 | Track successful swaps | Watch `SwapExecuted` | Events visible with pool/user/token amounts | Medium |
+| SOC-01 | Track routed swaps | Watch `SwapRouted` and verify its Hook against the deployment manifest plus the matching Hook verification event | Pool/user/token/Hook visible; Router event alone is not treated as compliance proof | Medium |
 | SOC-02 | Track protocol fees | Watch `ProtocolFeePaid` | Treasury receipts match fee quote | Medium |
 | SOC-03 | Track credential mints | Watch `CredentialMinted` | Mint events visible | Medium |
 | SOC-04 | Track revocations | Watch `CredentialRevoked` | Revocation events visible | High |

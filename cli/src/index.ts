@@ -13,7 +13,7 @@ import {
 import { mintCredential, renewCredential } from "./commands/mint.js";
 import { proofMint, proofRenew } from "./commands/proof.js";
 import { sessionSign } from "./commands/session.js";
-import { poolPolicySet, poolPolicyGet } from "./commands/pool.js";
+import { poolPolicySet, poolPolicyGet, poolPolicyPropose, poolPolicyActivate } from "./commands/pool.js";
 import { deploy } from "./commands/deploy.js";
 import { demo, demoCheck, demoFaucet, demoAttest } from "./commands/demo.js";
 import { init } from "./commands/init.js";
@@ -317,9 +317,9 @@ credential
   .command("zk-root")
   .description("Compute the Merkle root needed for a one-wallet ZK credential demo")
   .requiredOption("-w, --wallet <address>", "Wallet address included in the ZK tree")
-  .option("-i, --issuer <address>", "Issuer address, used to print matching public-input hashes")
+  .requiredOption("-i, --issuer <address>", "Issuer address committed into the ZK leaf")
   .requiredOption("--expires-at <unix>", "Future Unix timestamp; pass the same value to credential prove")
-  .action(async (opts: { wallet: string; issuer?: string; expiresAt: string }) => {
+  .action(async (opts: { wallet: string; issuer: string; expiresAt: string }) => {
     await credentialRoot(opts).catch(err);
   });
 
@@ -497,7 +497,7 @@ const policy = pool.command("policy").description("Pool compliance policy comman
 
 policy
   .command("set")
-  .description("Register a compliance policy for a pool (pool operator only)")
+  .description("Register the first compliance policy for a pool")
   .requiredOption("-p, --pool <bytes32>", "Pool ID (bytes32 hex)")
   .requiredOption("-i, --issuer <address>", "CNFIssuer contract address")
   .requiredOption("-R, --registry <address>", "PolicyRegistry contract address")
@@ -506,6 +506,30 @@ policy
   .option("-r, --rpc <url>", "Custom RPC URL")
   .action(async (opts: { pool: string; issuer: string; registry: string; credType: string; chain: string; rpc?: string; privateKey?: string }) => {
     await poolPolicySet(opts).catch(err);
+  });
+
+policy
+  .command("propose")
+  .description("Queue a delayed issuer or credential-type policy update")
+  .requiredOption("-p, --pool <bytes32>", "Pool ID (bytes32 hex)")
+  .requiredOption("-i, --issuer <address>", "Replacement CNFIssuer contract address")
+  .requiredOption("-R, --registry <address>", "PolicyRegistry contract address")
+  .option("-T, --cred-type <bytes32>", "Required credential type", COINBASE_SCHEMA_UID)
+  .option("-c, --chain <chainId>", "Chain ID", "8453")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { pool: string; issuer: string; registry: string; credType: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await poolPolicyPropose(opts).catch(err);
+  });
+
+policy
+  .command("activate")
+  .description("Activate a queued policy update after the review delay")
+  .requiredOption("-p, --pool <bytes32>", "Pool ID (bytes32 hex)")
+  .requiredOption("-R, --registry <address>", "PolicyRegistry contract address")
+  .option("-c, --chain <chainId>", "Chain ID", "8453")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts: { pool: string; registry: string; chain: string; rpc?: string; privateKey?: string }) => {
+    await poolPolicyActivate(opts).catch(err);
   });
 
 policy

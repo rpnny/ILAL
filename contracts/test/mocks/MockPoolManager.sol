@@ -31,6 +31,7 @@ contract MockPoolManager {
     int24 public lastTickUpper;
     int256 public lastLiquidityDelta;
     bytes32 public lastSalt;
+    uint256 public swapCallCount;
     mapping(bytes32 => int256) public positionLiquidity;
 
     function setSwapResult(int128 _amount0, int128 _amount1) external {
@@ -49,7 +50,8 @@ contract MockPoolManager {
         result = IUnlockCallback(msg.sender).unlockCallback(data);
     }
 
-    function swap(PoolKey memory, SwapParams memory, bytes calldata) external view returns (BalanceDelta) {
+    function swap(PoolKey memory, SwapParams memory, bytes calldata) external returns (BalanceDelta) {
+        swapCallCount++;
         return toBalanceDelta(mockAmount0, mockAmount1);
     }
 

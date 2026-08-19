@@ -15,6 +15,7 @@ pragma solidity ^0.8.24;
 ///           [3] expiresAt    — credential expiry (unix timestamp)
 ///           [4] revealFlags  — must be zero in circuit v1
 ///           [5] merkleRoot   — issuer-curated eligibility tree root
+///           [6] circuitVersion — fixed to 2 for the domain-bound revision
 interface IGroth16Verifier {
     function verifyProof(
         uint256[2] calldata a,

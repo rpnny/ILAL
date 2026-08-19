@@ -18,7 +18,8 @@
  *   ]
  *
  * Usage:
- *   npx tsx oracle/build_tree.ts --input oracle/attestations.json
+ *   npx tsx oracle/build_tree.ts --input oracle/attestations.json \
+ *     --issuer 0xCNFIssuer --schema 0xSchemaUID
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
@@ -29,10 +30,12 @@ import { poseidon2 } from "poseidon-lite";
 import {
   TREE_DEPTH,
   addressToField,
+  buildZKDomain,
   computeLeaf,
   validateAttestations,
   type AttestationRecord,
   type LeafRecord,
+  type ZKDomain,
 } from "./records.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -45,7 +48,7 @@ const ZERO_VALUE = 0n; // empty leaf value
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface TreeOutput {
+interface TreeOutput extends ZKDomain {
   merkleRoot: string;   // BigInt string
   depth: number;
   leaves: LeafRecord[];
@@ -61,6 +64,17 @@ function main() {
   const inputPath = inputFlag >= 0
     ? resolve(args[inputFlag + 1]!)
     : resolve(__dirname, "attestations.json");
+  const issuerFlag = args.indexOf("--issuer");
+  const schemaFlag = args.indexOf("--schema");
+
+  let domain: ZKDomain;
+  try {
+    if (issuerFlag < 0 || schemaFlag < 0) throw new Error("--issuer and --schema are required");
+    domain = buildZKDomain(args[issuerFlag + 1]!, args[schemaFlag + 1]!);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
 
   console.log(`Reading attestations from: ${inputPath}`);
 
@@ -80,7 +94,7 @@ function main() {
   const leafRecords: LeafRecord[] = [];
 
   for (const record of attestations) {
-    const leaf = computeLeaf(record);
+    const leaf = computeLeaf(record, BigInt(domain.issuerHash), BigInt(domain.schemaHash));
     const leafIndex = tree.leaves.length;
     tree.insert(leaf);
 
@@ -95,6 +109,7 @@ function main() {
   const merkleRoot = tree.root;
 
   const output: TreeOutput = {
+    ...domain,
     merkleRoot: merkleRoot.toString(),
     depth: DEPTH,
     leaves: leafRecords,
