@@ -1,15 +1,18 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="ILAL — ZK compliance layer for Uniswap v4. Verified institutions get better fees. Just prove it." />
-  <title>ILAL — Compliance is the hook.</title>
+  <meta name="description" content="ILAL verifies institutional orders, nets offsetting stablecoin flow atomically, and routes only the residual to Uniswap v4." />
+  <title>ILAL — Verified flow, netted before the AMM.</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,700;1,700&amp;family=Fragment+Mono&amp;display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css" />
+
+</head>
+<body>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
@@ -25,13 +28,11 @@
       </filter>
     </defs>
   </svg>
-</head>
-<body>
 
   <!-- ── FIXED UI ── -->
-  <button class="corner corner--tl" id="cornerI" aria-label="Toggle nav">I</button>
-  <button class="corner corner--tr" id="cornerL1" aria-label="Toggle nav">L</button>
-  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+  <button type="button" class="corner corner--tl" id="cornerI" aria-label="Toggle nav">I</button>
+  <button type="button" class="corner corner--tr" id="cornerL1" aria-label="Toggle nav">L</button>
+  <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
     <span class="theme-toggle__dark">◐</span>
     <span class="theme-toggle__light">◑</span>
   </button>
@@ -40,14 +41,14 @@
   <div class="nav-overlay" id="navOverlay" aria-hidden="true">
     <nav class="nav-overlay__inner">
       <ul class="nav-list" role="list">
-        <li><a class="nav-item" href="#proof"     data-close>Evidence<span class="nav-item__sub">Live Base Sepolia txs · local verification</span></a></li>
+        <li><a class="nav-item" href="#proof"     data-close>Evidence<span class="nav-item__sub">Live 100/70 and reverse netting batches</span></a></li>
         <li><a class="nav-item" href="#customers" data-close>Customers<span class="nav-item__sub">Institutions · makers · RWA issuers</span></a></li>
-        <li><a class="nav-item" href="#product"   data-close>Product<span class="nav-item__sub">Hook · Router · CNF · CLI</span></a></li>
-        <li><a class="nav-item" href="#problem"   data-close>Problem<span class="nav-item__sub">The compliance triangle</span></a></li>
-        <li><a class="nav-item" href="#how"        data-close>How it works<span class="nav-item__sub">4 steps · EAS/ZK → CNF → Session → Swap</span></a></li>
+        <li><a class="nav-item" href="#product"   data-close>Product<span class="nav-item__sub">Netting Hook · BatchRouter · CNF · CLI</span></a></li>
+        <li><a class="nav-item" href="#problem"   data-close>Problem<span class="nav-item__sub">Gross flow should not become public impact</span></a></li>
+        <li><a class="nav-item" href="#how"        data-close>How it works<span class="nav-item__sub">Verify → match → net → route residual</span></a></li>
         <li><a class="nav-item" href="#issuers"    data-close>RWA Issuers<span class="nav-item__sub">Deploy your own compliance pool</span></a></li>
-        <li><a class="nav-item" href="#cli"        data-close>Integrate<span class="nav-item__sub">npm CLI · SDK · 5 commands</span></a></li>
-        <li><a class="nav-item" href="#deployments" data-close>On-chain<span class="nav-item__sub">V1 active · V2 public ZK candidate</span></a></li>
+        <li><a class="nav-item" href="#cli"        data-close>Integrate<span class="nav-item__sub">npm next · signed orders · permissionless execution</span></a></li>
+        <li><a class="nav-item" href="#deployments" data-close>On-chain<span class="nav-item__sub">Netting candidate · V1 active · V2 candidate</span></a></li>
       </ul>
       <div class="nav-overlay__foot">
         <span>ILAL — Institutional Liquidity Access Layer</span>
@@ -65,16 +66,16 @@
     <div class="hero-text">
       <div class="hero-badge">
         <span class="badge-dot"></span>
-        v0.3.3 stable · V2 ZK PoC live on Base Sepolia
+        Netting candidate live · npm preview updated
         &nbsp;&nbsp;
         <span class="uni-badge"><span class="uni-badge__dot"></span>Uniswap v4 Hook</span>
       </div>
       <h1 class="hero-h1" id="heroH1">
-        <span>Compliance</span>
-        <em>is the <span class="hero-hook">hook.</span></em>
+        <span>Verified flow.</span>
+        <em>Netted <span class="hero-hook">before the AMM.</span></em>
       </h1>
-      <p class="hero-product-line">The verified-flow liquidity layer for institutional DeFi.</p>
-      <p class="hero-sub">PROVE ELIGIBILITY · TRADE PRIVATELY · GET A BETTER DEAL ON UNISWAP V4</p>
+      <p class="hero-product-line">Atomic institutional stablecoin netting on Uniswap v4.</p>
+      <p class="hero-sub">VERIFY EVERY ORDER · MATCH OFFSETTING FLOW · ROUTE ONLY THE RESIDUAL</p>
       <div class="hero-actions">
         <a class="btn btn--primary" href="#proof">Review evidence</a>
         <a class="btn btn--ghost"   href="#cli">Build locally</a>
@@ -82,14 +83,14 @@
 
       <div class="hero-console" aria-label="ILAL release status">
         <div class="hero-console__top">
-          <span>ILAL RELEASE STATUS</span>
-          <strong>v0.3.3</strong>
+          <span>ILAL NETTING STATUS</span>
+          <strong>npm next</strong>
         </div>
         <div class="hero-console__grid">
-          <div><span>deployment</span><strong>Base Sepolia</strong></div>
-          <div><span>attestation</span><strong>MockEAS demo</strong></div>
-          <div><span>ZK</span><strong>experimental</strong></div>
-          <div><span>tests</span><strong>188</strong></div>
+          <div><span>canonical batch</span><strong>100 / 70</strong></div>
+          <div><span>internal match</span><strong>140 gross</strong></div>
+          <div><span>AMM residual</span><strong>30 token0</strong></div>
+          <div><span>Solidity tests</span><strong>229</strong></div>
         </div>
       </div>
     </div>
@@ -100,7 +101,7 @@
         scroll <span class="scroll-line"></span>
       </div>
       <span class="canvas-pool-status">
-        <span class="pool-dot"></span>software stable · demo active
+        <span class="pool-dot"></span>candidate live · source exact match
       </span>
     </div>
   </section>
@@ -108,29 +109,29 @@
   <!-- ── TICKER STRIP ── -->
   <div class="ticker-strip" aria-hidden="true">
     <div class="ticker-track" id="tickerTrack">
-      <span class="ticker-item"><span class="ticker-item__dot"></span>verified LP fee <span class="ticker-item__val">0.05%</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>ILAL protocol fee <span class="ticker-item__val">0.005%</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>verified flow <span class="ticker-item__val">better liquidity</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>demo attestation <span class="ticker-item__val">MockEAS active</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>session gas <span class="ticker-item__val">0</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>tests passing <span class="ticker-item__val">188</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>vs 30bps pool <span class="ticker-item__val">5.45× lower</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CNF valid <span class="ticker-item__val">90 days</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>deployment <span class="ticker-item__val">Safe-controlled</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>hook checks per swap <span class="ticker-item__val">6</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>UHI10 <span class="ticker-item__val">July 2026</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>submitted gross <span class="ticker-item__val">170m</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>matched gross <span class="ticker-item__val">140m</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">229</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>network <span class="ticker-item__val">Base Sepolia</span></span>
       <!-- duplicate for seamless loop -->
-      <span class="ticker-item"><span class="ticker-item__dot"></span>verified LP fee <span class="ticker-item__val">0.05%</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>ILAL protocol fee <span class="ticker-item__val">0.005%</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>verified flow <span class="ticker-item__val">better liquidity</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>demo attestation <span class="ticker-item__val">MockEAS active</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>session gas <span class="ticker-item__val">0</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>tests passing <span class="ticker-item__val">188</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>vs 30bps pool <span class="ticker-item__val">5.45× lower</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CNF valid <span class="ticker-item__val">90 days</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>deployment <span class="ticker-item__val">Safe-controlled</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>hook checks per swap <span class="ticker-item__val">6</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>UHI10 <span class="ticker-item__val">July 2026</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>submitted gross <span class="ticker-item__val">170m</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>matched gross <span class="ticker-item__val">140m</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">229</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>network <span class="ticker-item__val">Base Sepolia</span></span>
     </div>
   </div>
 
@@ -141,12 +142,12 @@
     <div class="section-inner">
       <div class="section-head section-head--split">
         <div>
-          <p class="eyebrow">Live Base Sepolia evidence</p>
-          <h2>Reproducible source.<br/><em>Honest deployment status.</em></h2>
+          <p class="eyebrow">Live netting evidence</p>
+          <h2>Offset first.<br/><em>Route only what remains.</em></h2>
         </div>
         <p class="section-lead">
-          These v0.3.3 transactions show Safe-controlled ownership, credential issuance, bounded liquidity and swap execution, plus an expected rejection for an uncredentialed wallet.
-          This is an unaudited MockEAS testnet demo, not a production deployment.
+          The Base Sepolia candidate is source-verified and reproducible: canonical orders are matched atomically, only the residual reaches Uniswap v4, and settlement goes directly to users.
+          Active v0.3.3 remains a separate unaudited testnet demo.
         </p>
       </div>
 
@@ -158,45 +159,45 @@
           <span></span>
           <span class="rail-dot rail-dot--on"></span>
           <span></span>
-          <span class="rail-dot rail-dot--blocked"></span>
+          <span class="rail-dot rail-dot--on"></span>
         </div>
         <div class="proof-grid">
-          <a class="proof-card" href="https://sepolia.basescan.org/tx/0xaaea4d6b00b84796949d7a0646e08d268a207ca09adb55323c748e052fe0b428" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">01 · Credential</span>
-            <strong>CNF minted</strong>
-            <span class="proof-card__meta">MockEAS attestation verified on-chain</span>
-            <code>0xaaea4d…0b428 ↗</code>
+          <a class="proof-card" href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/candidate-manifest.json" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">01 · Manifest</span>
+            <strong>Candidate recorded</strong>
+            <span class="proof-card__meta">addresses, transactions and acceptance checks</span>
+            <code>candidate-manifest.json ↗</code>
           </a>
-          <a class="proof-card" href="https://sepolia.basescan.org/address/0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80#readContract" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">02 · Channel</span>
-            <strong>Router bound</strong>
-            <span class="proof-card__meta">direct PoolManager bypass patched</span>
-            <code>authorizedRouter() ↗</code>
+          <a class="proof-card" href="https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">02 · Source</span>
+            <strong>Exact match</strong>
+            <span class="proof-card__meta">InstitutionalNettingHook verified by Sourcify</span>
+            <code>chain 84532 ↗</code>
           </a>
-          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x8109f8677bbbef1c68ea4415e508215401a7e5a5969f315c02cc8e6b7db0ee0f" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">03 · Liquidity</span>
-            <strong>Add liquidity passed</strong>
-            <span class="proof-card__meta">bounded spend · block 44485227</span>
-            <code>0x8109f8…b0ee0f ↗</code>
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">03 · Canonical batch</span>
+            <strong>100 / 70 netted</strong>
+            <span class="proof-card__meta">140m matched · 30m token0 residual</span>
+            <code>0x4dc049…d6dfa9 ↗</code>
           </a>
-          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x50215347045552e82993f164472d4c575850a254b384381c6bb502565916b7a5" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">04 · Swap</span>
-            <strong>Verified swap passed</strong>
-            <span class="proof-card__meta">0.05% LP fee + 0.005% ILAL fee</span>
-            <code>0x502153…16b7a5 ↗</code>
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">04 · Reverse batch</span>
+            <strong>60 / 90 netted</strong>
+            <span class="proof-card__meta">120m matched · 30m token1 residual</span>
+            <code>0x4e4e2d…f82fd8 ↗</code>
           </a>
-          <a class="proof-card proof-card--blocked" href="https://sepolia.basescan.org/tx/0x72896278739b641eda1b5f709a028d53c129aeb3ee0478bee77d73a7969b356f" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">05 · Control</span>
-            <strong>Fresh wallet blocked</strong>
-            <span class="proof-card__meta">no CNF · CredentialInvalid() · reverted on-chain</span>
-            <code>0x728962…9b356f ↗</code>
+          <a class="proof-card" href="https://github.com/rpnny/ILAL/tree/main/test/netting" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">05 · Invariants</span>
+            <strong>Six × 256 runs</strong>
+            <span class="proof-card__meta">allocation, conservation and zero inventory</span>
+            <code>test/netting ↗</code>
           </a>
         </div>
       </div>
 
       <div class="proof-verdict">
-        <span>Final acceptance</span>
-        <strong>Compliant institution allowed. Non-compliant wallet blocked.</strong>
+        <span>Canonical acceptance</span>
+        <strong>170m submitted → 140m matched internally → 30m routed to the AMM.</strong>
       </div>
     </div>
   </section>
@@ -212,28 +213,27 @@
           <h2>Built for the desks<br/><em>that cannot trade naked.</em></h2>
         </div>
         <p class="section-lead">
-          ILAL is not another whitelist UI. It is an execution layer for regulated flow:
-          private eligibility, lower cost per trade, and an on-chain route that market makers can integrate into existing systems.
+          ILAL combines eligibility checks with deterministic batch execution. Institutions sign locally, permissionless solvers submit canonical batches, and issuers retain their compliance perimeter.
         </p>
       </div>
 
       <div class="customer-grid">
         <div class="customer-card">
           <span class="customer-card__type">Institutional trader</span>
-          <h3>Enter DeFi without exposing identity.</h3>
-          <p>Prove eligibility once, hold a CNF, then sign short-lived sessions locally. Compliance status is binary; identity and KYC documents never touch the pool.</p>
-          <div class="customer-card__outcome">Outcome: private access + 0.055% verified path</div>
+          <h3>Trade without routing gross flow through the AMM.</h3>
+          <p>Prove eligibility, then sign exact-input EIP-712 orders locally. Offset flow settles directly between users while only the imbalance touches public liquidity.</p>
+          <div class="customer-card__outcome">Outcome: less AMM exposure + atomic settlement</div>
         </div>
         <div class="customer-card">
           <span class="customer-card__type">Market maker</span>
-          <h3>Quote compliant flow as better flow.</h3>
-          <p>Integrate the ILALRouter into internal trading infrastructure. Valid sessions unlock a lower LP fee path while rejected wallets never reach execution.</p>
-          <div class="customer-card__outcome">Outcome: better spreads without leaking strategy</div>
+          <h3>Compete on discovery, not settlement discretion.</h3>
+          <p>Find offsetting orders and submit them in strict canonical order. Allocation is deterministic and solver-independent; execution is permissionless.</p>
+          <div class="customer-card__outcome">Outcome: open solving + deterministic fills</div>
         </div>
         <div class="customer-card">
           <span class="customer-card__type">RWA issuer</span>
-          <h3>Launch compliant liquidity without rebuilding KYC.</h3>
-          <p>Deploy your own CNFIssuer, bind a pool policy, and manage eligible wallets through EAS or ZK roots. Your credential controls your pool.</p>
+          <h3>Control eligibility without taking custody.</h3>
+          <p>Manage eligible wallets through CNF, EAS or ZK policy paths. The hook and router finish every batch with zero token inventory.</p>
           <div class="customer-card__outcome">Outcome: issuer-owned compliance perimeter</div>
         </div>
       </div>
@@ -253,12 +253,12 @@
       <div class="product-grid">
         <div class="product-card product-card--wide">
           <span class="product-card__tag">Protocol</span>
-          <h3>ComplianceHook</h3>
-          <p>Uniswap v4 hook that enforces CNF validity, pool policy, router binding, action binding, deadline, signature, and nonce replay protection.</p>
+          <h3>InstitutionalNettingHook</h3>
+          <p>Uniswap v4 hook for eligible stablecoin flow. It verifies exact-input orders, matches opposite directions at raw-unit 1:1, and permits only the net residual to reach the pool.</p>
           <ul>
-            <li>beforeSwap fee override → 0.05%</li>
-            <li>beforeAddLiquidity / beforeRemoveLiquidity gated</li>
-            <li>authorizedRouter immutable on current stack</li>
+            <li>2–16 orders · strict ascending order hash</li>
+            <li>solver-independent pro-rata allocation</li>
+            <li>batch-start ±100 tick residual guard</li>
           </ul>
         </div>
         <div class="product-card">
@@ -268,19 +268,19 @@
         </div>
         <div class="product-card">
           <span class="product-card__tag">Execution</span>
-          <h3>ILALRouter</h3>
-          <p>User-facing Uniswap v4 IUnlockCallback router. Current source supports bounded swap output, LP maximum spends, LP minimum receipts, and fees on actual consumed input.</p>
+          <h3>BatchRouter</h3>
+          <p>Permissionless batch execution with direct user settlement. It transfers matched flow peer-to-peer, routes one residual leg through v4, and leaves both router and hook with zero inventory.</p>
         </div>
         <div class="product-card">
           <span class="product-card__tag">Developer</span>
           <h3>CLI + npm</h3>
-          <p>Local v0.3.3 candidate for proof, CNF, sessions, liquidity, swaps, encrypted keystores, RPC-managed accounts, and Safe proposals. npm 0.3.2 is deprecated.</p>
-          <code>git clone github.com/rpnny/ilal</code>
+          <p><code>@ilalv3/cli@next</code> now includes the netting order, preview, execute and nonce-cancel workflow alongside V1 and V2 tooling. <code>@ilalv3/sdk@next</code> adds V2 session helpers.</p>
+          <code>npm i -g @ilalv3/cli@next</code>
         </div>
         <div class="product-card">
           <span class="product-card__tag">Audit</span>
           <h3>Security package</h3>
-          <p>188 Solidity tests plus an expanded CLI suite above the 19-test baseline, 256 fuzz runs, archived chain evidence, and regression coverage for signer, Safe, ERC-1271, policy, expiry, fees, and amount bounds.</p>
+          <p>229 Solidity, 53 CLI and 18 SDK tests, plus six netting invariants at 256 runs each. Coverage includes conservation, canonical ordering, solver independence, cancellation and zero inventory.</p>
         </div>
       </div>
     </div>
@@ -293,34 +293,32 @@
     <div class="section-inner">
       <div class="section-head">
         <p class="eyebrow">The problem</p>
-        <h2>Compliance. Cost. Privacy.<br/><em>Pick two.</em></h2>
+        <h2>Gross flow. Public impact.<br/><em>Unnecessary.</em></h2>
       </div>
 
       <div class="problem-grid">
         <div class="problem-card problem-card--bad">
-          <div class="problem-card__label">CEX</div>
-          <p>Centralized exchange → defeats the purpose of on-chain settlement. You don't own the liquidity.</p>
+          <div class="problem-card__label">Gross AMM routing</div>
+          <p>Opposing institutional orders independently hit the pool, creating avoidable price impact and fee exposure.</p>
         </div>
         <div class="problem-card problem-card--bad">
-          <div class="problem-card__label">Vanilla Uniswap</div>
-          <p>No restrictions → non-compliant wallets can interact. Regulators say no.</p>
+          <div class="problem-card__label">Solver discretion</div>
+          <p>Opaque ordering and allocation make execution outcomes depend on who wins the batch.</p>
         </div>
         <div class="problem-card problem-card--bad">
-          <div class="problem-card__label">Custom restrictions</div>
-          <p>Fragmented liquidity, high dev cost, every RWA issuer reinvents the same wheel.</p>
+          <div class="problem-card__label">Compliance gap</div>
+          <p>Generic intent systems do not enforce issuer eligibility at the final execution boundary.</p>
         </div>
         <div class="problem-card problem-card--bad">
-          <div class="problem-card__label">Full KYC on-chain</div>
-          <p>Institutions and market makers leak identity. Competitive positions exposed publicly.</p>
+          <div class="problem-card__label">Custody queue</div>
+          <p>Off-chain netting introduces an operator, balances to reconcile, and another settlement dependency.</p>
         </div>
       </div>
 
       <div class="problem-solution">
         <p class="eyebrow">ILAL's answer</p>
         <p class="solution-text">
-          Users prove eligibility through an issuer attestation or a <strong>privacy-preserving ZK proof</strong>. A soulbound credential mints once.
-          A Uniswap v4 hook verifies on every swap. Verified flow becomes a liquidity signal and gets <strong>0.05% LP fee</strong>.
-          The hook enforces everything — no hosted API, no custody, no KYC leak. Old KYC hooks decide who can pass; ILAL decides who can pass <strong>and gives that flow a better deal</strong>.
+          <strong>Verify → match → net → route the residual.</strong> Every order is eligibility-gated and signed. Canonical allocation removes solver discretion, atomic settlement removes custody, and Uniswap v4 supplies liquidity only for the unmatched imbalance.
         </p>
       </div>
     </div>
@@ -333,7 +331,7 @@
     <div class="section-inner">
       <div class="section-head">
         <p class="eyebrow">How it works</p>
-        <h2>Four steps.<br/><em>One issuer-backed credential.</em></h2>
+        <h2>Four steps.<br/><em>One atomic batch.</em></h2>
       </div>
 
       <div class="steps">
@@ -341,11 +339,11 @@
           <div class="step__num">01</div>
           <div class="step__content">
             <div class="step__head">
-              <h3>Prove issuer eligibility</h3>
-              <span class="step__badge step__badge--off">EAS OR ZK</span>
+              <h3>Verify eligibility</h3>
+              <span class="step__badge step__badge--off">CNF · EAS · ZK</span>
             </div>
-            <p>The public demo uses a MockEAS attestation. ZK-enabled issuers can instead run the Groth16 circuit locally and prove Merkle membership without revealing the full eligibility record.</p>
-            <div class="step__cmd"><span class="prompt">$</span> ilal credential mint --attestation 0xUID</div>
+            <p>The candidate uses ILAL's existing eligibility surface. Each order owner must satisfy the pool policy before any matching or AMM interaction can occur.</p>
+            <div class="step__cmd"><span class="prompt">$</span> ilal netting order create --side zero-for-one</div>
           </div>
         </div>
 
@@ -353,11 +351,11 @@
           <div class="step__num">02</div>
           <div class="step__content">
             <div class="step__head">
-              <h3>Mint soulbound credential (CNF)</h3>
-              <span class="step__badge step__badge--on">ON-CHAIN · ~350k gas</span>
+              <h3>Sign the exact-input order</h3>
+              <span class="step__badge step__badge--local">LOCAL · 0 GAS</span>
             </div>
-            <p>The issuer's configured EAS or ZK trust path is checked on-chain. If valid, a soulbound ERC-721 credential mints to the wallet. One credential, valid for 90 days. No re-KYC needed for every trade.</p>
-            <div class="step__cmd"><span class="prompt">✓</span> CNF minted · token #3 · expires 2026-08-14</div>
+            <p>EIP-712 binds the owner, side, amount, nonce and deadline. Users retain custody and can cancel a nonce before execution.</p>
+            <div class="step__cmd"><span class="prompt">✓</span> Order signed · nonce unique · deadline bounded</div>
           </div>
         </div>
 
@@ -365,11 +363,11 @@
           <div class="step__num">03</div>
           <div class="step__content">
             <div class="step__head">
-              <h3>Sign a session token</h3>
-              <span class="step__badge step__badge--local">LOCAL · 0 gas</span>
+              <h3>Canonicalize and match</h3>
+              <span class="step__badge step__badge--on">PERMISSIONLESS</span>
             </div>
-            <p>Before each trade, sign a 10-minute EIP-712 SessionToken locally. It binds caller identity, the specific pool, the router address, and a one-time nonce — all without touching the chain.</p>
-            <div class="step__cmd"><span class="prompt">✓</span> Session signed · expires in 600s · nonce consumed on swap</div>
+            <p>Any solver can sort 2–16 orders by ascending hash and submit the batch. Deterministic pro-rata allocation produces the same fills regardless of the solver.</p>
+            <div class="step__cmd"><span class="prompt">✓</span> 170m gross · 140m internally matched</div>
           </div>
         </div>
 
@@ -377,11 +375,11 @@
           <div class="step__num">04</div>
           <div class="step__content">
             <div class="step__head">
-              <h3>Swap with verified fee path</h3>
-              <span class="step__badge step__badge--hook">HOOK · beforeSwap()</span>
+              <h3>Route only the residual</h3>
+              <span class="step__badge step__badge--hook">UNISWAP V4</span>
             </div>
-            <p>The ComplianceHook runs six checks before every swap: session signature, deadline, caller binding, pool policy match, CNF validity, and one-time nonce. Pass all six → LP fee drops to <strong>0.05%</strong>. Fail any → revert.</p>
-            <div class="step__cmd"><span class="prompt">✓</span> Swap executed via ILAL channel · fair flow · verified swap fee 0.05%</div>
+            <p>Matched amounts settle directly between users. One residual leg reaches the AMM under the batch-start tick guard; hook and router end with zero token inventory.</p>
+            <div class="step__cmd"><span class="prompt">✓</span> 30m residual routed · settlement atomic</div>
           </div>
         </div>
       </div>
@@ -390,59 +388,59 @@
       <div class="hook-diagram">
         <div class="hook-diagram__title">
           <span class="uni-dot"></span>
-          ComplianceHook.sol — beforeSwap() execution path · Uniswap v4
+          InstitutionalNettingHook.sol — atomic batch path · Uniswap v4
         </div>
         <div class="hook-diagram__body">
           <div class="hd-col">
             <div class="hd-label">Institution</div>
-            <div class="hd-name">ILALRouter<br/>.swap()</div>
+            <div class="hd-name">Signed<br/>orders</div>
           </div>
           <div class="hd-arrow">→</div>
           <div class="hd-col hd-col--center">
-            <div class="hd-label">Uniswap v4 Hook</div>
-            <div class="hd-name">beforeSwap()</div>
+            <div class="hd-label">ILAL Hook + Router</div>
+            <div class="hd-name">verify + net</div>
             <div class="hd-check">
-              <span>✓ session signature</span>
-              <span>✓ authorizedCaller</span>
-              <span>✓ CNF credential</span>
-              <span>✓ pool policy match</span>
+              <span>✓ eligibility + signature</span>
+              <span>✓ canonical order</span>
+              <span>✓ deterministic allocation</span>
+              <span>✓ direct settlement</span>
               <span>✓ nonce consumed</span>
             </div>
-            <div class="hd-fee">LP fee override → 0.05%</div>
+            <div class="hd-fee">140m matched internally</div>
           </div>
           <div class="hd-arrow">→</div>
           <div class="hd-col">
             <div class="hd-label">PoolManager</div>
-            <div class="hd-name">Swap<br/>executes ✓</div>
+            <div class="hd-name">30m residual<br/>executes ✓</div>
           </div>
         </div>
       </div>
 
       <div class="fee-callout">
         <div class="fee-callout__row">
-          <span>Standard 30bps pool (Uniswap v4)</span>
-          <strong class="fee-callout__val fee-callout__val--dim">0.30%</strong>
+          <span>Submitted gross volume</span>
+          <strong class="fee-callout__val fee-callout__val--dim">170m</strong>
         </div>
         <div class="fee-callout__row fee-callout__row--active">
-          <span>ILAL verified LP fee &nbsp;<span class="uni-badge"><span class="uni-badge__dot"></span>hook-enforced</span></span>
-          <strong class="fee-callout__val">0.05%</strong>
+          <span>Internally matched volume &nbsp;<span class="uni-badge"><span class="uni-badge__dot"></span>atomic</span></span>
+          <strong class="fee-callout__val">140m</strong>
         </div>
         <div class="fee-callout__row">
-          <span>ILAL protocol fee</span>
-          <strong class="fee-callout__val fee-callout__val--dim">0.005%</strong>
+          <span>Netting fee</span>
+          <strong class="fee-callout__val fee-callout__val--dim">0</strong>
         </div>
         <div class="fee-callout__total">
-          <span>Total verified path</span>
-          <strong>0.055%</strong>
-          <span class="savings-chip">5.45× lower than standard</span>
+          <span>AMM residual</span>
+          <strong>30m</strong>
+          <span class="savings-chip">82.35% gross flow offset</span>
         </div>
         <div style="padding:1rem 1.5rem; border-top:1px solid var(--border)">
           <div class="fee-bar-wrap">
-            <div class="fee-bar-label"><span>Standard 30bps pool</span><span>0.30%</span></div>
+            <div class="fee-bar-label"><span>Submitted gross</span><span>170m</span></div>
             <div class="fee-bar"><div class="fee-bar__fill fee-bar__fill--standard" id="feeBarStd"></div></div>
           </div>
           <div class="fee-bar-wrap" style="margin-top:.8rem">
-            <div class="fee-bar-label"><span>ILAL verified path</span><span style="color:var(--uni)">0.055%</span></div>
+            <div class="fee-bar-label"><span>AMM residual</span><span style="color:var(--uni)">30m</span></div>
             <div class="fee-bar"><div class="fee-bar__fill fee-bar__fill--ilal" id="feeBarIlal"></div></div>
           </div>
         </div>
@@ -537,7 +535,7 @@ ilal policy grant activate --proof ./artifacts/v2-proof/proof.json \
     <div class="section-inner">
       <div class="section-head">
         <p class="eyebrow">Integration</p>
-        <h2>Install v0.3.3.<br/><em>Verify before trust.</em></h2>
+        <h2>Install npm next.<br/><em>Preview before execution.</em></h2>
       </div>
 
       <div class="cli-steps">
@@ -545,13 +543,12 @@ ilal policy grant activate --proof ./artifacts/v2-proof/proof.json \
         <div class="cli-step" id="cliStep0">
           <div class="cli-step__meta">
             <span class="cli-step__num">Step 01</span>
-            <h3>Install the stable CLI</h3>
-            <p>v0.3.3 is the current source and stable package. npm 0.3.2 is deprecated; 0.2.21 is a legacy old-ABI release.</p>
+            <h3>Install the preview CLI</h3>
+            <p><code>@ilalv3/cli@next</code> contains the netting and V2 candidate tooling. npm <code>latest</code> remains v0.3.3 and <code>ilal init</code> continues to select that active deployment.</p>
           </div>
-          <pre class="cli-step__pre"><code>git clone https://github.com/rpnny/ilal
-cd ilal/cli &amp;&amp; npm ci &amp;&amp; npm run build
-node dist/index.js init
-node dist/index.js --version <span class="c-comment"># 0.3.3</span>
+          <pre class="cli-step__pre"><code>npm install -g @ilalv3/cli@next
+ilal init
+ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
 
 <span class="c-comment"># Public testnet prototype.
 # Production use requires audited contracts
@@ -561,73 +558,63 @@ node dist/index.js --version <span class="c-comment"># 0.3.3</span>
         <div class="cli-step" id="cliStep1">
           <div class="cli-step__meta">
             <span class="cli-step__num">Step 02</span>
-            <h3>Check credential status</h3>
-            <p>New wallets can inspect whether they already hold a CNF credential. If not, the CLI routes them to the ZK proof path or the EAS attestation path.</p>
+            <h3>Create and sign an order</h3>
+            <p>Create an exact-input order bound to its side, amount, nonce and deadline, then sign it locally with an encrypted keystore or supported RPC account.</p>
           </div>
-          <pre class="cli-step__pre"><code>ilal credential status \
-  --wallet 0xYourInstitutionWallet
+          <pre class="cli-step__pre"><code>ilal --keystore institution.json \
+  netting order sign --zero-for-one \
+  --amount-in 100000000 \
+  --min-amount-out 99000000 \
+  --max-amm-input 30000000 -o order-a.json
 
 <span class="c-comment"># Output:
-# credential: none
-# Path A: generate ZK proof
-# Path B: mint from EAS attestation</span></code></pre>
+# exact-input order + EIP-712 signature
+# private key never leaves the signer</span></code></pre>
         </div>
 
         <div class="cli-step" id="cliStep2">
           <div class="cli-step__meta">
             <span class="cli-step__num">Step 03</span>
-            <h3>Optional: configure the ZK path</h3>
-            <p>ZK is experimental and disabled in the active public demo. Local proof generation requires a separately configured verifier, root, domain, and non-production proving artifacts.</p>
+            <h3>Preview canonical allocation</h3>
+            <p>Sort the batch canonically and inspect deterministic matched fills and the AMM residual before sending a transaction.</p>
           </div>
-          <pre class="cli-step__pre"><code>ilal credential zk-root \
-  --wallet 0xYourInstitutionWallet \
-  --expires-at 1800000000
-
-ilal --keystore ./wallet.json credential prove \
-  --wallet 0xYourInstitutionWallet \
-  --expires-at 1800000000
+          <pre class="cli-step__pre"><code>ilal netting batch preview \
+  --orders order-a.json order-b.json
 
 <span class="c-comment"># Output:
-# ✓ Proof generated &amp; verified locally
-# mintWithProof()
-# active root and proof expiry match</span></code></pre>
+# submitted gross: 170000000
+# internally matched: 140000000
+# AMM residual: 30000000 token0</span></code></pre>
         </div>
 
         <div class="cli-step" id="cliStep3">
           <div class="cli-step__meta">
             <span class="cli-step__num">Step 04</span>
-            <h3>Sign a zero-gas session</h3>
-            <p>Signs a fresh 10-minute EIP-712 SessionToken locally with an encrypted keystore or a capability-checked RPC account. Safe administrative proposals are separate; native custody-vendor adapters are not claimed.</p>
+            <h3>Execute the batch</h3>
+            <p>Any solver can submit the exact same canonical batch. Execution verifies eligibility and signatures, settles matched flow, and sends only the residual to Uniswap v4.</p>
           </div>
-<pre class="cli-step__pre"><code>ilal --keystore ./wallet.json session sign \
-  --pool 0xYourPoolId \
-  --action swap \
-  --hook 0x9B894a...59CA80 \
-  --caller 0x2ccd39...ef99A77
+<pre class="cli-step__pre"><code>ilal --keystore solver.json \
+  netting batch execute \
+  --orders order-a.json order-b.json
 
 <span class="c-comment"># Output:
-# ✓ Session signed locally
-# hookData ready
-# gas spent: 0</span></code></pre>
+# ✓ atomic settlement
+# ✓ router inventory: 0
+# ✓ hook inventory: 0</span></code></pre>
         </div>
 
         <div class="cli-step" id="cliStep4">
           <div class="cli-step__meta">
             <span class="cli-step__num">Step 05</span>
-            <h3>Simulate or execute swap</h3>
-            <p>Simulate the verified-flow path first, then send a real transaction once the wallet holds a valid CNF. Production scripts must pass a positive quoted output floor; this public testnet walkthrough uses an explicit unsafe opt-out.</p>
+            <h3>Cancel an unused nonce</h3>
+            <p>An order owner can cancel a nonce on-chain before execution. Replays, expired orders and duplicate nonces revert.</p>
           </div>
-<pre class="cli-step__pre"><code>ilal --keystore ./wallet.json swap \
-  --amount-in 1 \
-  --token-in  0xToken \
-  --min-amount-out &lt;quotedMinRaw&gt;
+<pre class="cli-step__pre"><code>ilal --keystore institution.json \
+  netting nonce cancel --nonce 0x...
 
 <span class="c-comment"># Output:
-# ✓ Allowance ok
-# ✓ Session signed (expires in 600s)
-# ✓ Gate checks ready
-# LP fee: 0.05%
-# ILAL fee: 0.005%</span></code></pre>
+# ✓ nonce cancelled
+# subsequent batch execution reverts</span></code></pre>
         </div>
 
       </div><!-- /cli-steps -->
@@ -637,6 +624,10 @@ ilal --keystore ./wallet.json credential prove \
         <table class="ref-table">
           <tbody>
             <tr><td><code>ilal status</code></td><td>Dashboard: credential · issuer config · pool policy</td></tr>
+            <tr><td><code>ilal netting order sign</code></td><td>Create and locally sign an exact-input candidate order</td></tr>
+            <tr><td><code>ilal netting batch preview</code></td><td>Inspect canonical allocations and the AMM residual</td></tr>
+            <tr><td><code>ilal netting batch execute</code></td><td>Submit an atomic permissionless batch with a residual output floor</td></tr>
+            <tr><td><code>ilal netting nonce cancel</code></td><td>Cancel an unused order nonce on-chain</td></tr>
             <tr><td><code>ilal credential status</code></td><td>Check whether a wallet holds a valid CNF credential</td></tr>
             <tr><td><code>ilal credential zk-root</code></td><td>Compute the ZK Merkle root for a wallet and expiry</td></tr>
             <tr><td><code>ilal credential prove</code></td><td>Trader flow: local ZK proof → mint or renew CNF</td></tr>
@@ -661,8 +652,58 @@ ilal --keystore ./wallet.json credential prove \
   <section class="content-section" id="deployments">
     <div class="section-inner">
       <div class="section-head">
+        <p class="eyebrow">Base Sepolia · candidates + active demo</p>
+        <h2>Every claim linked.<br/><em>Every status explicit.</em></h2>
+      </div>
+
+      <div class="section-head section-head--compact">
+        <p class="eyebrow">Public candidate · institutional netting</p>
+        <h2>170m gross submitted.<br/><em>30m reached the AMM.</em></h2>
+        <p class="section-lead">Equal-decimal ERC-20 stablecoin PoC: exact-input, raw-unit 1:1 matching, zero netting fee, 2–16 orders and a batch-start ±100 tick guard. Permissionless solver; unaudited.</p>
+      </div>
+
+      <div class="deploy-grid">
+        <a class="deploy-card" href="https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">InstitutionalNettingHook</span>
+          <span class="deploy-card__desc">Exact-match source · eligibility · matching · residual guard</span>
+          <code class="deploy-card__addr">0xb38504…2F4088 ↗</code>
+        </a>
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xA64676eA840426D94800dB00a11ea70a1E746e8D" target="_blank" rel="noreferrer">
+          <span class="deploy-card__name">InstitutionalBatchRouter</span>
+          <span class="deploy-card__desc">Permissionless atomic execution · direct user settlement</span>
+          <code class="deploy-card__addr">0xA64676…E746e8D ↗</code>
+        </a>
+      </div>
+
+      <div class="tx-list">
+        <p class="eyebrow">Netting candidate execution evidence</p>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Canonical 100m / 70m batch</span>
+          <span class="tx-row__hash">140m matched · 30m token0 residual ↗</span>
+        </a>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Reverse 60m / 90m batch</span>
+          <span class="tx-row__hash">120m matched · 30m token1 residual ↗</span>
+        </a>
+      </div>
+
+      <div class="pool-info">
+        <p class="eyebrow">Netting candidate pool</p>
+        <div class="pool-info__row">
+          <span>Pool ID</span>
+          <code>0xea91d6…59326</code>
+        </div>
+        <div class="pool-info__row">
+          <span>Deployment classification</span>
+          <code>public testnet candidate · unaudited</code>
+        </div>
+      </div>
+
+      <div class="section-head section-head--compact">
         <p class="eyebrow">Active · Base Sepolia v0.3.3</p>
-        <h2>Safe-controlled demo.<br/><em>Verifiable on-chain.</em></h2>
+        <h2>Verified-flow demo.<br/><em>Safe-controlled and reproducible.</em></h2>
       </div>
 
       <!-- Uniswap v4 powered banner -->
@@ -850,18 +891,18 @@ ilal --keystore ./wallet.json credential prove \
       <div class="footer-brand">
         <span class="footer-brand__mark">◆</span>
         <span class="footer-brand__name">ILAL</span>
-        <span class="footer-brand__tag">Compliance is the hook. Just prove it.</span>
+        <span class="footer-brand__tag">Verified flow. Netted before the AMM.</span>
       </div>
       <div class="footer-stats">
-        <div class="fstat"><span class="fstat__val">0.05%</span><span class="fstat__l">verified LP fee</span></div>
-        <div class="fstat"><span class="fstat__val">MockEAS</span><span class="fstat__l">active demo issuance</span></div>
-        <div class="fstat"><span class="fstat__val">0 gas</span><span class="fstat__l">session signing</span></div>
-        <div class="fstat"><span class="fstat__val">188</span><span class="fstat__l">Solidity tests</span></div>
+        <div class="fstat"><span class="fstat__val">140m</span><span class="fstat__l">gross matched</span></div>
+        <div class="fstat"><span class="fstat__val">30m</span><span class="fstat__l">AMM residual</span></div>
+        <div class="fstat"><span class="fstat__val">0</span><span class="fstat__l">inventory after</span></div>
+        <div class="fstat"><span class="fstat__val">229</span><span class="fstat__l">Solidity tests</span></div>
       </div>
       <div class="footer-meta">
         <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>
         <span>Selected · <a href="https://atrium.academy/uniswap" target="_blank" rel="noreferrer">UHI10</a> · July 2026</span>
-        <span>v0.3.3 · Base Sepolia demo · unaudited</span>
+        <span>Netting candidate · active v0.3.3 · unaudited</span>
       </div>
     </div>
   </footer>

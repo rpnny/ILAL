@@ -2,7 +2,7 @@ name: publish npm
 
 on:
   push:
-    tags: ["v*.*.*"]
+    tags: ["v*.*.*", "sdk-v*.*.*"]
 
 permissions:
   contents: read
@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   publish:
+    if: ${{ startsWith(github.ref_name, 'v') }}
     runs-on: ubuntu-latest
     environment: npm-production
     steps:
@@ -30,6 +31,35 @@ jobs:
           node scripts/secret-scan.mjs
       - name: Publish with npm Trusted Publishing provenance
         working-directory: cli
+        run: |
+          case "$GITHUB_REF_NAME" in
+            *-*) npm publish --tag next --access public --provenance ;;
+            *) npm publish --access public --provenance ;;
+          esac
+
+  publish-sdk:
+    if: ${{ startsWith(github.ref_name, 'sdk-v') }}
+    runs-on: ubuntu-latest
+    environment: npm-production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24.13.0"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+      - name: Validate and build exact SDK release
+        run: |
+          test "$GITHUB_REF_NAME" = "sdk-v$(node -p 'require("./sdk/package.json").version')"
+          npm ci --prefix sdk
+          npm run build --prefix sdk
+          npm test --prefix sdk
+          node scripts/secret-scan.mjs
+      - name: Publish SDK with npm Trusted Publishing provenance
+        working-directory: sdk
         run: |
           case "$GITHUB_REF_NAME" in
             *-*) npm publish --tag next --access public --provenance ;;

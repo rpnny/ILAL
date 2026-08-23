@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "version": "0.4.0-v2-poc.5",
+  "tag": "v0.4.0-v2-poc.5",
+  "sourceCommit": "4eb6f5852eebc15b088bbe0ae34c07a12de6a1af",
+  "releaseCommit": null,
+  "softwareStatus": "prerelease",
+  "deploymentStatus": "Base Sepolia V2 PoC and institutional netting candidates",
+  "attestationStatus": "issuer-operated private trees plus v1 CNF eligibility for netting",
+  "zkStatus": "Groth16 policy circuit v2; unsafe development ceremony",
+  "productionReadiness": "not production-ready",
+  "auditStatus": "unaudited",
+  "npmPublication": "next",
+  "deploymentManifest": "base-sepolia/v0.4.0-v2-poc.1.json",
+  "nettingCandidateManifest": "docs/hookathon/candidate-manifest.json",
+  "baselineTests": {
+    "foundry": 229,
+    "cli": 53,
+    "fuzzRuns": 256
+  },
+  "lastLocalVerification": {
+    "date": "2026-08-23",
+    "foundry": { "passed": 229, "failed": 0, "skipped": 0 },
+    "cli": { "passed": 53, "failed": 0, "skipped": 0 },
+    "sdk": { "passed": 18, "failed": 0 },
+    "circuitOracle": { "passed": 8, "failed": 0 },
+    "circuitV1": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 3 },
+    "circuitV2": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 4 },
+    "nettingInvariants": { "properties": 6, "callsPerProperty": 256, "reverts": 0 },
+    "minimumFuzzRuns": 256
+  }
+}

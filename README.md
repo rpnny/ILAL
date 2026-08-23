@@ -4,6 +4,11 @@
 [![network](https://img.shields.io/badge/network-Base%20Sepolia-0052ff)](deployments/base-sepolia/v0.3.3.json)
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
+Current npm preview: `npm install -g @ilalv3/cli@next`
+(`v0.4.0-v2-poc.5`, including the institutional netting commands). The
+public `latest` channel remains `v0.3.3` because the netting and V2 stacks are
+separate unaudited Base Sepolia candidates.
+
 Institutions can submit mutually offsetting orders without sending all of that
 gross flow through an external market. ILAL verifies every participant, nets
 compatible stablecoin orders atomically, and routes only the unmatched residual
@@ -139,6 +144,10 @@ The solver previews and broadcasts without receiving user output:
 
 The output prints submitted gross, internally matched gross, residuals, AMM
 exposure reduction, `batchId`, settlement events, and the transaction hash.
+
+Applications that only need session construction can install the SDK preview
+with `npm install @ilalv3/sdk@next viem`. It adds v1/v2 typed-data signing and
+hookData encoding; netting order helpers remain CLI-only in this release.
 
 ## Verification
 

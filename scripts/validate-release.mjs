@@ -31,6 +31,18 @@ if (isPrerelease) {
   const deployment = readJson(`deployments/${release.deploymentManifest}`);
   if (deployment.status !== "candidate") fail("Prerelease must reference a candidate deployment.");
   if (deployment.protocolVersion !== 2) fail("V2 prerelease must reference a V2 candidate deployment.");
+  if (release.nettingCandidateManifest) {
+    const netting = readJson(release.nettingCandidateManifest);
+    if (netting.status !== "candidate" || netting.candidate !== "hookathon-institutional-netting") {
+      fail("Netting prerelease must reference the institutional netting candidate.");
+    }
+    if (netting.sourceCommit !== release.sourceCommit) {
+      fail("Netting release and candidate source commits differ.");
+    }
+    if (netting.sourceVerification?.status !== "exact_match") {
+      fail("Netting candidate source verification is incomplete.");
+    }
+  }
 } else {
   const active = Object.values(deployments.active ?? {}).map(path => readJson(`deployments/${path}`));
   const deployment = active.find(item => item.version === cli.version);

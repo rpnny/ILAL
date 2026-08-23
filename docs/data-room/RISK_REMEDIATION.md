@@ -9,7 +9,7 @@
 | R5 | Admin and treasury coupled | Implemented in CLI/script/schema; deployment proof pending |
 | R6 | Incomplete privilege handoff/evidence | Script handoff and manifest schema implemented; live verification pending |
 | R7 | Source/release provenance ambiguity | Process and schema implemented; commit values pending clean freeze |
-| R8 | Stale npm/site/deployment claims | Local docs/presets corrected; external npm deprecation and website publication pending |
+| R8 | Stale npm/site/deployment claims | v0.3.3 remains the active preset; npm previews and the public site are updated from the netting release commit |
 | R9 | ZK/production/audit overstatement | Corrected labels and proving provenance added; independent audit and production ceremony remain open |
 
 “Implemented locally” is not equivalent to publicly released, deployed, audited, or operationally proven.

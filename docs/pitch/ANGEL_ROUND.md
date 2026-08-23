@@ -220,11 +220,11 @@ The v0.3.3 software is stable and the Safe-controlled Base Sepolia demo is activ
 
 We deployed CNFIssuer, ComplianceHook, PolicyRegistry, ILALRouter, demo tokens, and a Uniswap v4 dynamic-fee pool.
 
-The current source and stable package are `@ilalv3/cli@0.3.3`. npm `0.3.2` is deprecated and must not be presented as an active deployment client.
+The active deployment client remains `@ilalv3/cli@0.3.3`; the current source is published as the `@ilalv3/cli@next` preview with atomic netting and V2 candidate tooling. npm `0.3.2` is deprecated.
 
 The SDK is published as `@ilalv3/sdk`.
 
-We have 188 Solidity tests, 29 CLI tests, and 18 SDK tests passing.
+We have 229 Solidity tests, 53 CLI tests, 18 SDK tests, and both circuit constraint suites passing.
 
 This includes timelocks, slippage protection, session checks, permanent revocation, issuer policy tests, router tests, high-s signature rejection, and fuzz cases.
 
