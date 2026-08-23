@@ -2,12 +2,20 @@
 
 **ILAL Protocol SDK** — session signing and hookData encoding for Uniswap v4 compliance pools.
 
+The current preview is `0.3.0-next.1`. It exports both v1 CNF-bound sessions
+and v2 policy-revision-bound sessions. npm `latest` remains `0.2.0`; install
+the preview with:
+
+```bash
+npm install @ilalv3/sdk@next viem
+```
+
 ILAL gates swaps and liquidity operations behind on-chain compliance credentials (CNF tokens). This SDK handles the off-chain signing step: build a short-lived EIP-712 session token, sign it locally, and encode it into the `hookData` blob that `ComplianceHook` verifies on every action.
 
 ## Install
 
 ```bash
-npm install @ilalv3/sdk viem
+npm install @ilalv3/sdk@next viem
 ```
 
 ## Quick start
@@ -61,6 +69,13 @@ Signs an EIP-712 `SessionToken` locally. No on-chain call.
 ### `encodeHookData(session)` → `0x${string}`
 
 ABI-encodes a `SignedSession` into the `bytes hookData` expected by `ComplianceHook`.
+
+### `signSessionV2(walletClient, params)` / `encodeHookDataV2(session)`
+
+Builds a version-2 EIP-712 session bound to the current `policyHash` and
+`policyRevision`, then ABI-encodes it for `ComplianceHookV2`. A policy revision
+change invalidates the signed session and its cached grant. V2 remains an
+unaudited Base Sepolia PoC using development proving artifacts.
 
 ### `getCredentialStatus(publicClient, cnfIssuer, wallet)` → `Promise<CredentialStatus>`
 

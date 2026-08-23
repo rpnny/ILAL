@@ -43,10 +43,11 @@ Git commit identifiers are hashes of their tree and metadata, so a tracked file 
 
 - Bind the Trusted Publisher to organization `rpnny`, repository `ilal`, workflow `publish-npm-stable.yml`, protected environment `npm-production`, and the allowed npm publish action.
 - Stable publication accepts stable `vX.Y.Z` tags and publishes to `latest`.
-- V2 PoC tags matching `vX.Y.Z-v2-poc.N` publish only to `next`; they must reference a recorded candidate deployment and remain explicitly unaudited and not production-ready.
+- V2 PoC tags matching `vX.Y.Z-v2-poc.N` publish only to `next`; a preview that includes netting must also reference the exact-match Hookathon candidate manifest.
+- SDK tags use `sdk-vX.Y.Z[-prerelease]`. Prereleases publish to `next`; stable SDK tags publish to `latest` from the same protected workflow.
 - Both channels use the protected `npm-production` environment with `contents: read` plus `id-token: write`.
 - PRs, branches, and ordinary RC tags cannot publish.
-- Tag, CLI package version, release manifest, and active deployment manifest must match.
+- CLI tag, package version, release manifest, and candidate/active deployment evidence must match. SDK tags must exactly match the SDK package version.
 - Revoke old npm automation tokens only after OIDC publication and provenance are verified.
 
 ## Required release labels

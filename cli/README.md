@@ -6,13 +6,13 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.4.0-v2-poc.4` | npm `next` preview | V2 issuer integration kit; Base Sepolia PoC only, unsafe development ceremony, unaudited |
+| `0.4.0-v2-poc.5` | npm `next` preview | Atomic netting CLI plus V2 issuer integration kit; Base Sepolia candidates only, unaudited |
 | `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
 | `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
 
-The V2 preview keeps the stable v0.3.3 deployment preset isolated while adding
-issuer-operated policy tooling for the recorded V2 candidate. Install it with
+The preview keeps the stable v0.3.3 deployment preset isolated while adding
+institutional netting and issuer-operated V2 policy tooling for their recorded candidates. Install it with
 `npm install -g @ilalv3/cli@next`. Published `0.2.21` remains a separate legacy
 line; copying its commands or addresses into current releases will fail.
 
@@ -20,7 +20,7 @@ line; copying its commands or addresses into current releases will fail.
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.4.0-v2-poc.4
+node dist/index.js --version  # 0.4.0-v2-poc.5
 npm test
 ```
 

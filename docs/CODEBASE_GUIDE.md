@@ -1,8 +1,9 @@
 # ILAL Codebase Guide
 
 This guide is the shortest path from a fresh checkout to the parts of ILAL
-that matter for implementation and review. It describes the current `v0.3.3`
-tree. Deployment addresses and release status must be read from the manifests,
+that matter for implementation and review. It describes current `main`; the
+active public deployment remains `v0.3.3`, while netting and V2 are separately
+recorded candidates. Deployment addresses and release status must be read from the manifests,
 not copied from historical audit documents.
 
 ## Start Here
@@ -10,13 +11,14 @@ not copied from historical audit documents.
 | Goal | Primary files |
 |---|---|
 | Understand the active protocol path | `contracts/src/ILALRouter.sol`, `contracts/src/ComplianceHook.sol`, `contracts/src/CNFIssuer.sol`, `contracts/src/PolicyRegistry.sol` |
+| Understand atomic netting | `contracts/src/netting/InstitutionalNettingHook.sol`, `contracts/src/netting/InstitutionalBatchRouter.sol`, `docs/HOOKATHON_NETTING.md` |
 | Change session authorization | `contracts/src/libraries/SessionLib.sol`, `cli/src/sessionProtocol.ts`, `sdk/src/session.ts`, `sdk/src/encode.ts` |
 | Change CLI behavior | `cli/src/index.ts`, then the matching file in `cli/src/commands/` |
 | Change the SDK | `sdk/src/index.ts`, `sdk/src/session.ts`, `sdk/src/encode.ts`, `sdk/src/credential.ts` |
 | Review ZK behavior | `circuits/ilal.circom`, `circuits/v2/ilal_policy.circom`, verifier adapters under `contracts/src/verifier/` |
 | Review the v2 policy-grant design | `contracts/src/v2/`, `circuits/v2/`, `cli/src/commands/policyV2.ts` |
 | Inspect active addresses and evidence | `deployments/index.json`, then the active manifest it references |
-| Inspect release state | `releases/v0.3.3.json`, `RELEASE.md` |
+| Inspect release state | `releases/v0.4.0-v2-poc.5.json`, `releases/v0.3.3.json`, `RELEASE.md` |
 | Run the complete local gate | `make verify` |
 
 ## Active v1 Execution Path
@@ -95,7 +97,7 @@ When documents disagree, use this order:
 1. Contract and TypeScript source for behavior.
 2. `deployments/index.json` and its active manifest for deployment status,
    addresses, transactions, roles, and bytecode hashes.
-3. `releases/v0.3.3.json` for release versions and last verified test counts.
+3. The release manifest matching the installed package for versions and verified test counts.
 4. Root, CLI, SDK, circuit, and contract READMEs for usage guidance.
 5. Dated files in `audit/` for historical review context.
 

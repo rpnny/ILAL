@@ -49,7 +49,7 @@ const program = new Command();
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.4.0-v2-poc.4")
+  .version("0.4.0-v2-poc.5")
   .option("--keystore <path>", "Encrypted Web3 Secret Storage v3 keystore")
   .option("--password-file <path>", "Keystore password file (must be mode 600)")
   .option("--rpc-account <address>", "Account managed by the configured JSON-RPC node")

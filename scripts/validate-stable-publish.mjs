@@ -30,6 +30,15 @@ if (isPrerelease) {
   if (deployment.status !== "candidate" || deployment.protocolVersion !== 2) {
     throw new Error("prerelease must reference a V2 candidate deployment");
   }
+  if (release.nettingCandidateManifest) {
+    const netting = json(release.nettingCandidateManifest);
+    if (netting.status !== "candidate" || netting.candidate !== "hookathon-institutional-netting") {
+      throw new Error("netting prerelease candidate metadata is inconsistent");
+    }
+    if (netting.sourceCommit !== release.sourceCommit || netting.sourceVerification?.status !== "exact_match") {
+      throw new Error("netting source or verification evidence is inconsistent");
+    }
+  }
 } else {
   const deployment = active.find(item => item.version === version);
   if (!deployment) throw new Error("no active deployment manifest matches the stable version");
