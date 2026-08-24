@@ -107,6 +107,7 @@ mechanism.
 - EIP-712/low-s ECDSA/ERC-1271 validation, nonce cancellation and replay protection.
 - Per-order total-output and AMM-exposure bounds.
 - Real v4 integration, fuzz, maximum-16-order gas, and stateful invariant tests.
+- Reproducible impact benchmark against both vanilla two-swap execution orders.
 - Four CLI commands and a terminal demo.
 - A live Base Sepolia candidate, two opposite-residual batches, complete evidence
   manifest, and Sourcify creation/runtime exact matches for all first-party contracts.
@@ -159,7 +160,7 @@ make verify
 
 | Suite | Current result |
 |---|---:|
-| Foundry | 229 passed, 0 failed, 0 skipped |
+| Foundry | 234 passed, 0 failed, 0 skipped |
 | Netting stateful invariants | 6 properties × 256 calls, 0 reverts |
 | CLI | 53 passed |
 | SDK | 18 passed |
@@ -172,6 +173,35 @@ from the same initialized state. The 16-order case currently uses about 1.53M
 gas in the Foundry test environment. `make verify` also checks release/
 deployment consistency, package contents, Git history, secrets, and dependency
 SBOMs.
+
+## Impact benchmark
+
+```bash
+make benchmark
+```
+
+The reproducible benchmark runs one ILAL batch and both orderings of two
+ordinary exact-input v4 swaps from identical pools. It compares ILAL against
+the higher-output vanilla ordering and uses the lower vanilla gas result, so
+the headline does not depend on a favorable ordering.
+
+| `100 token0` vs | AMM exposure reduction | User output advantage | LP fee reduction | Local execution gas: ILAL / vanilla |
+|---:|---:|---:|---:|---:|
+| `25 token1` | 40.00% | +0.025001 (2.00 bps) | 40.00% | 670,452 / 157,584 (4.25x) |
+| `50 token1` | 66.67% | +0.050000 (3.34 bps) | 66.67% | 670,453 / 157,585 (4.25x) |
+| `70 token1` | 82.35% | +0.070000 (4.12 bps) | 82.35% | 670,948 / 157,584 (4.26x) |
+| `90 token1` | 94.74% | +0.090001 (4.74 bps) | 94.74% | 670,452 / 157,584 (4.25x) |
+| `100 token1` | 100.00% | +0.100001 (5.00 bps) | 100.00% | 630,017 / 157,595 (4.00x) |
+
+For the public `100/70` configuration, aggregate ILAL output is 169.984100
+tokens versus 169.914100 for the better vanilla ordering. That is a 0.070000
+token, or 4.12 bps, improvement. The same run makes the tradeoff explicit:
+signature, eligibility, nonce, canonical-allocation and direct-settlement work
+costs more execution gas. LP fee reduction benefits these users but reduces
+fees on flow that would otherwise have reached the pool.
+
+See the complete methodology, limitations and generated JSON in the
+[`impact benchmark`](docs/hookathon/BENCHMARK.md).
 
 ## Deployment status
 

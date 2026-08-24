@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,700;1,700&amp;family=Fragment+Mono&amp;display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=20260824-impact" />
 
 </head>
 <body>
@@ -46,6 +46,7 @@
         <li><a class="nav-item" href="#product"   data-close>Product<span class="nav-item__sub">Netting Hook · BatchRouter · CNF · CLI</span></a></li>
         <li><a class="nav-item" href="#problem"   data-close>Problem<span class="nav-item__sub">Gross flow should not become public impact</span></a></li>
         <li><a class="nav-item" href="#how"        data-close>How it works<span class="nav-item__sub">Verify → match → net → route residual</span></a></li>
+        <li><a class="nav-item" href="#impact"     data-close>Impact<span class="nav-item__sub">Output, fee and gas benchmark</span></a></li>
         <li><a class="nav-item" href="#issuers"    data-close>RWA Issuers<span class="nav-item__sub">Deploy your own compliance pool</span></a></li>
         <li><a class="nav-item" href="#cli"        data-close>Integrate<span class="nav-item__sub">npm next · signed orders · permissionless execution</span></a></li>
         <li><a class="nav-item" href="#deployments" data-close>On-chain<span class="nav-item__sub">Netting candidate · V1 active · V2 candidate</span></a></li>
@@ -90,7 +91,7 @@
           <div><span>canonical batch</span><strong>100 / 70</strong></div>
           <div><span>internal match</span><strong>140 gross</strong></div>
           <div><span>AMM residual</span><strong>30 token0</strong></div>
-          <div><span>Solidity tests</span><strong>229</strong></div>
+          <div><span>Solidity tests</span><strong>234</strong></div>
         </div>
       </div>
     </div>
@@ -114,7 +115,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">229</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">234</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
@@ -126,7 +127,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">229</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">234</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
@@ -280,7 +281,7 @@
         <div class="product-card">
           <span class="product-card__tag">Audit</span>
           <h3>Security package</h3>
-          <p>229 Solidity, 53 CLI and 18 SDK tests, plus six netting invariants at 256 runs each. Coverage includes conservation, canonical ordering, solver independence, cancellation and zero inventory.</p>
+          <p>234 Solidity, 53 CLI and 18 SDK tests, plus six netting invariants at 256 runs each. Coverage includes conservation, canonical ordering, solver independence, cancellation and zero inventory.</p>
         </div>
       </div>
     </div>
@@ -432,7 +433,7 @@
         <div class="fee-callout__total">
           <span>AMM residual</span>
           <strong>30m</strong>
-          <span class="savings-chip">82.35% gross flow offset</span>
+          <span class="savings-chip">82.35% AMM exposure reduction</span>
         </div>
         <div style="padding:1rem 1.5rem; border-top:1px solid var(--border)">
           <div class="fee-bar-wrap">
@@ -444,6 +445,50 @@
             <div class="fee-bar"><div class="fee-bar__fill fee-bar__fill--ilal" id="feeBarIlal"></div></div>
           </div>
         </div>
+      </div>
+
+      <div class="impact-benchmark" id="impact">
+        <div class="impact-benchmark__head">
+          <div>
+            <p class="eyebrow">Reproducible impact benchmark</p>
+            <h3>Less AMM exposure. Better user output. <em>More execution gas.</em></h3>
+          </div>
+          <a href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/BENCHMARK.md" target="_blank" rel="noreferrer">Method + JSON ↗</a>
+        </div>
+
+        <div class="impact-stats">
+          <div class="impact-stat">
+            <span>AMM exposure</span>
+            <strong>−82.35%</strong>
+            <small>170 gross → 30 residual</small>
+          </div>
+          <div class="impact-stat">
+            <span>Aggregate user output</span>
+            <strong>+4.12 bps</strong>
+            <small>+0.070000 token vs best vanilla order</small>
+          </div>
+          <div class="impact-stat">
+            <span>LP fee charged</span>
+            <strong>−82.35%</strong>
+            <small>0.085000 → 0.015000 token</small>
+          </div>
+          <div class="impact-stat impact-stat--tradeoff">
+            <span>Local execution gas</span>
+            <strong>4.26×</strong>
+            <small>670,948 vs 157,584</small>
+          </div>
+        </div>
+
+        <div class="impact-curve" aria-label="Matching ratio benchmark curve">
+          <div class="impact-curve__labels"><span>Opposing order</span><span>AMM exposure reduced</span></div>
+          <div class="impact-curve__row"><code>25</code><div><i style="width:40%"></i></div><strong>40.00%</strong></div>
+          <div class="impact-curve__row"><code>50</code><div><i style="width:66.67%"></i></div><strong>66.67%</strong></div>
+          <div class="impact-curve__row impact-curve__row--canonical"><code>70</code><div><i style="width:82.35%"></i></div><strong>82.35%</strong></div>
+          <div class="impact-curve__row"><code>90</code><div><i style="width:94.74%"></i></div><strong>94.74%</strong></div>
+          <div class="impact-curve__row"><code>100</code><div><i style="width:100%"></i></div><strong>100.00%</strong></div>
+        </div>
+
+        <p class="impact-benchmark__note">Controlled Foundry comparison: two 6-decimal mock stablecoins, 1:1 initial price, 0.05% pool fee, identical liquidity, and both vanilla execution orders. Gas excludes transaction intrinsics and is not a mainnet quote. Lower LP fees benefit users but reduce LP revenue on offset flow.</p>
       </div>
     </div>
   </section>
@@ -897,7 +942,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
         <div class="fstat"><span class="fstat__val">140m</span><span class="fstat__l">gross matched</span></div>
         <div class="fstat"><span class="fstat__val">30m</span><span class="fstat__l">AMM residual</span></div>
         <div class="fstat"><span class="fstat__val">0</span><span class="fstat__l">inventory after</span></div>
-        <div class="fstat"><span class="fstat__val">229</span><span class="fstat__l">Solidity tests</span></div>
+        <div class="fstat"><span class="fstat__val">234</span><span class="fstat__l">Solidity tests</span></div>
       </div>
       <div class="footer-meta">
         <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>
