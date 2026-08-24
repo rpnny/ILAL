@@ -237,6 +237,8 @@ const findingsLedger = [
     title: "Duplicate CSV wallets could overwrite earlier decisions", resolution: "Import now rejects duplicates with a regression test." },
   { id: "P3-CAPACITY-RUNNER-GAS", study: "local", severity: "P3", status: "fixed",
     title: "Monolithic frontier test exceeded the Foundry test gas ceiling", resolution: "Matrix split into 15 deterministic groups; all 135 rows complete." },
+  { id: "P3-REPRO-RUNTIME-FIELDS", study: "full", severity: "P3", status: "fixed",
+    title: "Initial reproducibility normalization retained gate wall-time and RSS observations", resolution: "Observed runtime and memory gate values are excluded while thresholds, status and semantic outputs remain hashed." },
   { id: "P3-SEPOLIA-EXTENDED-BATCH", study: "fork", severity: "P3", status: "open",
     title: "New 4/16-order Sepolia transactions were not broadcast", resolution: "No signer material was available; existing candidate transactions remain valid because contract bytecode did not change. Local 4/16 execution and pinned Base fork evidence are included." },
 ];

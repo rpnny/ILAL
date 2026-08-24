@@ -64,7 +64,8 @@ export function normalized(value) {
   return Object.fromEntries(Object.entries(value)
     .filter(([key]) => ![
       "generatedAt", "durationMs", "durationsMs", "timingsMs", "p50Ms", "p95Ms",
-      "cpuMs", "cpuUserMicros", "cpuSystemMicros", "peakRssBytes", "logTail", "forkTestOutput",
+      "observedMs", "observedBytes", "cpuMs", "cpuUserMicros", "cpuSystemMicros",
+      "peakRssBytes", "logTail", "forkTestOutput",
     ].includes(key))
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([key, item]) => [key, normalized(item)]));
