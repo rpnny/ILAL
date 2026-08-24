@@ -1,0 +1,31 @@
+{
+  "schema": "institutional-study-config-v1",
+  "seed": "0x494c414c2d494e535449545554494f4e414c2d53545544592d5631",
+  "economic": {
+    "anchorNotionalUsd": [100, 1000, 10000, 100000],
+    "matchingRatioPercent": [25, 50, 70, 90, 100],
+    "poolFeeBps": [1, 5, 30, 100],
+    "liquidityModes": ["candidate-fixed", "scaled"],
+    "solverReserveBps": 0.5,
+    "ethPriceUsd": [2000, 3000, 4000],
+    "l2GasPriceGwei": [0.01, 0.1, 1]
+  },
+  "multiOrder": {
+    "anchorNotionalUsd": 10000,
+    "matchingRatioPercent": 70,
+    "poolFeeBps": 5,
+    "batchSizes": [2, 4, 8, 16],
+    "distributions": ["uniform", "one-large-many-small", "long-tail"]
+  },
+  "capacity": {
+    "liquidityMultiplier": [0.25, 0.5, 1, 2, 10],
+    "ranges": [[-100, 100], [-1000, 1000], [-10000, 10000]],
+    "initialTicks": [0, 90, -90],
+    "poolManagerBalanceMultiplier": [0.5, 1, 2]
+  },
+  "rwa": {
+    "wallets": [100, 1000, 10000, 100000],
+    "monthlyChurnPercent": [1, 5, 10],
+    "staffCostUsdPerHour": [50, 100, 200]
+  }
+}

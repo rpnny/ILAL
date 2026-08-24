@@ -43,6 +43,18 @@ if (isPrerelease) {
   const deployment = active.find(item => item.version === version);
   if (!deployment) throw new Error("no active deployment manifest matches the stable version");
   if (deployment.releaseCommit !== null || deployment.sourceCommit !== release.sourceCommit) throw new Error("tracked deployment/release linkage template differs");
+  if (release.nettingCandidateManifest) {
+    const summary = json("docs/research/results/study-summary.json");
+    if (summary.verdict !== "PASS" || summary.maturity !== "ready for institutional pilot") {
+      throw new Error("netting preview cannot be promoted to stable until institutional study gates PASS");
+    }
+    for (const name of ["local-study.json", "fork-study.json", "rwa-study.json", "stress-study.json"]) {
+      const study = json(`docs/research/results/${name}`);
+      if (study.status !== "COMPLETE" || study.verdict === "FAIL") {
+        throw new Error(`netting stable gate rejected ${name}: ${study.status}/${study.verdict}`);
+      }
+    }
+  }
 }
 const protectedPaths = ["contracts/src", "contracts/script", "contracts/foundry.toml", "contracts/scripts/install-deps.sh"];
 const diff = execFileSync("git", ["diff", "--name-only", `${release.sourceCommit}..${head}`, "--", ...protectedPaths], { cwd: root, encoding: "utf8" }).trim();

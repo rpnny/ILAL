@@ -452,6 +452,63 @@ contract InstitutionalNettingTest is Test {
         batchRouter.executeBatch(key, orders, signatures);
     }
 
+    function test_pegGuard_acceptsBoundaryAndRejectsBothSidesOutside() public {
+        _setPoolTick(99);
+        (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70WithNonces(71, 72);
+        batchRouter.executeBatch(key, orders, signatures);
+
+        uint256 snapshot = vm.snapshotState();
+        _setPoolTick(100);
+        (orders, signatures) = _orders100By70WithNonces(73, 74);
+        batchRouter.executeBatch(key, orders, signatures);
+        assertTrue(vm.revertToState(snapshot));
+
+        _setPoolTick(101);
+        (orders, signatures) = _orders100By70WithNonces(75, 76);
+        vm.expectRevert(
+            abi.encodeWithSelector(InstitutionalNettingHook.PegTickExceeded.selector, int24(101), int24(100))
+        );
+        batchRouter.executeBatch(key, orders, signatures);
+
+        _setPoolTick(-101);
+        (orders, signatures) = _orders100By70WithNonces(77, 78);
+        vm.expectRevert(
+            abi.encodeWithSelector(InstitutionalNettingHook.PegTickExceeded.selector, int24(-101), int24(100))
+        );
+        batchRouter.executeBatch(key, orders, signatures);
+    }
+
+    function test_allowanceAndBalanceRace_revertAtomicallyWithoutConsumingNonces() public {
+        (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70WithNonces(81, 82);
+        vm.prank(alice);
+        token0.approve(address(batchRouter), 0);
+        vm.expectRevert(InstitutionalBatchRouter.ERC20TransferFailed.selector);
+        batchRouter.executeBatch(key, orders, signatures);
+        assertFalse(hook.nonceUsed(alice, orders[0].nonce));
+        assertFalse(hook.nonceUsed(bob, orders[1].nonce));
+
+        vm.prank(alice);
+        token0.approve(address(batchRouter), type(uint256).max);
+        deal(address(token0), alice, 0, true);
+        vm.expectRevert(InstitutionalBatchRouter.ERC20TransferFailed.selector);
+        batchRouter.executeBatch(key, orders, signatures);
+        assertFalse(hook.nonceUsed(alice, orders[0].nonce));
+        assertFalse(hook.nonceUsed(bob, orders[1].nonce));
+    }
+
+    function test_permissionlessMaliciousExecutorCannotRedirectSignerSettlement() public {
+        address attacker = makeAddr("malicious-executor");
+        (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70WithNonces(83, 84);
+        uint256 attacker0 = token0.balanceOf(attacker);
+        uint256 attacker1 = token1.balanceOf(attacker);
+        vm.prank(attacker);
+        batchRouter.executeBatch(key, orders, signatures);
+        assertEq(token0.balanceOf(attacker), attacker0);
+        assertEq(token1.balanceOf(attacker), attacker1);
+        assertGt(token1.balanceOf(alice), 1_000 * UNIT);
+        assertGt(token0.balanceOf(bob), 1_000 * UNIT);
+    }
+
     function test_revertsAboveInt128InputBoundary() public {
         NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](2);
         orders[0] = _order(
@@ -533,6 +590,41 @@ contract InstitutionalNettingTest is Test {
         _breakEvenNotional(100_000, TEST_LIQUIDITY * 1_000, "scaled", true, true, 4_400, 4_401);
     }
 
+    /// @dev Complete supported-fee core grid used by institutional-study-v1.
+    /// The candidate deliberately supports only 5 bps; the report generator
+    /// records the other requested fee tiers as explicit unsupported rows.
+    function testStudy_coreMatrix() public {
+        uint256[4] memory notionals = [uint256(100), 1_000, 10_000, 100_000];
+        uint256[5] memory ratios = [uint256(25), 50, 70, 90, 100];
+        for (uint256 mode; mode < 2; ++mode) {
+            for (uint256 i; i < notionals.length; ++i) {
+                for (uint256 j; j < ratios.length; ++j) {
+                    uint256 snapshot = vm.snapshotState();
+                    uint128 targetLiquidity =
+                        mode == 0 ? TEST_LIQUIDITY : uint128(uint256(TEST_LIQUIDITY) * notionals[i] / 100);
+                    uint256 baseAmount = notionals[i] * UNIT;
+                    uint256 opposingAmount = baseAmount * ratios[j] / 100;
+                    uint256 nonce = 10_000 + mode * 1_000 + i * 100 + j * 2;
+                    NettingBenchmark memory result =
+                        _runTwoOrderBenchmark(baseAmount, opposingAmount, targetLiquidity, nonce, nonce + 1);
+                    _logStudy(result, mode == 0 ? "candidate-fixed" : "scaled", ratios[j]);
+                    assertTrue(vm.revertToState(snapshot));
+                }
+            }
+        }
+    }
+
+    function testStudy_multiOrderMatrix() public {
+        uint256[4] memory sizes = [uint256(2), 4, 8, 16];
+        for (uint256 pattern; pattern < 3; ++pattern) {
+            for (uint256 sizeIndex; sizeIndex < sizes.length; ++sizeIndex) {
+                uint256 snapshot = vm.snapshotState();
+                _runMultiOrderStudy(sizes[sizeIndex], pattern, 20_000 + pattern * 1_000 + sizeIndex * 100);
+                assertTrue(vm.revertToState(snapshot));
+            }
+        }
+    }
+
     function testFuzz_previewAccounting(uint64 amount0, uint64 amount1) public view {
         amount0 = uint64(bound(amount0, 1, type(uint64).max));
         amount1 = uint64(bound(amount1, 1, type(uint64).max));
@@ -579,6 +671,14 @@ contract InstitutionalNettingTest is Test {
         returns (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures)
     {
         return _orders100By70WithNonces(1, 2);
+    }
+
+    function _setPoolTick(int24 newTick) internal {
+        bytes32 slot = keccak256(abi.encodePacked(poolId, bytes32(uint256(6))));
+        bytes32 oldWord = vm.load(address(manager), slot);
+        uint256 tickMask = uint256(0xFFFFFF) << 160;
+        bytes32 newWord = bytes32((uint256(oldWord) & ~tickMask) | (uint256(uint24(newTick)) << 160));
+        vm.store(address(manager), slot, newWord);
     }
 
     function _orders100By70WithNonces(uint256 nonce0, uint256 nonce1)
@@ -843,6 +943,128 @@ contract InstitutionalNettingTest is Test {
         );
         line = string.concat(line, "|oneFirstTick=", vm.toString(int256(result.oneFirst.endingTick)));
         emit log_string(line);
+    }
+
+    function _logStudy(NettingBenchmark memory result, string memory liquidityMode, uint256 matchingRatio) internal {
+        string memory line = string.concat(
+            "ISTUDY|liquidityMode=",
+            liquidityMode,
+            "|notional=",
+            vm.toString(result.baseAmount / UNIT),
+            "|matchingRatio=",
+            vm.toString(matchingRatio),
+            "|feeBps=5"
+        );
+        line = string.concat(
+            line,
+            "|liquidity=",
+            vm.toString(result.liquidity),
+            "|gross=",
+            vm.toString(result.gross),
+            "|matchedGross=",
+            vm.toString(result.matchedGross),
+            "|residual=",
+            vm.toString(result.residual)
+        );
+        line = string.concat(
+            line,
+            "|nettingSucceeded=",
+            result.nettingSucceeded ? "true" : "false",
+            "|nettingOutput=",
+            vm.toString(result.output),
+            "|nettingTotalGas=",
+            vm.toString(result.totalGas),
+            "|nettingTick=",
+            vm.toString(int256(result.endingTick))
+        );
+        line = string.concat(
+            line,
+            "|vanillaFullFill=",
+            result.vanillaFullFill ? "true" : "false",
+            "|bestVanillaOutput=",
+            vm.toString(result.bestVanillaOutput),
+            "|bestVanillaTotalGas=",
+            vm.toString(result.bestVanillaGas),
+            "|vanillaLpFee=",
+            vm.toString(result.vanillaLpFee),
+            "|nettingLpFee=",
+            vm.toString(result.lpFee)
+        );
+        emit log_string(line);
+    }
+
+    function _runMultiOrderStudy(uint256 orderCount, uint256 pattern, uint256 nonceBase) internal {
+        _increaseTestLiquidity(TEST_LIQUIDITY * 100);
+        token0.mint(alice, 10_000 * UNIT);
+        token1.mint(bob, 7_000 * UNIT);
+        uint256 perSide = orderCount / 2;
+        NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](orderCount);
+        for (uint256 i; i < perSide; ++i) {
+            uint256 amount0 = _distributedAmount(10_000 * UNIT, perSide, i, pattern);
+            uint256 amount1 = _distributedAmount(7_000 * UNIT, perSide, i, pattern);
+            orders[i] = _order(alice, true, amount0, 0, amount0, bytes32(nonceBase + i));
+            orders[perSide + i] = _order(bob, false, amount1, 0, amount1, bytes32(nonceBase + perSide + i));
+        }
+        bytes[] memory signatures = _signOrders(orders);
+        NettingTypes.BatchHeader memory preview = batchRouter.previewBatch(orders);
+        assertEq(preview.total0, 10_000 * UNIT);
+        assertEq(preview.total1, 7_000 * UNIT);
+        bytes32 canonicalBatchId = preview.batchId;
+        _reverseOrderPairs(orders, signatures);
+        bool permutationStable = batchRouter.previewBatch(orders).batchId == canonicalBatchId;
+        assertTrue(permutationStable);
+        uint256 gasBefore = gasleft();
+        batchRouter.executeBatch(key, orders, signatures);
+        uint256 executionGas = gasBefore - gasleft();
+        assertEq(token0.balanceOf(address(hook)), 0);
+        assertEq(token1.balanceOf(address(hook)), 0);
+
+        uint256 totalGas =
+            executionGas + _transactionEnvelopeGas(abi.encodeCall(batchRouter.executeBatch, (key, orders, signatures)));
+        _logMultiStudy(orderCount, pattern, totalGas, preview.exposureReduction, permutationStable);
+    }
+
+    function _logMultiStudy(
+        uint256 orderCount,
+        uint256 pattern,
+        uint256 totalGas,
+        uint256 matchedRaw,
+        bool permutationStable
+    ) internal {
+        emit log_string(string.concat(
+                "MULTISTUDY|orders=",
+                vm.toString(orderCount),
+                "|distribution=",
+                pattern == 0 ? "uniform" : pattern == 1 ? "one-large-many-small" : "long-tail",
+                "|totalGas=",
+                vm.toString(totalGas),
+                "|matchedRaw=",
+                vm.toString(matchedRaw),
+                "|roundingDust=0|permutationStable=",
+                permutationStable ? "true" : "false"
+            ));
+    }
+
+    function _distributedAmount(uint256 total, uint256 count, uint256 index, uint256 pattern)
+        internal
+        pure
+        returns (uint256)
+    {
+        if (count == 1) return total;
+        if (pattern == 0) return index + 1 == count ? total - (total / count) * (count - 1) : total / count;
+        if (pattern == 1) {
+            uint256 large = total * 70 / 100;
+            if (index == 0) return large;
+            uint256 small = (total - large) / (count - 1);
+            return index + 1 == count ? total - large - small * (count - 2) : small;
+        }
+        uint256 totalWeight = (uint256(1) << count) - 1;
+        uint256 allocated;
+        for (uint256 i; i < index; ++i) {
+            allocated += total * (uint256(1) << (count - 1 - i)) / totalWeight;
+        }
+        if (index + 1 == count) return total - allocated;
+        return total * (uint256(1) << (count - 1 - index)) / totalWeight;
     }
 
     function _vanillaSwap(VanillaPool memory vanilla, bool zeroForOne, uint256 amountIn)

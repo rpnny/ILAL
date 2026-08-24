@@ -1,0 +1,13 @@
+{
+  "schema": "ilal-parameterized-tco-v1",
+  "notice": "This is a sensitivity model, not observed customer ROI. Gas primitives are measured by InstitutionalTcoStudy and Base L1 cost uses a marked conservative transaction proxy.",
+  "paths": {
+    "ilal-v1-cnf-eas": { "issuerTransactions": ["attestation"], "userTransactions": ["credential-mint"], "gasSource": "InstitutionalTcoStudy" },
+    "ilal-v2-zk-policy-grant": { "issuerTransactions": ["root-rotation"], "userTransactions": ["grant-activation"], "gasSource": "InstitutionalTcoStudy" },
+    "benchmark-only-onchain-allowlist": { "issuerTransactions": ["wallet-write-per-change"], "gasSource": "InstitutionalTcoStudy" }
+  },
+  "staffCostUsdPerHour": [50, 100, 200],
+  "ethPriceUsd": [2000, 3000, 4000],
+  "l2GasPriceGwei": [0.01, 0.1, 1],
+  "formula": "staffHours * staffRate + measuredGas * gasPrice * ETHUSD + Base L1 security fee"
+}

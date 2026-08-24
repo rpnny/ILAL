@@ -37,6 +37,35 @@
   --max-w:  1100px;
 }
 
+/* ─── Institutional study (machine generated) ───────────────────────────── */
+.study-section { padding: 8rem 0; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 92%, #fc72ff 8%); }
+.study-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; }
+.study-verdict { border: 1px solid currentColor; border-radius: 999px; padding: .75rem 1.1rem; color: var(--pink); font: 700 .75rem/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.study-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 3rem; background: var(--border); border: 1px solid var(--border); }
+.study-card { min-width: 0; padding: 1.5rem; background: var(--bg); }
+.study-card span, .study-card small { display: block; color: var(--ink-dim); font: .72rem/1.5 var(--font-mono); }
+.study-card strong { display: block; margin: .6rem 0; color: var(--ink); font: 500 clamp(1.5rem, 3vw, 2.5rem)/1 var(--font-sans); }
+.study-envelope { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 1px; background: var(--border); border: 1px solid var(--border); }
+.study-envelope p { margin: 0; padding: 1.25rem; background: var(--bg); }
+.study-envelope span { display: block; margin-bottom: .6rem; color: var(--pink); font: 700 .68rem/1 var(--font-mono); letter-spacing: .08em; }
+.study-envelope code { white-space: normal; color: var(--ink-dim); font-size: .75rem; }
+.study-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 1px; background: var(--border); border: 1px solid var(--border); }
+.study-charts figure { min-width: 0; margin: 0; padding: 1rem; background: var(--bg); }
+.study-charts img { display: block; width: 100%; height: auto; border-radius: .5rem; }
+.study-charts figcaption { margin-top: .75rem; color: var(--ink-dim); font: .7rem/1.5 var(--font-mono); }
+.study-report-link { display: inline-block; margin-top: 1.5rem; color: var(--ink); font: .78rem/1.4 var(--font-mono); }
+@media (max-width: 760px) {
+  .study-section { padding: 5rem 0; }
+  .study-head { align-items: flex-start; flex-direction: column; }
+  .study-grid { grid-template-columns: 1fr 1fr; }
+  .study-envelope { grid-template-columns: 1fr; }
+  .study-charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 390px) {
+  .study-grid { grid-template-columns: 1fr; }
+  .study-card strong { font-size: 1.8rem; }
+}
+
 [data-theme="light"] {
   --bg:         #FAFAF8;
   --bg-alt:     #F2F0EB;

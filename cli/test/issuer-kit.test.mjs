@@ -77,6 +77,9 @@ test("issuer tree encryption rejects the wrong password and hides credential dat
   assert.doesNotMatch(serialized, /Private Issuer|provider-secret-reference|1111111111111111/);
   assert.equal(decryptIssuerTreeState(envelope, "correct horse battery staple").credentials[0].wallet, walletA);
   assert.throws(() => decryptIssuerTreeState(envelope, "wrong password"), /could not decrypt issuer store/);
+  const corrupted = structuredClone(envelope);
+  corrupted.ciphertext = `${corrupted.ciphertext.slice(0, -2)}00`;
+  assert.throws(() => decryptIssuerTreeState(corrupted, "correct horse battery staple"), /could not decrypt issuer store/);
 });
 
 test("CLI issuer kit imports CSV, exports a mode-600 witness, and produces a real v2 proof", { timeout: 30_000 }, () => {
@@ -198,6 +201,31 @@ test("issuer imports reject undocumented fields instead of accepting PII", () =>
     assert.notEqual(result.status, 0);
     assert.match(output(result), /unsupported credential fields: fullName/);
     assert.match(output(result), /Remove PII/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("issuer imports reject duplicate wallets instead of silently overwriting a decision", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ilal-issuer-duplicate-"));
+  const password = join(dir, "issuer.password");
+  const decisions = join(dir, "decisions.csv");
+  writeFileSync(password, "correct horse battery staple\n", { mode: 0o600 });
+  chmodSync(password, 0o600);
+  writeFileSync(decisions, [
+    "wallet,kycLevel,countryCode,expiresAt,status",
+    `${walletA},3,840,2000000000,approved`,
+    `${walletA.toUpperCase().replace("0X", "0x")},2,826,2000000000,approved`,
+  ].join("\n"));
+  try {
+    let result = run(dir, [
+      "issuer", "tree", "init", "--issuer", "Issuer", "--schema", "schema-v1",
+      "--allow-countries", "840,826", "--store-password-file", password,
+    ]);
+    assert.equal(result.status, 0, output(result));
+    result = run(dir, ["issuer", "tree", "import", "--file", decisions, "--store-password-file", password]);
+    assert.notEqual(result.status, 0);
+    assert.match(output(result), /duplicate wallet in credential import/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -203,6 +203,34 @@
     </div>
   </section>
 
+  <section class="study-section" id="institutional-study" aria-labelledby="study-title">
+    <div class="section-inner">
+      <div class="study-head">
+        <div>
+          <p class="eyebrow">Machine-generated institutional validation</p>
+          <h2 id="study-title">Pressure tested.<br><em>Economically bounded.</em></h2>
+        </div>
+        <div class="study-verdict" id="studyVerdict">RESULT PENDING</div>
+      </div>
+      <p class="section-lead" id="studyCaveat">Run <code>make study-report</code> to generate this evidence from repository results.</p>
+      <div class="study-grid">
+        <article class="study-card"><span>Strict-gate net benefit</span><strong id="studyNetBenefit">—</strong><small id="studyBaseline">Base fee + solver reserve</small></article>
+        <article class="study-card"><span>Economic matrix</span><strong id="studyRows">—</strong><small>measured + explicit unsupported rows</small></article>
+        <article class="study-card"><span>Stateful pressure</span><strong id="studyStress">—</strong><small>handler calls</small></article>
+        <article class="study-card"><span>RWA issuer scale</span><strong id="studyRwa">—</strong><small>PII-free synthetic wallets</small></article>
+      </div>
+      <div class="study-envelope">
+        <p><span>SUPPORTED</span><code id="studySupported">—</code></p>
+        <p><span>NOT SUPPORTED</span><code id="studyUnsupported">—</code></p>
+      </div>
+      <div class="study-charts" aria-label="Generated research charts">
+        <figure><img src="research-profitability-heatmap.svg" alt="ILAL profitability heatmap across notional and matching ratio"><figcaption>Profitability · local signal; strict Base fee gate shown above</figcaption></figure>
+        <figure><img src="research-capacity-frontier.svg" alt="ILAL capacity frontier by liquidity multiplier"><figcaption>Capacity · safe notional changes with depth, tick and physical balances</figcaption></figure>
+      </div>
+      <a class="study-report-link" href="https://github.com/rpnny/ILAL/tree/main/docs/research" target="_blank" rel="noreferrer">Full method, JSON, CSV and bilingual reports ↗</a>
+    </div>
+  </section>
+
   <!-- ══════════════════════════════════════════════════════════════════════
        CUSTOMERS — who buys this
   ══════════════════════════════════════════════════════════════════════ -->
@@ -978,6 +1006,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
     </div>
   </footer>
 
+  <script src="./institutional-study-summary.js"></script>
   <script src="./script.js"></script>
 </body>
 </html>

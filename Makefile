@@ -1,4 +1,4 @@
-.PHONY: verify benchmark break-even-benchmark deployments-check contracts-test cli-test sdk-test circuits-test package-check release-check secret-check sbom-check history-check
+.PHONY: verify benchmark break-even-benchmark study-local study-fork study-rwa study-stress study-report study-full deployments-check contracts-test cli-test sdk-test circuits-test package-check release-check secret-check sbom-check history-check
 
 verify: history-check deployments-check release-check contracts-test cli-test sdk-test circuits-test package-check secret-check sbom-check
 
@@ -7,6 +7,25 @@ benchmark:
 
 break-even-benchmark:
 	node scripts/run-break-even-benchmark.mjs
+
+study-local:
+	node scripts/study/study-local.mjs
+
+study-fork:
+	node scripts/study/study-fork.mjs
+
+study-rwa:
+	node scripts/study/study-rwa.mjs
+	node scripts/study/study-tco.mjs
+
+study-stress:
+	node scripts/study/study-stress.mjs
+
+study-report:
+	node scripts/study/study-report.mjs
+
+study-full:
+	node scripts/study/study-full.mjs
 
 history-check:
 	./scripts/verify-cli-history.sh

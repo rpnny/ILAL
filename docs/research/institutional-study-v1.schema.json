@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ilal.xyz/schemas/institutional-study-v1.json",
+  "title": "ILAL institutional study result",
+  "type": "object",
+  "required": ["schema", "study", "provenance", "status", "scenarios", "verdict"],
+  "properties": {
+    "schema": { "const": "institutional-study-v1" },
+    "study": { "enum": ["local", "fork", "rwa", "full"] },
+    "provenance": {
+      "type": "object",
+      "required": ["commit", "generatedAt", "seed", "toolchain"],
+      "properties": {
+        "commit": { "type": "string" },
+        "generatedAt": { "type": "string" },
+        "seed": { "type": "string" },
+        "toolchain": { "type": "object" },
+        "chainId": { "type": ["integer", "null"] },
+        "forkBlock": { "type": ["integer", "null"] },
+        "forkBlockHash": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "status": { "enum": ["COMPLETE", "PARTIAL", "NOT_RUN", "ERROR"] },
+    "scenarios": { "type": "array", "items": { "type": "object" } },
+    "findings": { "type": "array", "items": { "type": "object" } },
+    "gates": { "type": "array", "items": { "type": "object" } },
+    "verdict": { "enum": ["PASS", "CONDITIONAL", "FAIL"] }
+  },
+  "additionalProperties": true
+}
