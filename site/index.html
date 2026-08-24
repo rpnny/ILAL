@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,700;1,700&amp;family=Fragment+Mono&amp;display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20260824-impact" />
+  <link rel="stylesheet" href="./styles.css?v=20260824-break-even" />
 
 </head>
 <body>
@@ -91,7 +91,7 @@
           <div><span>canonical batch</span><strong>100 / 70</strong></div>
           <div><span>internal match</span><strong>140 gross</strong></div>
           <div><span>AMM residual</span><strong>30 token0</strong></div>
-          <div><span>Solidity tests</span><strong>234</strong></div>
+          <div><span>Solidity tests</span><strong>242</strong></div>
         </div>
       </div>
     </div>
@@ -115,7 +115,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">234</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">242</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
@@ -127,7 +127,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">234</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">242</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
@@ -281,7 +281,7 @@
         <div class="product-card">
           <span class="product-card__tag">Audit</span>
           <h3>Security package</h3>
-          <p>234 Solidity, 53 CLI and 18 SDK tests, plus six netting invariants at 256 runs each. Coverage includes conservation, canonical ordering, solver independence, cancellation and zero inventory.</p>
+          <p>242 Solidity, 53 CLI and 18 SDK tests, plus six netting invariants at 256 runs each. Coverage includes conservation, canonical ordering, solver independence, cancellation, zero inventory and notional break-even stress tests.</p>
         </div>
       </div>
     </div>
@@ -474,8 +474,8 @@
           </div>
           <div class="impact-stat impact-stat--tradeoff">
             <span>Local execution gas</span>
-            <strong>4.26×</strong>
-            <small>670,948 vs 157,584</small>
+            <strong>3.39×</strong>
+            <small>663,386 vs 195,556</small>
           </div>
         </div>
 
@@ -488,7 +488,33 @@
           <div class="impact-curve__row"><code>100</code><div><i style="width:100%"></i></div><strong>100.00%</strong></div>
         </div>
 
-        <p class="impact-benchmark__note">Controlled Foundry comparison: two 6-decimal mock stablecoins, 1:1 initial price, 0.05% pool fee, identical liquidity, and both vanilla execution orders. Gas excludes transaction intrinsics and is not a mainnet quote. Lower LP fees benefit users but reduce LP revenue on offset flow.</p>
+        <div class="break-even-panel">
+          <div class="break-even-panel__head">
+            <div>
+              <span>Gas-cost break-even · N / 0.7N flow</span>
+              <strong>When does better execution pay for the gas?</strong>
+            </div>
+            <a href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/BREAK_EVEN.md" target="_blank" rel="noreferrer">Notional sweep + JSON ↗</a>
+          </div>
+          <div class="break-even-grid" aria-label="Break-even anchor notional at a 3,000 dollar ETH scenario">
+            <div><span>0.01 gwei</span><strong>$19.26</strong><small>anchor notional</small></div>
+            <div><span>0.1 gwei</span><strong>$192.61</strong><small>anchor notional</small></div>
+            <div><span>1 gwei</span><strong>$1,926.14</strong><small>anchor notional</small></div>
+          </div>
+          <div class="break-even-sweep">
+            <span><b>100</b> → +$0.070 output · 0.052 gwei break-even</span>
+            <span><b>1k</b> → +$0.700 · 0.529 gwei</span>
+            <span><b>10k</b> → +$7.000 · 5.287 gwei</span>
+            <span><b>100k</b> → +$69.999 · 52.864 gwei</span>
+          </div>
+          <div class="break-even-panel__meta">
+            <span>Scenario input: ETH/USD $3,000 · not a live quote</span>
+            <span>Conservative total-gas premium: +449,430</span>
+            <span>Fixed candidate depth at 100k/70k: capacity-limited</span>
+          </div>
+        </div>
+
+        <p class="impact-benchmark__note">Controlled Foundry comparison: two 6-decimal mock stablecoins valued at $1, 1:1 initial price, 0.05% pool fee and both vanilla execution orders. The first curve uses fixed liquidity; the break-even sweep scales liquidity with notional. Total gas includes encoded calldata and one ILAL versus two vanilla transaction envelopes, but excludes L1 data fees, production routers, MEV and solver costs. Lower LP fees benefit users but reduce LP revenue on offset flow.</p>
       </div>
     </div>
   </section>
@@ -942,7 +968,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
         <div class="fstat"><span class="fstat__val">140m</span><span class="fstat__l">gross matched</span></div>
         <div class="fstat"><span class="fstat__val">30m</span><span class="fstat__l">AMM residual</span></div>
         <div class="fstat"><span class="fstat__val">0</span><span class="fstat__l">inventory after</span></div>
-        <div class="fstat"><span class="fstat__val">234</span><span class="fstat__l">Solidity tests</span></div>
+        <div class="fstat"><span class="fstat__val">242</span><span class="fstat__l">Solidity tests</span></div>
       </div>
       <div class="footer-meta">
         <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>

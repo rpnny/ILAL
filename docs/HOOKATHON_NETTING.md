@@ -169,8 +169,9 @@ identical 1:1 pools with the candidate's 0.05% fee and 1,000,000,000,000
 liquidity. For the canonical `100/70` case, ILAL reduces AMM exposure from 170
 to 30 tokens (82.35%), increases aggregate user output by 0.070000 tokens (4.12
 bps) versus the better vanilla ordering, and reduces charged LP fees from
-0.085000 to 0.015000 tokens. Foundry-local execution gas is higher: 670,948
-for ILAL versus 157,584 for the lower-gas pair of vanilla test-router calls.
+0.085000 to 0.015000 tokens. Foundry-local execution gas is higher: 663,386
+for ILAL versus 195,556 for the lower-gas pair of independently cold-started
+vanilla test-router calls.
 
 That gas result is part of the conclusion, not hidden: ILAL performs current
 policy checks, two signature validations, replay protection, deterministic
@@ -182,6 +183,20 @@ Full methodology and the five-point matching curve are in
 [`docs/hookathon/BENCHMARK.md`](hookathon/BENCHMARK.md), with machine-readable
 results in
 [`docs/hookathon/benchmark-results.json`](hookathon/benchmark-results.json).
+
+The companion notional sweep answers when that execution improvement exceeds
+the gas premium. At the fixed `N / 0.7N` flow ratio, proportionally scaled
+liquidity produces approximately 7.00 bps of output benefit versus anchor
+notional. The conservative measured total-gas premium is 449,430 gas. At a
+scenario ETH price of $3,000, break-even anchor notionals are $19.26 at 0.01
+gwei, $192.61 at 0.1 gwei and $1,926.14 at 1 gwei. These are sensitivity inputs,
+not live market quotes.
+
+The fixed candidate-liquidity `100k/70k` stress row is capacity-limited for
+both paths and excluded from interpolation. This makes depth and physical
+PoolManager balance preflight an explicit solver requirement. Full assumptions,
+the 100/1k/10k/100k sweep and JSON are in
+[`docs/hookathon/BREAK_EVEN.md`](hookathon/BREAK_EVEN.md).
 
 ## Verification
 

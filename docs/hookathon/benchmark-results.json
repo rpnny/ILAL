@@ -45,9 +45,9 @@
       "vanillaLpFee": 62500,
       "lpFeeSaved": 25000,
       "lpFeeReductionBps": 4000,
-      "nettingExecutionGas": 670452,
-      "bestVanillaExecutionGas": 157584,
-      "executionGasMultiple": 4.25,
+      "nettingExecutionGas": 662890,
+      "bestVanillaExecutionGas": 195556,
+      "executionGasMultiple": 3.39,
       "endingTicks": {
         "netting": -2,
         "vanillaZeroFirst": -2,
@@ -56,11 +56,11 @@
       "vanillaOrderings": {
         "zeroForOneFirst": {
           "output": 124931880,
-          "executionGas": 157584
+          "executionGas": 195556
         },
         "oneForZeroFirst": {
           "output": 124931877,
-          "executionGas": 157614
+          "executionGas": 195596
         }
       }
     },
@@ -79,9 +79,9 @@
       "vanillaLpFee": 75000,
       "lpFeeSaved": 50000,
       "lpFeeReductionBps": 6666.6667,
-      "nettingExecutionGas": 670453,
-      "bestVanillaExecutionGas": 157585,
-      "executionGasMultiple": 4.25,
+      "nettingExecutionGas": 662891,
+      "bestVanillaExecutionGas": 195557,
+      "executionGasMultiple": 3.39,
       "endingTicks": {
         "netting": -1,
         "vanillaZeroFirst": -1,
@@ -90,11 +90,11 @@
       "vanillaOrderings": {
         "zeroForOneFirst": {
           "output": 149922502,
-          "executionGas": 157585
+          "executionGas": 195557
         },
         "oneForZeroFirst": {
           "output": 149922499,
-          "executionGas": 157624
+          "executionGas": 195606
         }
       }
     },
@@ -113,9 +113,9 @@
       "vanillaLpFee": 85000,
       "lpFeeSaved": 70000,
       "lpFeeReductionBps": 8235.2941,
-      "nettingExecutionGas": 670948,
-      "bestVanillaExecutionGas": 157584,
-      "executionGasMultiple": 4.26,
+      "nettingExecutionGas": 663386,
+      "bestVanillaExecutionGas": 195556,
+      "executionGasMultiple": 3.39,
       "endingTicks": {
         "netting": -1,
         "vanillaZeroFirst": -1,
@@ -124,11 +124,11 @@
       "vanillaOrderings": {
         "zeroForOneFirst": {
           "output": 169914100,
-          "executionGas": 157584
+          "executionGas": 195556
         },
         "oneForZeroFirst": {
           "output": 169914097,
-          "executionGas": 157624
+          "executionGas": 195606
         }
       }
     },
@@ -147,9 +147,9 @@
       "vanillaLpFee": 95000,
       "lpFeeSaved": 90000,
       "lpFeeReductionBps": 9473.6842,
-      "nettingExecutionGas": 670452,
-      "bestVanillaExecutionGas": 157584,
-      "executionGasMultiple": 4.25,
+      "nettingExecutionGas": 662890,
+      "bestVanillaExecutionGas": 195556,
+      "executionGasMultiple": 3.39,
       "endingTicks": {
         "netting": -1,
         "vanillaZeroFirst": -1,
@@ -158,11 +158,11 @@
       "vanillaOrderings": {
         "zeroForOneFirst": {
           "output": 189904899,
-          "executionGas": 157584
+          "executionGas": 195556
         },
         "oneForZeroFirst": {
           "output": 189904896,
-          "executionGas": 157637
+          "executionGas": 195619
         }
       }
     },
@@ -181,9 +181,9 @@
       "vanillaLpFee": 100000,
       "lpFeeSaved": 100000,
       "lpFeeReductionBps": 10000,
-      "nettingExecutionGas": 630017,
-      "bestVanillaExecutionGas": 157595,
-      "executionGasMultiple": 4,
+      "nettingExecutionGas": 622455,
+      "bestVanillaExecutionGas": 195567,
+      "executionGasMultiple": 3.18,
       "endingTicks": {
         "netting": 0,
         "vanillaZeroFirst": 0,
@@ -192,11 +192,11 @@
       "vanillaOrderings": {
         "zeroForOneFirst": {
           "output": 199899999,
-          "executionGas": 157595
+          "executionGas": 195567
         },
         "oneForZeroFirst": {
           "output": 199899996,
-          "executionGas": 157637
+          "executionGas": 195619
         }
       }
     }

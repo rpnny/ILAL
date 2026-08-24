@@ -1,0 +1,506 @@
+{
+  "schemaVersion": 1,
+  "benchmark": "ILAL gas-cost break-even by notional",
+  "conclusionModel": {
+    "matchingPattern": "anchor token0 order N; opposing token1 order 0.7N; gross notional 1.7N",
+    "savingsUsdPerAnchorDollar": 0.0006999945605439456,
+    "savingsBpsOfAnchorNotional": 6.999945605439456,
+    "conservativeGasPremium": 449430,
+    "gasPremiumRule": "maximum measured total-gas premium across comparable scaled-liquidity rows",
+    "totalGasDefinition": "measured execution gas plus calldata gas and 21,000 intrinsic gas for one ILAL transaction versus two independent vanilla transactions"
+  },
+  "assumptions": {
+    "tokenDecimals": 6,
+    "stablecoinValueUsd": 1,
+    "rawUnitInternalMatch": "1:1",
+    "poolFeePips": 500,
+    "liquidityRange": [
+      -1000,
+      1000
+    ],
+    "fixedLiquidity": 1000000000000,
+    "scaledLiquidityRule": "1,000,000,000,000 liquidity per 100 anchor tokens",
+    "ethPriceScenariosUsd": [
+      2000,
+      3000,
+      4000
+    ],
+    "gasPriceScenariosGwei": [
+      0.01,
+      0.1,
+      1
+    ]
+  },
+  "limitations": [
+    "Gas and ETH/USD values are scenario inputs, not claims about current Base or ETH market conditions.",
+    "Vanilla uses the Foundry direct v4 test router with pre-existing approvals; it is not a Universal Router or Permit2 production trace.",
+    "The total-gas model adds exact encoded calldata and transaction intrinsic gas but does not include L1 data fees, solver discovery, latency, MEV, or off-chain operating cost.",
+    "The equal-decimal mock stablecoins are valued at raw-unit 1:1 and $1 each; this is not an oracle-priced market claim.",
+    "Fixed-liquidity 100k/70k is capacity-limited and is excluded from economic interpolation."
+  ],
+  "sensitivity": [
+    {
+      "ethPriceUsd": 2000,
+      "gasPriceGwei": 0.01,
+      "gasPremiumUsd": 0.008988600000000001,
+      "breakEvenAnchorNotionalUsd": 12.84095692545842,
+      "breakEvenGrossNotionalUsd": 21.829626773279312
+    },
+    {
+      "ethPriceUsd": 2000,
+      "gasPriceGwei": 0.1,
+      "gasPremiumUsd": 0.089886,
+      "breakEvenAnchorNotionalUsd": 128.40956925458417,
+      "breakEvenGrossNotionalUsd": 218.29626773279307
+    },
+    {
+      "ethPriceUsd": 2000,
+      "gasPriceGwei": 1,
+      "gasPremiumUsd": 0.89886,
+      "breakEvenAnchorNotionalUsd": 1284.0956925458418,
+      "breakEvenGrossNotionalUsd": 2182.962677327931
+    },
+    {
+      "ethPriceUsd": 3000,
+      "gasPriceGwei": 0.01,
+      "gasPremiumUsd": 0.0134829,
+      "breakEvenAnchorNotionalUsd": 19.26143538818763,
+      "breakEvenGrossNotionalUsd": 32.744440159918966
+    },
+    {
+      "ethPriceUsd": 3000,
+      "gasPriceGwei": 0.1,
+      "gasPremiumUsd": 0.134829,
+      "breakEvenAnchorNotionalUsd": 192.61435388187627,
+      "breakEvenGrossNotionalUsd": 327.44440159918963
+    },
+    {
+      "ethPriceUsd": 3000,
+      "gasPriceGwei": 1,
+      "gasPremiumUsd": 1.34829,
+      "breakEvenAnchorNotionalUsd": 1926.1435388187626,
+      "breakEvenGrossNotionalUsd": 3274.4440159918963
+    },
+    {
+      "ethPriceUsd": 4000,
+      "gasPriceGwei": 0.01,
+      "gasPremiumUsd": 0.017977200000000002,
+      "breakEvenAnchorNotionalUsd": 25.68191385091684,
+      "breakEvenGrossNotionalUsd": 43.659253546558624
+    },
+    {
+      "ethPriceUsd": 4000,
+      "gasPriceGwei": 0.1,
+      "gasPremiumUsd": 0.179772,
+      "breakEvenAnchorNotionalUsd": 256.81913850916834,
+      "breakEvenGrossNotionalUsd": 436.59253546558614
+    },
+    {
+      "ethPriceUsd": 4000,
+      "gasPriceGwei": 1,
+      "gasPremiumUsd": 1.79772,
+      "breakEvenAnchorNotionalUsd": 2568.1913850916835,
+      "breakEvenGrossNotionalUsd": 4365.925354655862
+    }
+  ],
+  "profitabilityAtEth3000": [
+    {
+      "anchorNotionalUsd": 100,
+      "grossNotionalUsd": 170,
+      "outputBenefitUsd": 0.07,
+      "scenarios": [
+        {
+          "gasPriceGwei": 0.01,
+          "gasPremiumUsd": 0.0134829,
+          "netBenefitUsd": 0.05651710000000001,
+          "economicallyPositive": true
+        },
+        {
+          "gasPriceGwei": 0.1,
+          "gasPremiumUsd": 0.134829,
+          "netBenefitUsd": -0.064829,
+          "economicallyPositive": false
+        },
+        {
+          "gasPriceGwei": 1,
+          "gasPremiumUsd": 1.34829,
+          "netBenefitUsd": -1.27829,
+          "economicallyPositive": false
+        }
+      ]
+    },
+    {
+      "anchorNotionalUsd": 1000,
+      "grossNotionalUsd": 1700,
+      "outputBenefitUsd": 0.699996,
+      "scenarios": [
+        {
+          "gasPriceGwei": 0.01,
+          "gasPremiumUsd": 0.0134829,
+          "netBenefitUsd": 0.6865131,
+          "economicallyPositive": true
+        },
+        {
+          "gasPriceGwei": 0.1,
+          "gasPremiumUsd": 0.134829,
+          "netBenefitUsd": 0.565167,
+          "economicallyPositive": true
+        },
+        {
+          "gasPriceGwei": 1,
+          "gasPremiumUsd": 1.34829,
+          "netBenefitUsd": -0.648294,
+          "economicallyPositive": false
+        }
+      ]
+    },
+    {
+      "anchorNotionalUsd": 10000,
+      "grossNotionalUsd": 17000,
+      "outputBenefitUsd": 6.999946,
+      "scenarios": [
+        {
+          "gasPriceGwei": 0.01,
+          "gasPremiumUsd": 0.0134829,
+          "netBenefitUsd": 6.9864631,
+          "economicallyPositive": true
+        },
+        {
+          "gasPriceGwei": 0.1,
+          "gasPremiumUsd": 0.134829,
+          "netBenefitUsd": 6.865117,
+          "economicallyPositive": true
+        },
+        {
+          "gasPriceGwei": 1,
+          "gasPremiumUsd": 1.34829,
+          "netBenefitUsd": 5.651655999999999,
+          "economicallyPositive": true
+        }
+      ]
+    },
+    {
+      "anchorNotionalUsd": 100000,
+      "grossNotionalUsd": 170000,
+      "outputBenefitUsd": 69.999456,
+      "scenarios": [
+        {
+          "gasPriceGwei": 0.01,
+          "gasPremiumUsd": 0.0134829,
+          "netBenefitUsd": 69.9859731,
+          "economicallyPositive": true
+        },
+        {
+          "gasPriceGwei": 0.1,
+          "gasPremiumUsd": 0.134829,
+          "netBenefitUsd": 69.864627,
+          "economicallyPositive": true
+        },
+        {
+          "gasPriceGwei": 1,
+          "gasPremiumUsd": 1.34829,
+          "netBenefitUsd": 68.65116599999999,
+          "economicallyPositive": true
+        }
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "mode": "fixed",
+      "anchorNotionalTokens": 100,
+      "opposingNotionalTokens": 70,
+      "submittedGrossTokens": 170,
+      "liquidity": 1000000000000,
+      "matchedGrossTokens": 140,
+      "residualTokens": 30,
+      "nettingSucceeded": true,
+      "vanillaFullFill": true,
+      "comparable": true,
+      "nettingOutputTokens": 169.9841,
+      "bestVanillaOutputTokens": 169.9141,
+      "outputAdvantageTokens": 0.07,
+      "outputAdvantageBpsOfGross": 4.1176,
+      "nettingTotalGas": 692322,
+      "bestVanillaTotalGas": 242868,
+      "gasPremium": 449454,
+      "breakEvenGasPriceGweiAtEth3000": 0.0519,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroForOneFirst": -1,
+        "vanillaOneForZeroFirst": -1
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 100,
+          "token1": 70,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 100,
+          "token1": 70,
+          "executionSucceeded": true
+        }
+      }
+    },
+    {
+      "mode": "fixed",
+      "anchorNotionalTokens": 1000,
+      "opposingNotionalTokens": 700,
+      "submittedGrossTokens": 1700,
+      "liquidity": 1000000000000,
+      "matchedGrossTokens": 1400,
+      "residualTokens": 300,
+      "nettingSucceeded": true,
+      "vanillaFullFill": true,
+      "comparable": true,
+      "nettingOutputTokens": 1699.760116,
+      "bestVanillaOutputTokens": 1699.060657,
+      "outputAdvantageTokens": 0.699459,
+      "outputAdvantageBpsOfGross": 4.1145,
+      "nettingTotalGas": 692327,
+      "bestVanillaTotalGas": 242975,
+      "gasPremium": 449352,
+      "breakEvenGasPriceGweiAtEth3000": 0.5189,
+      "endingTicks": {
+        "netting": -6,
+        "vanillaZeroForOneFirst": -6,
+        "vanillaOneForZeroFirst": -7
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 1000,
+          "token1": 700,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 1000,
+          "token1": 700,
+          "executionSucceeded": true
+        }
+      }
+    },
+    {
+      "mode": "fixed",
+      "anchorNotionalTokens": 10000,
+      "opposingNotionalTokens": 7000,
+      "submittedGrossTokens": 17000,
+      "liquidity": 1000000000000,
+      "matchedGrossTokens": 14000,
+      "residualTokens": 3000,
+      "nettingSucceeded": true,
+      "vanillaFullFill": true,
+      "comparable": true,
+      "nettingOutputTokens": 16989.535876,
+      "bestVanillaOutputTokens": 16983.067935,
+      "outputAdvantageTokens": 6.467941,
+      "outputAdvantageBpsOfGross": 3.8047,
+      "nettingTotalGas": 692863,
+      "bestVanillaTotalGas": 242221,
+      "gasPremium": 450642,
+      "breakEvenGasPriceGweiAtEth3000": 4.7842,
+      "endingTicks": {
+        "netting": -60,
+        "vanillaZeroForOneFirst": -59,
+        "vanillaOneForZeroFirst": -61
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 10000,
+          "token1": 7000,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 10000,
+          "token1": 7000,
+          "executionSucceeded": true
+        }
+      }
+    },
+    {
+      "mode": "fixed",
+      "anchorNotionalTokens": 100000,
+      "opposingNotionalTokens": 70000,
+      "submittedGrossTokens": 170000,
+      "liquidity": 1000000000000,
+      "matchedGrossTokens": 140000,
+      "residualTokens": 30000,
+      "nettingSucceeded": false,
+      "vanillaFullFill": false,
+      "comparable": false,
+      "nettingOutputTokens": 0,
+      "bestVanillaOutputTokens": null,
+      "outputAdvantageTokens": null,
+      "outputAdvantageBpsOfGross": null,
+      "nettingTotalGas": 571095,
+      "bestVanillaTotalGas": null,
+      "gasPremium": null,
+      "breakEvenGasPriceGweiAtEth3000": null,
+      "endingTicks": {
+        "netting": 0,
+        "vanillaZeroForOneFirst": 419,
+        "vanillaOneForZeroFirst": -999
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 51294.115435,
+          "token1": 70000,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 100000,
+          "token1": 51294.115435,
+          "executionSucceeded": true
+        }
+      }
+    },
+    {
+      "mode": "scaled",
+      "anchorNotionalTokens": 100,
+      "opposingNotionalTokens": 70,
+      "submittedGrossTokens": 170,
+      "liquidity": 1000000000000,
+      "matchedGrossTokens": 140,
+      "residualTokens": 30,
+      "nettingSucceeded": true,
+      "vanillaFullFill": true,
+      "comparable": true,
+      "nettingOutputTokens": 169.9841,
+      "bestVanillaOutputTokens": 169.9141,
+      "outputAdvantageTokens": 0.07,
+      "outputAdvantageBpsOfGross": 4.1176,
+      "nettingTotalGas": 692298,
+      "bestVanillaTotalGas": 242868,
+      "gasPremium": 449430,
+      "breakEvenGasPriceGweiAtEth3000": 0.0519,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroForOneFirst": -1,
+        "vanillaOneForZeroFirst": -1
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 100,
+          "token1": 70,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 100,
+          "token1": 70,
+          "executionSucceeded": true
+        }
+      }
+    },
+    {
+      "mode": "scaled",
+      "anchorNotionalTokens": 1000,
+      "opposingNotionalTokens": 700,
+      "submittedGrossTokens": 1700,
+      "liquidity": 10000000000000,
+      "matchedGrossTokens": 1400,
+      "residualTokens": 300,
+      "nettingSucceeded": true,
+      "vanillaFullFill": true,
+      "comparable": true,
+      "nettingOutputTokens": 1699.841009,
+      "bestVanillaOutputTokens": 1699.141013,
+      "outputAdvantageTokens": 0.699996,
+      "outputAdvantageBpsOfGross": 4.1176,
+      "nettingTotalGas": 684199,
+      "bestVanillaTotalGas": 242856,
+      "gasPremium": 441343,
+      "breakEvenGasPriceGweiAtEth3000": 0.5287,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroForOneFirst": -1,
+        "vanillaOneForZeroFirst": -1
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 1000,
+          "token1": 700,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 1000,
+          "token1": 700,
+          "executionSucceeded": true
+        }
+      }
+    },
+    {
+      "mode": "scaled",
+      "anchorNotionalTokens": 10000,
+      "opposingNotionalTokens": 7000,
+      "submittedGrossTokens": 17000,
+      "liquidity": 100000000000000,
+      "matchedGrossTokens": 14000,
+      "residualTokens": 3000,
+      "nettingSucceeded": true,
+      "vanillaFullFill": true,
+      "comparable": true,
+      "nettingOutputTokens": 16998.410092,
+      "bestVanillaOutputTokens": 16991.410146,
+      "outputAdvantageTokens": 6.999946,
+      "outputAdvantageBpsOfGross": 4.1176,
+      "nettingTotalGas": 684211,
+      "bestVanillaTotalGas": 242856,
+      "gasPremium": 441355,
+      "breakEvenGasPriceGweiAtEth3000": 5.2867,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroForOneFirst": -1,
+        "vanillaOneForZeroFirst": -1
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 10000,
+          "token1": 7000,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 10000,
+          "token1": 7000,
+          "executionSucceeded": true
+        }
+      }
+    },
+    {
+      "mode": "scaled",
+      "anchorNotionalTokens": 100000,
+      "opposingNotionalTokens": 70000,
+      "submittedGrossTokens": 170000,
+      "liquidity": 1000000000000000,
+      "matchedGrossTokens": 140000,
+      "residualTokens": 30000,
+      "nettingSucceeded": true,
+      "vanillaFullFill": true,
+      "comparable": true,
+      "nettingOutputTokens": 169984.100926,
+      "bestVanillaOutputTokens": 169914.10147,
+      "outputAdvantageTokens": 69.999456,
+      "outputAdvantageBpsOfGross": 4.1176,
+      "nettingTotalGas": 684235,
+      "bestVanillaTotalGas": 242856,
+      "gasPremium": 441379,
+      "breakEvenGasPriceGweiAtEth3000": 52.8642,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroForOneFirst": -1,
+        "vanillaOneForZeroFirst": -1
+      },
+      "vanillaActualInputs": {
+        "zeroForOneFirst": {
+          "token0": 100000,
+          "token1": 70000,
+          "executionSucceeded": true
+        },
+        "oneForZeroFirst": {
+          "token0": 100000,
+          "token1": 70000,
+          "executionSucceeded": true
+        }
+      }
+    }
+  ]
+}
