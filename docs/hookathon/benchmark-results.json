@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 1,
+  "benchmark": "ILAL institutional netting vs two sequential vanilla Uniswap v4 swaps",
+  "assumptions": {
+    "tokenDecimals": 6,
+    "rawUnitInternalMatch": "1:1",
+    "poolFeePips": 500,
+    "initialSqrtPriceX96": "79228162514264337593543950336",
+    "initialTick": 0,
+    "tickSpacing": 10,
+    "liquidity": "1000000000000",
+    "liquidityRange": [
+      -1000,
+      1000
+    ],
+    "firstOrderInput": "100000000 token0",
+    "secondOrderInputs": [
+      "25000000 token1",
+      "50000000 token1",
+      "70000000 token1",
+      "90000000 token1",
+      "100000000 token1"
+    ],
+    "comparisonRule": "Run both vanilla orderings from identical pools; compare output against the higher vanilla output and gas against the lower vanilla execution gas."
+  },
+  "limitations": [
+    "Foundry-local execution gas excludes transaction intrinsic gas and is not a production router or mainnet quote.",
+    "The equal-decimal mock stablecoins are valued at raw-unit 1:1; results are not an oracle-priced market claim.",
+    "The benchmark isolates two-order execution and does not model solver latency, order discovery, MEV, or off-chain operational cost.",
+    "Reduced LP fee volume is a user execution saving and an LP revenue tradeoff, not a universal ecosystem gain."
+  ],
+  "rows": [
+    {
+      "pair": "100/25",
+      "opposingAmount": 25000000,
+      "submittedGross": 125000000,
+      "matchedGross": 50000000,
+      "ammResidual": 75000000,
+      "ammExposureReductionBps": 4000,
+      "nettingOutput": 124956881,
+      "bestVanillaOutput": 124931880,
+      "outputAdvantage": 25001,
+      "outputAdvantageBps": 2.0012,
+      "nettingLpFee": 37500,
+      "vanillaLpFee": 62500,
+      "lpFeeSaved": 25000,
+      "lpFeeReductionBps": 4000,
+      "nettingExecutionGas": 670452,
+      "bestVanillaExecutionGas": 157584,
+      "executionGasMultiple": 4.25,
+      "endingTicks": {
+        "netting": -2,
+        "vanillaZeroFirst": -2,
+        "vanillaOneFirst": -2
+      },
+      "vanillaOrderings": {
+        "zeroForOneFirst": {
+          "output": 124931880,
+          "executionGas": 157584
+        },
+        "oneForZeroFirst": {
+          "output": 124931877,
+          "executionGas": 157614
+        }
+      }
+    },
+    {
+      "pair": "100/50",
+      "opposingAmount": 50000000,
+      "submittedGross": 150000000,
+      "matchedGross": 100000000,
+      "ammResidual": 50000000,
+      "ammExposureReductionBps": 6666.6667,
+      "nettingOutput": 149972502,
+      "bestVanillaOutput": 149922502,
+      "outputAdvantage": 50000,
+      "outputAdvantageBps": 3.3351,
+      "nettingLpFee": 25000,
+      "vanillaLpFee": 75000,
+      "lpFeeSaved": 50000,
+      "lpFeeReductionBps": 6666.6667,
+      "nettingExecutionGas": 670453,
+      "bestVanillaExecutionGas": 157585,
+      "executionGasMultiple": 4.25,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroFirst": -1,
+        "vanillaOneFirst": -1
+      },
+      "vanillaOrderings": {
+        "zeroForOneFirst": {
+          "output": 149922502,
+          "executionGas": 157585
+        },
+        "oneForZeroFirst": {
+          "output": 149922499,
+          "executionGas": 157624
+        }
+      }
+    },
+    {
+      "pair": "100/70",
+      "opposingAmount": 70000000,
+      "submittedGross": 170000000,
+      "matchedGross": 140000000,
+      "ammResidual": 30000000,
+      "ammExposureReductionBps": 8235.2941,
+      "nettingOutput": 169984100,
+      "bestVanillaOutput": 169914100,
+      "outputAdvantage": 70000,
+      "outputAdvantageBps": 4.1197,
+      "nettingLpFee": 15000,
+      "vanillaLpFee": 85000,
+      "lpFeeSaved": 70000,
+      "lpFeeReductionBps": 8235.2941,
+      "nettingExecutionGas": 670948,
+      "bestVanillaExecutionGas": 157584,
+      "executionGasMultiple": 4.26,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroFirst": -1,
+        "vanillaOneFirst": -1
+      },
+      "vanillaOrderings": {
+        "zeroForOneFirst": {
+          "output": 169914100,
+          "executionGas": 157584
+        },
+        "oneForZeroFirst": {
+          "output": 169914097,
+          "executionGas": 157624
+        }
+      }
+    },
+    {
+      "pair": "100/90",
+      "opposingAmount": 90000000,
+      "submittedGross": 190000000,
+      "matchedGross": 180000000,
+      "ammResidual": 10000000,
+      "ammExposureReductionBps": 9473.6842,
+      "nettingOutput": 189994900,
+      "bestVanillaOutput": 189904899,
+      "outputAdvantage": 90001,
+      "outputAdvantageBps": 4.7393,
+      "nettingLpFee": 5000,
+      "vanillaLpFee": 95000,
+      "lpFeeSaved": 90000,
+      "lpFeeReductionBps": 9473.6842,
+      "nettingExecutionGas": 670452,
+      "bestVanillaExecutionGas": 157584,
+      "executionGasMultiple": 4.25,
+      "endingTicks": {
+        "netting": -1,
+        "vanillaZeroFirst": -1,
+        "vanillaOneFirst": -1
+      },
+      "vanillaOrderings": {
+        "zeroForOneFirst": {
+          "output": 189904899,
+          "executionGas": 157584
+        },
+        "oneForZeroFirst": {
+          "output": 189904896,
+          "executionGas": 157637
+        }
+      }
+    },
+    {
+      "pair": "100/100",
+      "opposingAmount": 100000000,
+      "submittedGross": 200000000,
+      "matchedGross": 200000000,
+      "ammResidual": 0,
+      "ammExposureReductionBps": 10000,
+      "nettingOutput": 200000000,
+      "bestVanillaOutput": 199899999,
+      "outputAdvantage": 100001,
+      "outputAdvantageBps": 5.0026,
+      "nettingLpFee": 0,
+      "vanillaLpFee": 100000,
+      "lpFeeSaved": 100000,
+      "lpFeeReductionBps": 10000,
+      "nettingExecutionGas": 630017,
+      "bestVanillaExecutionGas": 157595,
+      "executionGasMultiple": 4,
+      "endingTicks": {
+        "netting": 0,
+        "vanillaZeroFirst": 0,
+        "vanillaOneFirst": -1
+      },
+      "vanillaOrderings": {
+        "zeroForOneFirst": {
+          "output": 199899999,
+          "executionGas": 157595
+        },
+        "oneForZeroFirst": {
+          "output": 199899996,
+          "executionGas": 157637
+        }
+      }
+    }
+  ]
+}

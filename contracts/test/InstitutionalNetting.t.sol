@@ -11,6 +11,7 @@ import {PoolSwapTest} from "v4-core/src/test/PoolSwapTest.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
 import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
 import {Currency} from "v4-core/src/types/Currency.sol";
+import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
 import {ModifyLiquidityParams, SwapParams} from "v4-core/src/types/PoolOperation.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
@@ -32,6 +33,7 @@ contract InstitutionalNettingTest is Test {
     uint24 internal constant FEE = 500;
     int24 internal constant TICK_SPACING = 10;
     int24 internal constant MAX_ABS_TICK = 100;
+    uint128 internal constant TEST_LIQUIDITY = 1e12;
     uint256 internal constant UNIT = 1e6;
     uint256 internal constant ALICE_KEY = 0xA11CE;
     uint256 internal constant BOB_KEY = 0xB0B;
@@ -56,6 +58,26 @@ contract InstitutionalNettingTest is Test {
         PoolSwapTest swapRouter;
         PoolKey key;
         PoolId id;
+    }
+
+    struct VanillaBenchmark {
+        uint256 output;
+        uint256 gasUsed;
+        int24 endingTick;
+    }
+
+    struct NettingBenchmark {
+        uint256 opposingAmount;
+        uint256 gross;
+        uint256 matchedGross;
+        uint256 residual;
+        uint256 output;
+        uint256 gasUsed;
+        int24 endingTick;
+        uint256 lpFee;
+        VanillaBenchmark zeroFirst;
+        VanillaBenchmark oneFirst;
+        uint256 vanillaLpFee;
     }
 
     function setUp() public {
@@ -102,7 +124,11 @@ contract InstitutionalNettingTest is Test {
         token0.approve(address(liquidityRouter), type(uint256).max);
         token1.approve(address(liquidityRouter), type(uint256).max);
         liquidityRouter.modifyLiquidity(
-            key, ModifyLiquidityParams({tickLower: -1000, tickUpper: 1000, liquidityDelta: 1e20, salt: bytes32(0)}), ""
+            key,
+            ModifyLiquidityParams({
+                tickLower: -1000, tickUpper: 1000, liquidityDelta: int256(uint256(TEST_LIQUIDITY)), salt: bytes32(0)
+            }),
+            ""
         );
 
         issuer.setValid(alice, true);
@@ -443,6 +469,26 @@ contract InstitutionalNettingTest is Test {
         assertLt(gasUsed, 8_000_000);
     }
 
+    function testBenchmark_100By25() public {
+        _benchmarkTwoOrderFlow(25 * UNIT, 2_025, 2_026);
+    }
+
+    function testBenchmark_100By50() public {
+        _benchmarkTwoOrderFlow(50 * UNIT, 2_050, 2_051);
+    }
+
+    function testBenchmark_100By70() public {
+        _benchmarkTwoOrderFlow(70 * UNIT, 2_070, 2_071);
+    }
+
+    function testBenchmark_100By90() public {
+        _benchmarkTwoOrderFlow(90 * UNIT, 2_090, 2_091);
+    }
+
+    function testBenchmark_100By100() public {
+        _benchmarkTwoOrderFlow(100 * UNIT, 2_100, 2_101);
+    }
+
     function testFuzz_previewAccounting(uint64 amount0, uint64 amount1) public view {
         amount0 = uint64(bound(amount0, 1, type(uint64).max));
         amount1 = uint64(bound(amount1, 1, type(uint64).max));
@@ -500,6 +546,137 @@ contract InstitutionalNettingTest is Test {
         orders[0] = _order(alice, true, 100 * UNIT, 99 * UNIT, 30 * UNIT, bytes32(nonce0));
         orders[1] = _order(bob, false, 70 * UNIT, 70 * UNIT, 0, bytes32(nonce1));
         signatures = _signOrders(orders);
+    }
+
+    /// @dev Compares one atomic ILAL batch with two ordinary exact-input swaps
+    /// from identical 1:1 pools. Both vanilla execution orders are measured so
+    /// downstream reporting can use the better vanilla outcome.
+    function _benchmarkTwoOrderFlow(uint256 opposingAmount, uint256 nonce0, uint256 nonce1) internal {
+        NettingBenchmark memory result;
+        result.opposingAmount = opposingAmount;
+        result.gross = 100 * UNIT + opposingAmount;
+        result.matchedGross = opposingAmount * 2;
+        result.residual = 100 * UNIT - opposingAmount;
+
+        NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](2);
+        orders[0] = _order(alice, true, 100 * UNIT, 0, result.residual, bytes32(nonce0));
+        orders[1] = _order(bob, false, opposingAmount, 0, 0, bytes32(nonce1));
+        bytes[] memory signatures = _signOrders(orders);
+        NettingTypes.BatchHeader memory header = batchRouter.previewBatch(orders);
+
+        uint256 alice1Before = token1.balanceOf(alice);
+        uint256 bob0Before = token0.balanceOf(bob);
+        uint256 gasBefore = gasleft();
+        batchRouter.executeBatch(key, orders, signatures);
+        result.gasUsed = gasBefore - gasleft();
+        result.output = token1.balanceOf(alice) - alice1Before + token0.balanceOf(bob) - bob0Before;
+        (, result.endingTick,,) = manager.getSlot0(PoolId.wrap(poolId));
+        result.lpFee = _exactInputLpFee(result.residual);
+        result.zeroFirst = _runVanillaBenchmark(opposingAmount, true);
+        result.oneFirst = _runVanillaBenchmark(opposingAmount, false);
+        result.vanillaLpFee = _exactInputLpFee(100 * UNIT) + _exactInputLpFee(opposingAmount);
+        uint256 bestVanillaOutput =
+            result.zeroFirst.output > result.oneFirst.output ? result.zeroFirst.output : result.oneFirst.output;
+
+        assertEq(header.total0, 100 * UNIT);
+        assertEq(header.total1, opposingAmount);
+        assertEq(header.matchedEachSide, opposingAmount);
+        assertEq(header.residual0, result.residual);
+        assertEq(header.residual1, 0);
+        assertGt(result.output, bestVanillaOutput);
+        assertLt(result.lpFee, result.vanillaLpFee);
+        assertEq(token0.balanceOf(address(hook)), 0);
+        assertEq(token1.balanceOf(address(hook)), 0);
+        assertEq(token0.balanceOf(address(batchRouter)), 0);
+        assertEq(token1.balanceOf(address(batchRouter)), 0);
+
+        _logBenchmark(result);
+    }
+
+    function _runVanillaBenchmark(uint256 opposingAmount, bool zeroFirst)
+        internal
+        returns (VanillaBenchmark memory result)
+    {
+        VanillaPool memory vanilla = _deployVanillaPool();
+        uint256 gasBefore = gasleft();
+        BalanceDelta zeroForOneDelta;
+        BalanceDelta oneForZeroDelta;
+        if (zeroFirst) {
+            zeroForOneDelta = _vanillaSwap(vanilla, true, 100 * UNIT);
+            oneForZeroDelta = _vanillaSwap(vanilla, false, opposingAmount);
+        } else {
+            oneForZeroDelta = _vanillaSwap(vanilla, false, opposingAmount);
+            zeroForOneDelta = _vanillaSwap(vanilla, true, 100 * UNIT);
+        }
+        result.gasUsed = gasBefore - gasleft();
+        result.output = uint256(uint128(zeroForOneDelta.amount1())) + uint256(uint128(oneForZeroDelta.amount0()));
+        (, result.endingTick,,) = vanilla.manager.getSlot0(vanilla.id);
+    }
+
+    function _logBenchmark(NettingBenchmark memory result) internal {
+        string memory line = string.concat(
+            "BENCHMARK|opposing=", vm.toString(result.opposingAmount), "|gross=", vm.toString(result.gross)
+        );
+        line = string.concat(
+            line,
+            "|matchedGross=",
+            vm.toString(result.matchedGross),
+            "|residual=",
+            vm.toString(result.residual),
+            "|nettingOutput=",
+            vm.toString(result.output)
+        );
+        line = string.concat(
+            line,
+            "|nettingGas=",
+            vm.toString(result.gasUsed),
+            "|nettingTick=",
+            vm.toString(int256(result.endingTick)),
+            "|nettingLpFee=",
+            vm.toString(result.lpFee)
+        );
+        line = string.concat(
+            line,
+            "|vanillaZeroFirstOutput=",
+            vm.toString(result.zeroFirst.output),
+            "|vanillaZeroFirstGas=",
+            vm.toString(result.zeroFirst.gasUsed),
+            "|vanillaZeroFirstTick=",
+            vm.toString(int256(result.zeroFirst.endingTick))
+        );
+        line = string.concat(
+            line,
+            "|vanillaOneFirstOutput=",
+            vm.toString(result.oneFirst.output),
+            "|vanillaOneFirstGas=",
+            vm.toString(result.oneFirst.gasUsed),
+            "|vanillaOneFirstTick=",
+            vm.toString(int256(result.oneFirst.endingTick)),
+            "|vanillaLpFee=",
+            vm.toString(result.vanillaLpFee)
+        );
+        emit log_string(line);
+    }
+
+    function _vanillaSwap(VanillaPool memory vanilla, bool zeroForOne, uint256 amountIn)
+        internal
+        returns (BalanceDelta)
+    {
+        return vanilla.swapRouter
+            .swap(
+                vanilla.key,
+                SwapParams({
+                    zeroForOne: zeroForOne,
+                    amountSpecified: -int256(amountIn),
+                    sqrtPriceLimitX96: zeroForOne ? 4295128740 : 1461446703485210103287273052203988822378723970341
+                }),
+                PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+                ""
+            );
+    }
+
+    function _exactInputLpFee(uint256 amountIn) internal pure returns (uint256) {
+        return amountIn - (amountIn * (1_000_000 - FEE) / 1_000_000);
     }
 
     function _order(
@@ -568,7 +745,9 @@ contract InstitutionalNettingTest is Test {
         token1.approve(address(vanillaLiquidityRouter), type(uint256).max);
         vanillaLiquidityRouter.modifyLiquidity(
             vanilla.key,
-            ModifyLiquidityParams({tickLower: -1000, tickUpper: 1000, liquidityDelta: 1e20, salt: bytes32(0)}),
+            ModifyLiquidityParams({
+                tickLower: -1000, tickUpper: 1000, liquidityDelta: int256(uint256(TEST_LIQUIDITY)), salt: bytes32(0)
+            }),
             ""
         );
         token0.approve(address(vanilla.swapRouter), type(uint256).max);

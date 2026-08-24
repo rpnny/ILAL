@@ -156,6 +156,33 @@ The completed Base Sepolia evidence is
 [`docs/hookathon/candidate-manifest.json`](hookathon/candidate-manifest.json).
 The adjacent template remains available for later candidate deployments.
 
+## Impact benchmark
+
+Run the comparison from the repository root:
+
+```bash
+make benchmark
+```
+
+It executes the ILAL batch and both sequential vanilla swap orderings from
+identical 1:1 pools with the candidate's 0.05% fee and 1,000,000,000,000
+liquidity. For the canonical `100/70` case, ILAL reduces AMM exposure from 170
+to 30 tokens (82.35%), increases aggregate user output by 0.070000 tokens (4.12
+bps) versus the better vanilla ordering, and reduces charged LP fees from
+0.085000 to 0.015000 tokens. Foundry-local execution gas is higher: 670,948
+for ILAL versus 157,584 for the lower-gas pair of vanilla test-router calls.
+
+That gas result is part of the conclusion, not hidden: ILAL performs current
+policy checks, two signature validations, replay protection, deterministic
+allocation and direct settlement. Local test gas excludes transaction
+intrinsics and is not a mainnet or production-router quote. Lower LP fees are
+also a user benefit but an LP revenue tradeoff.
+
+Full methodology and the five-point matching curve are in
+[`docs/hookathon/BENCHMARK.md`](hookathon/BENCHMARK.md), with machine-readable
+results in
+[`docs/hookathon/benchmark-results.json`](hookathon/benchmark-results.json).
+
 ## Verification
 
 ```bash
