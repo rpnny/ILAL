@@ -15,11 +15,11 @@ make benchmark
 
 | Orders (token0/token1) | AMM exposure reduction | ILAL AMM residual | User output advantage vs best vanilla | LP fee reduction | Local execution gas ILAL / best vanilla |
 |---:|---:|---:|---:|---:|---:|
-| 100/25 | 40.00% | 75.000000 | +0.025001 (2.00 bps) | 40.00% | 670,452 / 157,584 (4.25x) |
-| 100/50 | 66.67% | 50.000000 | +0.050000 (3.34 bps) | 66.67% | 670,453 / 157,585 (4.25x) |
-| 100/70 | 82.35% | 30.000000 | +0.070000 (4.12 bps) | 82.35% | 670,948 / 157,584 (4.26x) |
-| 100/90 | 94.74% | 10.000000 | +0.090001 (4.74 bps) | 94.74% | 670,452 / 157,584 (4.25x) |
-| 100/100 | 100.00% | 0.000000 | +0.100001 (5.00 bps) | 100.00% | 630,017 / 157,595 (4.00x) |
+| 100/25 | 40.00% | 75.000000 | +0.025001 (2.00 bps) | 40.00% | 662,890 / 195,556 (3.39x) |
+| 100/50 | 66.67% | 50.000000 | +0.050000 (3.34 bps) | 66.67% | 662,891 / 195,557 (3.39x) |
+| 100/70 | 82.35% | 30.000000 | +0.070000 (4.12 bps) | 82.35% | 663,386 / 195,556 (3.39x) |
+| 100/90 | 94.74% | 10.000000 | +0.090001 (4.74 bps) | 94.74% | 662,890 / 195,556 (3.39x) |
+| 100/100 | 100.00% | 0.000000 | +0.100001 (5.00 bps) | 100.00% | 622,455 / 195,567 (3.18x) |
 
 For the canonical `100/70` demo, ILAL routes 30.000000 tokens rather than
 170.000000 gross tokens through AMM execution: an **82.35%
@@ -27,9 +27,9 @@ reduction**. Aggregate user output is **0.070000 tokens
 (4.12 bps) higher** than the better vanilla ordering, and
 the charged LP fee falls from 0.085000 to
 0.015000 tokens. The tradeoff is execution complexity:
-the ILAL path consumes 670,948 local execution gas versus
-157,584 for the lower-gas pair of vanilla swap calls
-(4.26x).
+the ILAL path consumes 663,386 local execution gas versus
+195,556 for the lower-gas pair of vanilla swap calls
+(3.39x).
 
 The ILAL output of 169.984100 matches the public Base Sepolia
 `100/70` settlement recorded in the candidate manifest. This connects the

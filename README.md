@@ -160,7 +160,7 @@ make verify
 
 | Suite | Current result |
 |---|---:|
-| Foundry | 234 passed, 0 failed, 0 skipped |
+| Foundry | 242 passed, 0 failed, 0 skipped |
 | Netting stateful invariants | 6 properties × 256 calls, 0 reverts |
 | CLI | 53 passed |
 | SDK | 18 passed |
@@ -187,11 +187,11 @@ the headline does not depend on a favorable ordering.
 
 | `100 token0` vs | AMM exposure reduction | User output advantage | LP fee reduction | Local execution gas: ILAL / vanilla |
 |---:|---:|---:|---:|---:|
-| `25 token1` | 40.00% | +0.025001 (2.00 bps) | 40.00% | 670,452 / 157,584 (4.25x) |
-| `50 token1` | 66.67% | +0.050000 (3.34 bps) | 66.67% | 670,453 / 157,585 (4.25x) |
-| `70 token1` | 82.35% | +0.070000 (4.12 bps) | 82.35% | 670,948 / 157,584 (4.26x) |
-| `90 token1` | 94.74% | +0.090001 (4.74 bps) | 94.74% | 670,452 / 157,584 (4.25x) |
-| `100 token1` | 100.00% | +0.100001 (5.00 bps) | 100.00% | 630,017 / 157,595 (4.00x) |
+| `25 token1` | 40.00% | +0.025001 (2.00 bps) | 40.00% | 662,890 / 195,556 (3.39x) |
+| `50 token1` | 66.67% | +0.050000 (3.34 bps) | 66.67% | 662,891 / 195,557 (3.39x) |
+| `70 token1` | 82.35% | +0.070000 (4.12 bps) | 82.35% | 663,386 / 195,556 (3.39x) |
+| `90 token1` | 94.74% | +0.090001 (4.74 bps) | 94.74% | 662,890 / 195,556 (3.39x) |
+| `100 token1` | 100.00% | +0.100001 (5.00 bps) | 100.00% | 622,455 / 195,567 (3.18x) |
 
 For the public `100/70` configuration, aggregate ILAL output is 169.984100
 tokens versus 169.914100 for the better vanilla ordering. That is a 0.070000
@@ -202,6 +202,30 @@ fees on flow that would otherwise have reached the pool.
 
 See the complete methodology, limitations and generated JSON in the
 [`impact benchmark`](docs/hookathon/BENCHMARK.md).
+
+### When is the gas premium worth paying?
+
+```bash
+make break-even-benchmark
+```
+
+The notional sweep fixes opposing flow at `N / 0.7N` and scales liquidity with
+notional to isolate gas amortization. User output improves by approximately
+**7.00 bps of anchor notional** while the conservative measured total-gas
+premium is **449,430 gas**. With ETH/USD fixed at a **$3,000 scenario input**:
+
+| Gas-price scenario | Break-even anchor notional | Break-even gross notional |
+|---:|---:|---:|
+| 0.01 gwei | $19.26 | $32.74 |
+| 0.1 gwei | $192.61 | $327.44 |
+| 1 gwei | $1,926.14 | $3,274.44 |
+
+These are sensitivity scenarios, not live ETH or Base gas quotes. The fixed
+candidate-liquidity stress test also reports the `100k/70k` case as
+**capacity-limited**: neither ILAL nor vanilla fully executes at that depth, so
+the row is excluded from break-even interpolation. See the full assumptions,
+100/1k/10k/100k sweep and machine-readable output in the
+[`gas-cost break-even benchmark`](docs/hookathon/BREAK_EVEN.md).
 
 ## Deployment status
 

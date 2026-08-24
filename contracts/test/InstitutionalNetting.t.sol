@@ -63,21 +63,33 @@ contract InstitutionalNettingTest is Test {
     struct VanillaBenchmark {
         uint256 output;
         uint256 gasUsed;
+        uint256 totalGas;
+        uint256 actualInput0;
+        uint256 actualInput1;
         int24 endingTick;
+        bool executionSucceeded;
+        bool fullFill;
     }
 
     struct NettingBenchmark {
+        uint256 baseAmount;
         uint256 opposingAmount;
         uint256 gross;
         uint256 matchedGross;
         uint256 residual;
+        uint128 liquidity;
         uint256 output;
         uint256 gasUsed;
+        uint256 totalGas;
         int24 endingTick;
         uint256 lpFee;
+        bool nettingSucceeded;
         VanillaBenchmark zeroFirst;
         VanillaBenchmark oneFirst;
+        uint256 bestVanillaOutput;
+        uint256 bestVanillaGas;
         uint256 vanillaLpFee;
+        bool vanillaFullFill;
     }
 
     function setUp() public {
@@ -489,6 +501,38 @@ contract InstitutionalNettingTest is Test {
         _benchmarkTwoOrderFlow(100 * UNIT, 2_100, 2_101);
     }
 
+    function testBreakEven_fixed_100() public {
+        _breakEvenNotional(100, TEST_LIQUIDITY, "fixed", true, true, 3_100, 3_101);
+    }
+
+    function testBreakEven_fixed_1000() public {
+        _breakEvenNotional(1_000, TEST_LIQUIDITY, "fixed", true, true, 3_200, 3_201);
+    }
+
+    function testBreakEven_fixed_10000() public {
+        _breakEvenNotional(10_000, TEST_LIQUIDITY, "fixed", true, true, 3_300, 3_301);
+    }
+
+    function testBreakEven_fixed_100000() public {
+        _breakEvenNotional(100_000, TEST_LIQUIDITY, "fixed", false, false, 3_400, 3_401);
+    }
+
+    function testBreakEven_scaled_100() public {
+        _breakEvenNotional(100, TEST_LIQUIDITY, "scaled", true, true, 4_100, 4_101);
+    }
+
+    function testBreakEven_scaled_1000() public {
+        _breakEvenNotional(1_000, TEST_LIQUIDITY * 10, "scaled", true, true, 4_200, 4_201);
+    }
+
+    function testBreakEven_scaled_10000() public {
+        _breakEvenNotional(10_000, TEST_LIQUIDITY * 100, "scaled", true, true, 4_300, 4_301);
+    }
+
+    function testBreakEven_scaled_100000() public {
+        _breakEvenNotional(100_000, TEST_LIQUIDITY * 1_000, "scaled", true, true, 4_400, 4_401);
+    }
+
     function testFuzz_previewAccounting(uint64 amount0, uint64 amount1) public view {
         amount0 = uint64(bound(amount0, 1, type(uint64).max));
         amount1 = uint64(bound(amount1, 1, type(uint64).max));
@@ -552,65 +596,142 @@ contract InstitutionalNettingTest is Test {
     /// from identical 1:1 pools. Both vanilla execution orders are measured so
     /// downstream reporting can use the better vanilla outcome.
     function _benchmarkTwoOrderFlow(uint256 opposingAmount, uint256 nonce0, uint256 nonce1) internal {
-        NettingBenchmark memory result;
+        NettingBenchmark memory result =
+            _runTwoOrderBenchmark(100 * UNIT, opposingAmount, TEST_LIQUIDITY, nonce0, nonce1);
+
+        assertTrue(result.nettingSucceeded);
+        assertTrue(result.vanillaFullFill);
+        assertGt(result.output, result.bestVanillaOutput);
+        assertLt(result.lpFee, result.vanillaLpFee);
+        _logBenchmark(result);
+    }
+
+    function _breakEvenNotional(
+        uint256 notionalTokens,
+        uint128 targetLiquidity,
+        string memory mode,
+        bool expectNettingSuccess,
+        bool expectVanillaFullFill,
+        uint256 nonce0,
+        uint256 nonce1
+    ) internal {
+        uint256 baseAmount = notionalTokens * UNIT;
+        NettingBenchmark memory result =
+            _runTwoOrderBenchmark(baseAmount, baseAmount * 70 / 100, targetLiquidity, nonce0, nonce1);
+        assertEq(result.nettingSucceeded, expectNettingSuccess);
+        assertEq(result.vanillaFullFill, expectVanillaFullFill);
+        if (expectNettingSuccess && expectVanillaFullFill) {
+            assertGt(result.output, result.bestVanillaOutput);
+            assertGt(result.totalGas, result.bestVanillaGas);
+        }
+        _logBreakEven(result, mode);
+    }
+
+    function _runTwoOrderBenchmark(
+        uint256 baseAmount,
+        uint256 opposingAmount,
+        uint128 targetLiquidity,
+        uint256 nonce0,
+        uint256 nonce1
+    ) internal returns (NettingBenchmark memory result) {
+        _increaseTestLiquidity(targetLiquidity);
+        token0.mint(alice, baseAmount);
+        token1.mint(bob, opposingAmount);
+
+        result.baseAmount = baseAmount;
         result.opposingAmount = opposingAmount;
-        result.gross = 100 * UNIT + opposingAmount;
+        result.gross = baseAmount + opposingAmount;
         result.matchedGross = opposingAmount * 2;
-        result.residual = 100 * UNIT - opposingAmount;
+        result.residual = baseAmount - opposingAmount;
+        result.liquidity = targetLiquidity;
 
         NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](2);
-        orders[0] = _order(alice, true, 100 * UNIT, 0, result.residual, bytes32(nonce0));
+        orders[0] = _order(alice, true, baseAmount, 0, result.residual, bytes32(nonce0));
         orders[1] = _order(bob, false, opposingAmount, 0, 0, bytes32(nonce1));
         bytes[] memory signatures = _signOrders(orders);
         NettingTypes.BatchHeader memory header = batchRouter.previewBatch(orders);
+        bytes memory nettingCall = abi.encodeCall(batchRouter.executeBatch, (key, orders, signatures));
 
         uint256 alice1Before = token1.balanceOf(alice);
         uint256 bob0Before = token0.balanceOf(bob);
+        _coolNettingPath();
         uint256 gasBefore = gasleft();
-        batchRouter.executeBatch(key, orders, signatures);
+        try batchRouter.executeBatch(key, orders, signatures) returns (bytes32) {
+            result.nettingSucceeded = true;
+        } catch {
+            result.nettingSucceeded = false;
+        }
         result.gasUsed = gasBefore - gasleft();
+        result.totalGas = result.gasUsed + _transactionEnvelopeGas(nettingCall);
         result.output = token1.balanceOf(alice) - alice1Before + token0.balanceOf(bob) - bob0Before;
         (, result.endingTick,,) = manager.getSlot0(PoolId.wrap(poolId));
         result.lpFee = _exactInputLpFee(result.residual);
-        result.zeroFirst = _runVanillaBenchmark(opposingAmount, true);
-        result.oneFirst = _runVanillaBenchmark(opposingAmount, false);
-        result.vanillaLpFee = _exactInputLpFee(100 * UNIT) + _exactInputLpFee(opposingAmount);
-        uint256 bestVanillaOutput =
-            result.zeroFirst.output > result.oneFirst.output ? result.zeroFirst.output : result.oneFirst.output;
+        result.zeroFirst = _runVanillaBenchmark(baseAmount, opposingAmount, targetLiquidity, true);
+        result.oneFirst = _runVanillaBenchmark(baseAmount, opposingAmount, targetLiquidity, false);
+        result.vanillaLpFee = _exactInputLpFee(baseAmount) + _exactInputLpFee(opposingAmount);
+        _selectBestVanilla(result);
 
-        assertEq(header.total0, 100 * UNIT);
+        assertEq(header.total0, baseAmount);
         assertEq(header.total1, opposingAmount);
         assertEq(header.matchedEachSide, opposingAmount);
         assertEq(header.residual0, result.residual);
         assertEq(header.residual1, 0);
-        assertGt(result.output, bestVanillaOutput);
-        assertLt(result.lpFee, result.vanillaLpFee);
         assertEq(token0.balanceOf(address(hook)), 0);
         assertEq(token1.balanceOf(address(hook)), 0);
         assertEq(token0.balanceOf(address(batchRouter)), 0);
         assertEq(token1.balanceOf(address(batchRouter)), 0);
-
-        _logBenchmark(result);
     }
 
-    function _runVanillaBenchmark(uint256 opposingAmount, bool zeroFirst)
+    function _runVanillaBenchmark(uint256 baseAmount, uint256 opposingAmount, uint128 targetLiquidity, bool zeroFirst)
         internal
         returns (VanillaBenchmark memory result)
     {
-        VanillaPool memory vanilla = _deployVanillaPool();
-        uint256 gasBefore = gasleft();
+        VanillaPool memory vanilla = _deployVanillaPool(targetLiquidity);
         BalanceDelta zeroForOneDelta;
         BalanceDelta oneForZeroDelta;
+        bool zeroForOneSucceeded;
+        bool oneForZeroSucceeded;
+        uint256 swapGas;
         if (zeroFirst) {
-            zeroForOneDelta = _vanillaSwap(vanilla, true, 100 * UNIT);
-            oneForZeroDelta = _vanillaSwap(vanilla, false, opposingAmount);
+            (zeroForOneSucceeded, zeroForOneDelta, swapGas) = _measureVanillaSwap(vanilla, true, baseAmount);
+            result.gasUsed += swapGas;
+            if (zeroForOneSucceeded) {
+                (oneForZeroSucceeded, oneForZeroDelta, swapGas) = _measureVanillaSwap(vanilla, false, opposingAmount);
+                result.gasUsed += swapGas;
+            }
         } else {
-            oneForZeroDelta = _vanillaSwap(vanilla, false, opposingAmount);
-            zeroForOneDelta = _vanillaSwap(vanilla, true, 100 * UNIT);
+            (oneForZeroSucceeded, oneForZeroDelta, swapGas) = _measureVanillaSwap(vanilla, false, opposingAmount);
+            result.gasUsed += swapGas;
+            if (oneForZeroSucceeded) {
+                (zeroForOneSucceeded, zeroForOneDelta, swapGas) = _measureVanillaSwap(vanilla, true, baseAmount);
+                result.gasUsed += swapGas;
+            }
         }
-        result.gasUsed = gasBefore - gasleft();
+        result.executionSucceeded = zeroForOneSucceeded && oneForZeroSucceeded;
+        result.actualInput0 = uint256(-int256(zeroForOneDelta.amount0()));
+        result.actualInput1 = uint256(-int256(oneForZeroDelta.amount1()));
         result.output = uint256(uint128(zeroForOneDelta.amount1())) + uint256(uint128(oneForZeroDelta.amount0()));
+        result.fullFill =
+            result.executionSucceeded && result.actualInput0 == baseAmount && result.actualInput1 == opposingAmount;
+        result.totalGas = result.gasUsed + _transactionEnvelopeGas(_vanillaCallData(vanilla, true, baseAmount))
+            + _transactionEnvelopeGas(_vanillaCallData(vanilla, false, opposingAmount));
         (, result.endingTick,,) = vanilla.manager.getSlot0(vanilla.id);
+    }
+
+    function _selectBestVanilla(NettingBenchmark memory result) internal pure {
+        result.vanillaFullFill = result.zeroFirst.fullFill || result.oneFirst.fullFill;
+        if (!result.vanillaFullFill) return;
+        if (result.zeroFirst.fullFill && result.oneFirst.fullFill) {
+            result.bestVanillaOutput =
+                result.zeroFirst.output > result.oneFirst.output ? result.zeroFirst.output : result.oneFirst.output;
+            result.bestVanillaGas = result.zeroFirst.totalGas < result.oneFirst.totalGas
+                ? result.zeroFirst.totalGas
+                : result.oneFirst.totalGas;
+        } else {
+            VanillaBenchmark memory onlyFull = result.zeroFirst.fullFill ? result.zeroFirst : result.oneFirst;
+            result.bestVanillaOutput = onlyFull.output;
+            result.bestVanillaGas = onlyFull.totalGas;
+        }
     }
 
     function _logBenchmark(NettingBenchmark memory result) internal {
@@ -658,6 +779,72 @@ contract InstitutionalNettingTest is Test {
         emit log_string(line);
     }
 
+    function _logBreakEven(NettingBenchmark memory result, string memory mode) internal {
+        string memory line = string.concat(
+            "BREAKEVEN|mode=",
+            mode,
+            "|notional=",
+            vm.toString(result.baseAmount),
+            "|opposing=",
+            vm.toString(result.opposingAmount)
+        );
+        line = string.concat(
+            line,
+            "|gross=",
+            vm.toString(result.gross),
+            "|matchedGross=",
+            vm.toString(result.matchedGross),
+            "|residual=",
+            vm.toString(result.residual),
+            "|liquidity=",
+            vm.toString(result.liquidity)
+        );
+        line = string.concat(
+            line,
+            "|nettingOutput=",
+            vm.toString(result.output),
+            "|nettingSucceeded=",
+            result.nettingSucceeded ? "true" : "false",
+            "|nettingExecutionGas=",
+            vm.toString(result.gasUsed),
+            "|nettingTotalGas=",
+            vm.toString(result.totalGas),
+            "|nettingTick=",
+            vm.toString(int256(result.endingTick))
+        );
+        line = string.concat(
+            line,
+            "|vanillaFullFill=",
+            result.vanillaFullFill ? "true" : "false",
+            "|bestVanillaOutput=",
+            vm.toString(result.bestVanillaOutput),
+            "|bestVanillaTotalGas=",
+            vm.toString(result.bestVanillaGas)
+        );
+        line = string.concat(
+            line,
+            "|zeroFirstInput0=",
+            vm.toString(result.zeroFirst.actualInput0),
+            "|zeroFirstInput1=",
+            vm.toString(result.zeroFirst.actualInput1),
+            "|zeroFirstSucceeded=",
+            result.zeroFirst.executionSucceeded ? "true" : "false",
+            "|zeroFirstTick=",
+            vm.toString(int256(result.zeroFirst.endingTick))
+        );
+        line = string.concat(
+            line,
+            "|oneFirstInput0=",
+            vm.toString(result.oneFirst.actualInput0),
+            "|oneFirstInput1=",
+            vm.toString(result.oneFirst.actualInput1),
+            "|oneFirstSucceeded=",
+            result.oneFirst.executionSucceeded ? "true" : "false"
+        );
+        line = string.concat(line, "|oneFirstTick=", vm.toString(int256(result.oneFirst.endingTick)));
+        emit log_string(line);
+    }
+
     function _vanillaSwap(VanillaPool memory vanilla, bool zeroForOne, uint256 amountIn)
         internal
         returns (BalanceDelta)
@@ -675,8 +862,85 @@ contract InstitutionalNettingTest is Test {
             );
     }
 
+    function _tryVanillaSwap(VanillaPool memory vanilla, bool zeroForOne, uint256 amountIn)
+        internal
+        returns (bool succeeded, BalanceDelta delta)
+    {
+        try vanilla.swapRouter
+            .swap(
+                vanilla.key,
+                SwapParams({
+                    zeroForOne: zeroForOne,
+                    amountSpecified: -int256(amountIn),
+                    sqrtPriceLimitX96: zeroForOne ? 4295128740 : 1461446703485210103287273052203988822378723970341
+                }),
+                PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+                ""
+            ) returns (
+            BalanceDelta executedDelta
+        ) {
+            return (true, executedDelta);
+        } catch {
+            return (false, BalanceDelta.wrap(0));
+        }
+    }
+
+    function _measureVanillaSwap(VanillaPool memory vanilla, bool zeroForOne, uint256 amountIn)
+        internal
+        returns (bool succeeded, BalanceDelta delta, uint256 gasUsed)
+    {
+        _coolVanillaPath(vanilla);
+        uint256 gasBefore = gasleft();
+        (succeeded, delta) = _tryVanillaSwap(vanilla, zeroForOne, amountIn);
+        gasUsed = gasBefore - gasleft();
+    }
+
+    function _coolNettingPath() internal {
+        vm.cool(address(manager));
+        vm.cool(address(batchRouter));
+        vm.cool(address(hook));
+        vm.cool(address(registry));
+        vm.cool(address(issuer));
+        vm.cool(address(token0));
+        vm.cool(address(token1));
+    }
+
+    function _coolVanillaPath(VanillaPool memory vanilla) internal {
+        vm.cool(address(vanilla.manager));
+        vm.cool(address(vanilla.swapRouter));
+        vm.cool(address(token0));
+        vm.cool(address(token1));
+    }
+
     function _exactInputLpFee(uint256 amountIn) internal pure returns (uint256) {
         return amountIn - (amountIn * (1_000_000 - FEE) / 1_000_000);
+    }
+
+    function _vanillaCallData(VanillaPool memory vanilla, bool zeroForOne, uint256 amountIn)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeCall(
+            PoolSwapTest.swap,
+            (
+                vanilla.key,
+                SwapParams({
+                    zeroForOne: zeroForOne,
+                    amountSpecified: -int256(amountIn),
+                    sqrtPriceLimitX96: zeroForOne ? 4295128740 : 1461446703485210103287273052203988822378723970341
+                }),
+                PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+                bytes("")
+            )
+        );
+    }
+
+    function _transactionEnvelopeGas(bytes memory callData) internal pure returns (uint256 gasCost) {
+        gasCost = 21_000;
+        for (uint256 i; i < callData.length; ++i) {
+            gasCost += callData[i] == 0 ? 4 : 16;
+        }
     }
 
     function _order(
@@ -728,7 +992,25 @@ contract InstitutionalNettingTest is Test {
         token.approve(address(batchRouter), type(uint256).max);
     }
 
+    function _increaseTestLiquidity(uint128 targetLiquidity) internal {
+        if (targetLiquidity <= TEST_LIQUIDITY) return;
+        liquidityRouter.modifyLiquidity(
+            key,
+            ModifyLiquidityParams({
+                tickLower: -1000,
+                tickUpper: 1000,
+                liquidityDelta: int256(uint256(targetLiquidity - TEST_LIQUIDITY)),
+                salt: bytes32(0)
+            }),
+            ""
+        );
+    }
+
     function _deployVanillaPool() internal returns (VanillaPool memory vanilla) {
+        return _deployVanillaPool(TEST_LIQUIDITY);
+    }
+
+    function _deployVanillaPool(uint128 targetLiquidity) internal returns (VanillaPool memory vanilla) {
         vanilla.manager = new PoolManager(address(this));
         PoolModifyLiquidityTest vanillaLiquidityRouter = new PoolModifyLiquidityTest(vanilla.manager);
         vanilla.swapRouter = new PoolSwapTest(vanilla.manager);
@@ -746,7 +1028,7 @@ contract InstitutionalNettingTest is Test {
         vanillaLiquidityRouter.modifyLiquidity(
             vanilla.key,
             ModifyLiquidityParams({
-                tickLower: -1000, tickUpper: 1000, liquidityDelta: int256(uint256(TEST_LIQUIDITY)), salt: bytes32(0)
+                tickLower: -1000, tickUpper: 1000, liquidityDelta: int256(uint256(targetLiquidity)), salt: bytes32(0)
             }),
             ""
         );

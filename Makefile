@@ -1,9 +1,12 @@
-.PHONY: verify benchmark deployments-check contracts-test cli-test sdk-test circuits-test package-check release-check secret-check sbom-check history-check
+.PHONY: verify benchmark break-even-benchmark deployments-check contracts-test cli-test sdk-test circuits-test package-check release-check secret-check sbom-check history-check
 
 verify: history-check deployments-check release-check contracts-test cli-test sdk-test circuits-test package-check secret-check sbom-check
 
 benchmark:
 	node scripts/run-netting-benchmark.mjs
+
+break-even-benchmark:
+	node scripts/run-break-even-benchmark.mjs
 
 history-check:
 	./scripts/verify-cli-history.sh
