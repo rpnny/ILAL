@@ -29,7 +29,11 @@ const capacityMinimum = capacityRows.filter(item => item.maxSafeNotional > 0).so
 const capacityMaximum = [...capacityRows].sort((a, b) => b.maxSafeNotional - a.maxSafeNotional)[0];
 
 function gateRows() {
-  return all.flatMap(item => (item.gates ?? []).map(gate => `| ${item.study} | ${gate.id} | ${gate.status} | ${gate.reason ?? gate.note ?? ""} |`)).join("\n");
+  return all.flatMap(item => (item.gates ?? []).map(gate => {
+    const delegated = item === local && gate.id === "production-economic-gate" && productionGate?.status === "PASS";
+    const note = delegated ? `Delegated to pinned Base fork: ${productionGate.status}` : gate.reason ?? gate.note ?? "";
+    return `| ${item.study} | ${gate.id} | ${gate.status} | ${note} |`;
+  })).join("\n");
 }
 function fmt(value, digits = 3) { return value === null || value === undefined ? "n/a" : Number(value).toFixed(digits); }
 
@@ -119,7 +123,7 @@ ${gateRows()}
 
 ## 14. Production blockers 与下一步
 
-独立审计仍是 production blocker。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
+独立审计仍是 production blocker。Proof 峰值为 ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
 `;
 
 const en = `# ILAL Institutional Stress & Value Validation Report
@@ -188,7 +192,7 @@ ${gateRows()}
 
 ## 14. Production blockers and next steps
 
-Independent audit remains mandatory. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
+Independent audit remains mandatory. Proof generation peaked at ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
 `;
 
 mkdirSync(resolve(root, "docs/research/charts"), { recursive: true });
@@ -225,7 +229,7 @@ writeFileSync(resolve(root, "docs/research/charts/capacity-frontier.svg"), capac
 writeFileSync(resolve(root, "site/research-capacity-frontier.svg"), capacitySvg);
 
 const summary = { schema: "ilal-site-study-summary-v1", ...sharedFacts,
-  caveat: "Institutional pilot evidence; unaudited and not production-ready.",
+  caveat: `Institutional pilot evidence; unaudited and not production-ready. Proof peak ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB; pilot hosts need memory headroom above 4 GiB.`,
   supported: "2–16 orders · standard equal-decimal ERC-20 · 5 bps · ±100 tick start guard",
   unsupported: "fee-on-transfer/rebasing/nonstandard tokens · other fee tiers · capacity-exceeding batches" };
 writeJson("study-summary.json", summary);
@@ -263,5 +267,21 @@ writeJson("sepolia-evidence.json", {
   },
   note: "No reverting transaction was broadcast and no signer credentials were fabricated. Existing candidate evidence remains applicable because source contract bytecode did not change.",
 });
-writeFileSync(resolve(root, "site/institutional-study-summary.js"), `window.ILAL_STUDY_SUMMARY = ${JSON.stringify(summary, null, 2)};\n`);
+writeFileSync(resolve(root, "site/institutional-study-summary.js"), `window.ILAL_STUDY_SUMMARY = ${JSON.stringify(summary, null, 2)};
+(function hydrateInstitutionalStudy(summary) {
+  const set = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+  set("studyVerdict", \`${"${summary.verdict} · ${summary.maturity}"}\`);
+  set("studyCaveat", summary.caveat);
+  set("studyNetBenefit", summary.productionNetBenefitUsd == null ? "NOT RUN" : \`+$\${summary.productionNetBenefitUsd.toFixed(2)}\`);
+  set("studyBaseline", summary.productionBaseline || "production baseline pending");
+  set("studyRows", \`${"${summary.supportedRowsMeasured}/${summary.coreRows}"}\`);
+  set("studyStress", summary.stressCalls == null ? "NOT RUN" : summary.stressCalls.toLocaleString("en-US"));
+  set("studyRwa", summary.rwaWallets == null ? "NOT RUN" : summary.rwaWallets.toLocaleString("en-US"));
+  set("studySupported", summary.supported);
+  set("studyUnsupported", summary.unsupported);
+})(window.ILAL_STUDY_SUMMARY);
+`);
 process.stdout.write(`wrote bilingual reports, chart, and website summary (${verdict})\n`);

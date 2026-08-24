@@ -160,9 +160,9 @@ make verify
 
 | Suite | Current result |
 |---|---:|
-| Foundry | 242 passed, 0 failed, 0 skipped |
-| Netting stateful invariants | 6 properties × 256 calls, 0 reverts |
-| CLI | 53 passed |
+| Foundry | 265 passed, 0 failed, 0 skipped |
+| Netting stateful invariants | 100,000 handler calls, 0 failures/reverts |
+| CLI | 54 passed |
 | SDK | 18 passed |
 | Circuit oracle | 8 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |

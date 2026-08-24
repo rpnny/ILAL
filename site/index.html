@@ -91,7 +91,7 @@
           <div><span>canonical batch</span><strong>100 / 70</strong></div>
           <div><span>internal match</span><strong>140 gross</strong></div>
           <div><span>AMM residual</span><strong>30 token0</strong></div>
-          <div><span>Solidity tests</span><strong>242</strong></div>
+          <div><span>Solidity tests</span><strong>265</strong></div>
         </div>
       </div>
     </div>
@@ -115,8 +115,8 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">242</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">265</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">54</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
@@ -127,8 +127,8 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">242</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">265</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">54</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
@@ -189,7 +189,7 @@
           </a>
           <a class="proof-card" href="https://github.com/rpnny/ILAL/tree/main/test/netting" target="_blank" rel="noreferrer">
             <span class="proof-card__label">05 · Invariants</span>
-            <strong>Six × 256 runs</strong>
+            <strong>100k handler calls</strong>
             <span class="proof-card__meta">allocation, conservation and zero inventory</span>
             <code>test/netting ↗</code>
           </a>
@@ -309,7 +309,7 @@
         <div class="product-card">
           <span class="product-card__tag">Audit</span>
           <h3>Security package</h3>
-          <p>242 Solidity, 53 CLI and 18 SDK tests, plus six netting invariants at 256 runs each. Coverage includes conservation, canonical ordering, solver independence, cancellation, zero inventory and notional break-even stress tests.</p>
+          <p>265 Solidity, 54 CLI and 18 SDK tests, plus 100,000 stateful invariant handler calls and 10,000 fixed-seed fuzz cases per critical property. Coverage includes conservation, canonical ordering, solver independence, cancellation, zero inventory and notional break-even stress tests.</p>
         </div>
       </div>
     </div>
@@ -996,7 +996,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
         <div class="fstat"><span class="fstat__val">140m</span><span class="fstat__l">gross matched</span></div>
         <div class="fstat"><span class="fstat__val">30m</span><span class="fstat__l">AMM residual</span></div>
         <div class="fstat"><span class="fstat__val">0</span><span class="fstat__l">inventory after</span></div>
-        <div class="fstat"><span class="fstat__val">242</span><span class="fstat__l">Solidity tests</span></div>
+        <div class="fstat"><span class="fstat__val">265</span><span class="fstat__l">Solidity tests</span></div>
       </div>
       <div class="footer-meta">
         <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>

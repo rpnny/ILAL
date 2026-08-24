@@ -1,0 +1,16 @@
+{
+  "schema": "ilal-study-reproducibility-v1",
+  "status": "PASS",
+  "forkBlock": 50394803,
+  "normalizedJsonSha256": {
+    "local-study.json": "5054b32b4d3f6e16ffc40d11c0f0d0cf02ecc18174713c1a90a57a8a9be5cd83",
+    "fork-study.json": "299a04f55a3f0338b104fdd9f5ffae2c1e68aab294d48a3b6d1c15f8e147817a",
+    "rwa-study.json": "84db60537176fa1731503f2353d68e563f87364ad7d955fb0f5709b897d43a8c",
+    "stress-study.json": "40d0b196e9c0f8d2af02d6f19e9dc7e3b45da5ab6fc7c63e554603824cd9bd6d"
+  },
+  "deterministicCsvSha256": {
+    "local-economic-matrix.csv": "f06592cf08f2decac61f4c59e9cee849a15e6a3d1ef6added20d54a0222ca234",
+    "capacity-frontier.csv": "fac07577b2640812528107ccd9a9879b72d9089e604b0ce2e3bf6f216c72fa59",
+    "tco-sensitivity.csv": "6a61c4b51ed19f212fdc66eb9b431354fb9ac357ae01a4e6bdf0ffeea9f1e217"
+  }
+}
