@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { config, provenance, root, writeCsv, writeJson } from "./common.mjs";
 
-const forge = spawnSync("forge", ["test", "--match-test", "testStudy_(coreMatrix|multiOrderMatrix)", "-vv"], {
+const forge = spawnSync("forge", ["test", "--match-test", "testStudy_(coreMatrix|multiOrderMatrix|oracleGuardGas)", "-vv"], {
   cwd: resolve(root, "contracts"), encoding: "utf8", maxBuffer: 64 * 1024 * 1024,
 });
 const forgeOutput = `${forge.stdout ?? ""}\n${forge.stderr ?? ""}`.replace(/\u001b\[[0-9;]*m/g, "");
@@ -42,6 +42,13 @@ const multiOrder = [...forgeOutput.matchAll(/MULTISTUDY\|[^\r\n]+/g)].map(match 
   gasPerMatchedToken: row.totalGas / (row.matchedRaw / 1e6),
 }));
 if (multiOrder.length !== 12) throw new Error(`expected 12 multi-order measurements, found ${multiOrder.length}`);
+const oracleMeasurements = [...forgeOutput.matchAll(/ORACLESTUDY\|[^\r\n]+/g)].map(match =>
+  Object.fromEntries(match[0].split("|").slice(1).map(field => {
+    const split = field.indexOf("=");
+    return [field.slice(0, split), parseValue(field.slice(split + 1))];
+  })),
+);
+if (oracleMeasurements.length !== 1) throw new Error(`expected one oracle gas measurement, found ${oracleMeasurements.length}`);
 const capacity = [...capacityOutput.matchAll(/CAPACITY\|[^\r\n]+/g)].map(match =>
   Object.fromEntries(match[0].split("|").slice(1).map(field => {
     const split = field.indexOf("=");
@@ -126,6 +133,13 @@ const gates = [
 const result = {
   schema: "institutional-study-v1", study: "local", provenance: provenance({ chainId: 31337, forkBlock: null }),
   status: "COMPLETE", scenarios,
+  oracleGuardGas: {
+    status: "COMPLETE",
+    provider: "chainlink-data-feeds",
+    enforcement: "hook-hard-gate",
+    ...oracleMeasurements[0],
+    note: "Incremental warm local call cost versus the same external interface returning a constant snapshot; transaction-level economics use full measured batch gas.",
+  },
   multiOrder: { status: "COMPLETE", scenarios: multiOrder },
   capacityFrontier: { status: "COMPLETE", knownFailureScenarioId: knownFailure?.scenarioId,
     binarySearchMatrix: "COMPLETE", scenarios: capacity,

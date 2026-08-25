@@ -11,11 +11,22 @@ const local = read("local-study.json");
 const fork = read("fork-study.json");
 const rwa = read("rwa-study.json");
 const stress = read("stress-study.json");
+let chainlinkCandidate = null;
+try {
+  chainlinkCandidate = JSON.parse(readFileSync(resolve(root, "docs/hookathon/chainlink-candidate-manifest.json"), "utf8"));
+} catch {}
 if (!local) throw new Error("local-study.json is required; run make study-local first");
 
 const all = [local, fork, rwa, stress].filter(Boolean);
 const failedGate = all.flatMap(item => item.gates ?? []).find(gate => gate.status === "FAIL");
-const missingRequired = !fork || !rwa || !stress || [fork, rwa, stress].some(item => item.status !== "COMPLETE");
+const chainlinkCandidateComplete = chainlinkCandidate?.status === "candidate"
+  && chainlinkCandidate?.sourceVerification?.status === "exact_match"
+  && Boolean(chainlinkCandidate?.batches?.forward010By007?.transactionHash)
+  && Boolean(chainlinkCandidate?.batches?.reverse006By009?.transactionHash)
+  && Boolean(chainlinkCandidate?.batches?.fourOrder?.transactionHash)
+  && Boolean(chainlinkCandidate?.batches?.sixteenOrder?.transactionHash);
+const missingRequired = !fork || !rwa || !stress || [fork, rwa, stress].some(item => item.status !== "COMPLETE")
+  || !chainlinkCandidateComplete;
 const openP01 = all.flatMap(item => item.findings ?? []).filter(item => ["P0", "P1"].includes(item.severity) && item.status !== "fixed");
 const verdict = failedGate || openP01.length ? "FAIL" : missingRequired ? "CONDITIONAL" : "PASS";
 const maturity = verdict === "PASS" ? "ready for institutional pilot" : "institutional pilot candidate";
@@ -29,11 +40,13 @@ const capacityMinimum = capacityRows.filter(item => item.maxSafeNotional > 0).so
 const capacityMaximum = [...capacityRows].sort((a, b) => b.maxSafeNotional - a.maxSafeNotional)[0];
 
 function gateRows() {
-  return all.flatMap(item => (item.gates ?? []).map(gate => {
+  const studyRows = all.flatMap(item => (item.gates ?? []).map(gate => {
     const delegated = item === local && gate.id === "production-economic-gate" && productionGate?.status === "PASS";
     const note = delegated ? `Delegated to pinned Base fork: ${productionGate.status}` : gate.reason ?? gate.note ?? "";
     return `| ${item.study} | ${gate.id} | ${gate.status} | ${note} |`;
-  })).join("\n");
+  }));
+  studyRows.push(`| base-sepolia | chainlink-candidate-evidence | ${chainlinkCandidateComplete ? "PASS" : "NOT_RUN"} | Fresh deployment, exact-match verification and 2/4/16-order transactions are required |`);
+  return studyRows.join("\n");
 }
 function fmt(value, digits = 3) { return value === null || value === undefined ? "n/a" : Number(value).toFixed(digits); }
 
@@ -52,6 +65,9 @@ const sharedFacts = {
   capacityMinimumUsd: capacityMinimum?.maxSafeNotional ?? null,
   capacityMaximumUsd: capacityMaximum?.maxSafeNotional ?? null,
   tcoRows: rwa?.tco?.rows?.length ?? 0,
+  oracleGuardGas: local.oracleGuardGas?.chainlinkGuardGas ?? null,
+  oracleIncrementalGas: local.oracleGuardGas?.incrementalGas ?? null,
+  chainlinkCandidateEvidence: chainlinkCandidateComplete ? "COMPLETE" : "PENDING",
 };
 
 const zh = `# ILAL 机构压力测试与价值评估报告
@@ -78,7 +94,7 @@ const zh = `# ILAL 机构压力测试与价值评估报告
 
 ## 4. 安全与原子性结果
 
-Stateful handler calls：${sharedFacts.stressCalls ?? "NOT_RUN"}；每项 fuzz：${sharedFacts.fuzzRuns ?? "NOT_RUN"}。覆盖 peg tick ±99/±100/±101、allowance/balance 状态竞争、deadline、revocation、policy rotation、permissionless malicious executor、nonce rollback 与 canonical ordering。
+Stateful handler calls：${sharedFacts.stressCalls ?? "NOT_RUN"}；每项 fuzz：${sharedFacts.fuzzRuns ?? "NOT_RUN"}。覆盖 Chainlink 价格、round、freshness 和 sequencer 状态，peg tick ±99/±100/±101，以及 allowance/balance 状态竞争、deadline、revocation、policy rotation、permissionless malicious executor、nonce rollback 与 canonical ordering。外部 Feed 与池内 tick 任一失败均在 nonce 和资产变化前原子回滚。
 
 ## 5. Profitability heatmap
 
@@ -94,7 +110,7 @@ Stateful handler calls：${sharedFacts.stressCalls ?? "NOT_RUN"}；每项 fuzz�
 
 ## 8. Base production-fee benchmark
 
-Base fee 同时计 L2 execution 与 L1 security。candidate 代表交易的 L1 fee 由 GasPriceOracle.getL1Fee 对完整历史序列化交易测得；Universal Router V2.1.1 与 Permit2 baseline 在官方 PoolManager 上执行。
+Base fee 同时计 L2 execution 与 L1 security。candidate 代表交易的 L1 fee 由 GasPriceOracle.getL1Fee 对完整历史序列化交易测得；Universal Router V2.1.1 与 Permit2 baseline 在官方 PoolManager 上执行。Chainlink 双 Feed 门禁的独立本地调用为 ${sharedFacts.oracleGuardGas ?? "n/a"} gas，相对同接口常量快照增量为 ${sharedFacts.oracleIncrementalGas ?? "n/a"} gas；严格净收益使用完整 batch gas，不以该微基准代替交易级成本。
 
 ## 9. RWA issuer workflow
 
@@ -113,7 +129,7 @@ TCO 只做 ${sharedFacts.tcoRows} 行参数模型：人员 $50/$100/$200 每小�
 
 ## 12. Supported operating envelope
 
-支持：2–16 orders、等 decimals 标准 ERC-20 stablecoins、raw-unit 1:1、5 bps、tick spacing 10、batch-start ±100 tick。Fee-on-transfer、rebasing、callback/nonstandard tokens、其他 fee tier、超出流动性/物理余额的 batch 不支持。
+支持：2–16 orders、等 decimals 标准 ERC-20 stablecoins、raw-unit 1:1、5 bps、tick spacing 10、Chainlink 双 Feed 100 bps/90,000 秒门禁、batch-start ±100 tick。Fee-on-transfer、rebasing、callback/nonstandard tokens、其他 fee tier、超出流动性/物理余额的 batch 不支持。Base Sepolia 未启用 sequencer uptime 检查；Base mainnet 必须配置官方 uptime feed 与 3600 秒宽限。
 
 ## 13. PASS / CONDITIONAL / FAIL
 
@@ -123,7 +139,7 @@ ${gateRows()}
 
 ## 14. Production blockers 与下一步
 
-独立审计仍是 production blocker。Proof 峰值为 ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
+独立审计仍是 production blocker。Chainlink 新 candidate 链上证据状态为 **${sharedFacts.chainlinkCandidateEvidence}**；在 fresh deployment、exact-match verification 与 2/4/16-order 交易完成前保持 CONDITIONAL。Proof 峰值为 ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
 `;
 
 const en = `# ILAL Institutional Stress & Value Validation Report
@@ -150,7 +166,7 @@ The program tests economic usefulness for stablecoin desks, operational usefulne
 
 ## 4. Safety and atomicity
 
-Stateful handler calls: ${sharedFacts.stressCalls ?? "NOT_RUN"}; fuzz runs per property: ${sharedFacts.fuzzRuns ?? "NOT_RUN"}. Regressions cover peg boundaries, allowance/balance races, deadlines, revocation, policy rotation, permissionless executors, nonce rollback, conservation and zero inventory.
+Stateful handler calls: ${sharedFacts.stressCalls ?? "NOT_RUN"}; fuzz runs per property: ${sharedFacts.fuzzRuns ?? "NOT_RUN"}. Regressions cover Chainlink price, round, freshness and sequencer states; pool peg boundaries; allowance/balance races; deadlines; revocation; policy rotation; permissionless executors; nonce rollback; conservation; and zero inventory. Either oracle or pool-tick rejection rolls back before nonce or asset mutation.
 
 ## 5. Profitability heatmap
 
@@ -166,7 +182,7 @@ ${sharedFacts.multiOrderRows} scenarios cover 2/4/8/16 orders and three distribu
 
 ## 8. Base production-fee benchmark
 
-The model includes L2 execution and L1 security fees. The candidate L1 fee uses GasPriceOracle.getL1Fee on the complete serialized historical transaction. The production baseline uses deployed Universal Router V2.1.1, Permit2, the official PoolManager and real token bytecode.
+The model includes L2 execution and L1 security fees. The candidate L1 fee uses GasPriceOracle.getL1Fee on the complete serialized historical transaction. The production baseline uses deployed Universal Router V2.1.1, Permit2, the official PoolManager and real token bytecode. The isolated local two-feed Chainlink guard call costs ${sharedFacts.oracleGuardGas ?? "n/a"} gas, or ${sharedFacts.oracleIncrementalGas ?? "n/a"} incremental gas over a constant-snapshot implementation of the same interface; the strict gate uses full measured batch gas instead of substituting this microbenchmark.
 
 ## 9. RWA issuer workflow
 
@@ -182,7 +198,7 @@ The implementation removes O(n²) issuer import lookup, rejects duplicate wallet
 
 ## 12. Supported operating envelope
 
-2–16 orders; equal-decimal standard ERC-20 stablecoins; raw-unit 1:1; 5 bps; tick spacing 10; ±100 batch-start tick guard. Fee-on-transfer, rebasing, callback/nonstandard tokens, other fee tiers and capacity-exceeding batches are unsupported.
+2–16 orders; equal-decimal standard ERC-20 stablecoins; raw-unit 1:1; 5 bps; tick spacing 10; Chainlink two-feed 100 bps/90,000-second gate; ±100 batch-start tick guard. Fee-on-transfer, rebasing, callback/nonstandard tokens, other fee tiers and capacity-exceeding batches are unsupported. Base Sepolia disables the sequencer check; Base mainnet requires the official uptime feed and a 3600-second grace period.
 
 ## 13. PASS / CONDITIONAL / FAIL
 
@@ -192,7 +208,7 @@ ${gateRows()}
 
 ## 14. Production blockers and next steps
 
-Independent audit remains mandatory. Proof generation peaked at ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
+Independent audit remains mandatory. Fresh Chainlink candidate evidence is **${sharedFacts.chainlinkCandidateEvidence}**; the result stays conditional until deployment, exact-match verification, and 2/4/16-order transactions are recorded. Proof generation peaked at ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
 `;
 
 mkdirSync(resolve(root, "docs/research/charts"), { recursive: true });
@@ -230,7 +246,7 @@ writeFileSync(resolve(root, "site/research-capacity-frontier.svg"), capacitySvg)
 
 const summary = { schema: "ilal-site-study-summary-v1", ...sharedFacts,
   caveat: `Institutional pilot evidence; unaudited and not production-ready. Proof peak ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB; pilot hosts need memory headroom above 4 GiB.`,
-  supported: "2–16 orders · standard equal-decimal ERC-20 · 5 bps · ±100 tick start guard",
+  supported: "2–16 orders · standard equal-decimal ERC-20 · 5 bps · Chainlink 100 bps/90,000s · ±100 tick",
   unsupported: "fee-on-transfer/rebasing/nonstandard tokens · other fee tiers · capacity-exceeding batches" };
 writeJson("study-summary.json", summary);
 const findingsLedger = [
@@ -244,15 +260,15 @@ const findingsLedger = [
   { id: "P3-REPRO-RUNTIME-FIELDS", study: "full", severity: "P3", status: "fixed",
     title: "Initial reproducibility normalization retained gate wall-time and RSS observations", resolution: "Observed runtime and memory gate values are excluded while thresholds, status and semantic outputs remain hashed." },
   { id: "P3-SEPOLIA-EXTENDED-BATCH", study: "fork", severity: "P3", status: "open",
-    title: "New 4/16-order Sepolia transactions were not broadcast", resolution: "No signer material was available; existing candidate transactions remain valid because contract bytecode did not change. Local 4/16 execution and pinned Base fork evidence are included." },
+    title: "Chainlink candidate deployment and 4/16-order Sepolia transactions are pending", resolution: "No signer material was available. Chainlink changes Hook bytecode, so the previous candidate remains historical evidence only and cannot prove this implementation." },
 ];
 writeJson("findings-ledger.json", { schema: "ilal-findings-ledger-v1", findings: findingsLedger });
 writeCsv("findings-ledger.csv", findingsLedger, ["id", "study", "severity", "status", "title", "resolution", "disposition"]);
 const candidateManifest = JSON.parse(readFileSync(resolve(root, "docs/hookathon/candidate-manifest.json"), "utf8"));
 writeJson("sepolia-evidence.json", {
   schema: "ilal-sepolia-study-evidence-v1", network: "base-sepolia", chainId: 84532,
-  contractBytecodeChanged: false,
-  reusedCandidate: {
+  contractBytecodeChanged: true,
+  historicalCandidateOnly: {
     hook: candidateManifest.contracts?.nettingHook?.address ?? null,
     router: candidateManifest.contracts?.batchRouter?.address ?? null,
     canonicalTransaction: "0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9",
@@ -260,12 +276,15 @@ writeJson("sepolia-evidence.json", {
     sourceVerification: candidateManifest.verification ?? null,
   },
   requestedExtensions: {
-    fourOrderBatch: "LOCAL_EXECUTION_COMPLETE_SEPOLIA_NOT_BROADCAST",
-    sixteenOrderBatch: "LOCAL_EXECUTION_COMPLETE_SEPOLIA_NOT_BROADCAST",
-    nearCapacitySuccess: "LOCAL_BINARY_SEARCH_COMPLETE_SEPOLIA_NOT_BROADCAST",
-    pinnedBlockRejections: "NOT_RUN_NO_VALID_SIGNED_ORDER_FIXTURE",
+    oracleGuardDeployment: "PENDING_SIGNER_MATERIAL",
+    forward010By007: "PENDING_NEW_CANDIDATE",
+    reverse006By009: "PENDING_NEW_CANDIDATE",
+    fourOrderBatch: "LOCAL_EXECUTION_COMPLETE_NEW_CANDIDATE_NOT_BROADCAST",
+    sixteenOrderBatch: "LOCAL_EXECUTION_COMPLETE_NEW_CANDIDATE_NOT_BROADCAST",
+    nearCapacitySuccess: "LOCAL_BINARY_SEARCH_COMPLETE_NEW_CANDIDATE_NOT_BROADCAST",
+    pinnedBlockRejections: "PENDING_NEW_CANDIDATE_AND_SIGNED_FIXTURES",
   },
-  note: "No reverting transaction was broadcast and no signer credentials were fabricated. Existing candidate evidence remains applicable because source contract bytecode did not change.",
+  note: "No reverting transaction was broadcast and no signer credentials were fabricated. The previous candidate is not current implementation evidence because the Chainlink integration changes Hook bytecode.",
 });
 writeFileSync(resolve(root, "site/institutional-study-summary.js"), `window.ILAL_STUDY_SUMMARY = ${JSON.stringify(summary, null, 2)};
 (function hydrateInstitutionalStudy(summary) {
@@ -280,6 +299,7 @@ writeFileSync(resolve(root, "site/institutional-study-summary.js"), `window.ILAL
   set("studyRows", \`${"${summary.supportedRowsMeasured}/${summary.coreRows}"}\`);
   set("studyStress", summary.stressCalls == null ? "NOT RUN" : summary.stressCalls.toLocaleString("en-US"));
   set("studyRwa", summary.rwaWallets == null ? "NOT RUN" : summary.rwaWallets.toLocaleString("en-US"));
+  set("studyOracleGas", summary.oracleIncrementalGas == null ? "NOT RUN" : \`+\${summary.oracleIncrementalGas.toLocaleString("en-US")}\`);
   set("studySupported", summary.supported);
   set("studyUnsupported", summary.unsupported);
 })(window.ILAL_STUDY_SUMMARY);

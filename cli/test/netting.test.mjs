@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 
-import { previewNettingOrders } from "../dist/commands/netting.js";
+import { decodeNettingRevert, previewNettingOrders } from "../dist/commands/netting.js";
 
 const cli = new URL("../dist/index.js", import.meta.url).pathname;
 const hook = "0x1111111111111111111111111111111111111111";
@@ -51,6 +51,13 @@ test("100/70 preview exposes 140 gross matched and 30 token0 residual", () => {
 test("duplicate order hashes are rejected instead of receiving an ordering tie-break", () => {
   const duplicate = order("0x3333333333333333333333333333333333333333", true, 100, 1);
   assert.throws(() => previewNettingOrders([duplicate, duplicate]), /Duplicate order hash/);
+});
+
+test("Chainlink guard selectors are decoded into operator-facing rejection names", () => {
+  const stale = decodeNettingRevert(new Error("execution reverted: 0x91b46fd2"));
+  const depeg = decodeNettingRevert(new Error("execution reverted: 0x80850ad7"));
+  assert.equal(stale.message, "CHAINLINK_STALE_PRICE");
+  assert.equal(depeg.message, "CHAINLINK_PEG_DEVIATION");
 });
 
 test("offline batch preview reads signed JSON without any private key", () => {

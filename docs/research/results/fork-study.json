@@ -2,9 +2,9 @@
   "schema": "institutional-study-v1",
   "study": "fork",
   "provenance": {
-    "commit": "b3799a03cffe3445f3991cedaa62cfa249c11d44",
+    "commit": "2f2c58d4ddb0fe9f0cb507ed2371fd5db0100d47",
     "dirty": true,
-    "generatedAt": "2026-08-24T14:27:31.887Z",
+    "generatedAt": "2026-08-25T04:41:25.964Z",
     "seed": "0x494c414c2d494e535449545554494f4e414c2d53545544592d5631",
     "toolchain": {
       "node": "v24.13.0",
@@ -13,8 +13,8 @@
       "platform": "darwin-arm64"
     },
     "chainId": 8453,
-    "forkBlock": 50394803,
-    "forkBlockHash": "0x86c9f6df7d22ee4d9664b7c4cdc032577e5b001041f772c26c166949c38de43c"
+    "forkBlock": 50421294,
+    "forkBlockHash": "0xbc939734549534974f0f8390687d5d38f564fde27d6ad448f3a47014aafbe145"
   },
   "status": "COMPLETE",
   "addresses": {
@@ -89,7 +89,7 @@
     ],
     "representativeCandidateTransaction": "0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9",
     "l1SecurityFeeStatus": "COMPLETE",
-    "representativeL1FeeWei": "16558816289"
+    "representativeL1FeeWei": "4403172035"
   },
   "baselines": {
     "directV4": "MEASURED_LOCAL",
@@ -110,15 +110,15 @@
       "status": "PASS",
       "baseline": "universal-router-bundled",
       "outputAdvantageUsd": 6.999946,
-      "gasPremium": 467182,
-      "l2PremiumUsd": 1.401546,
-      "candidateL1FeeUsd": 0.000049676448866999996,
+      "gasPremium": 502161,
+      "l2PremiumUsd": 1.506483,
+      "candidateL1FeeUsd": 0.000013209516105000001,
       "solverReserveUsd": 0.85,
-      "netBenefitUsd": 4.748350323551133,
+      "netBenefitUsd": 4.643449790483895,
       "conservativeNote": "Charges the full candidate L1 fee and credits no L1 fee to vanilla, understating ILAL net benefit."
     }
   ],
   "findings": [],
   "verdict": "PASS",
-  "forkTestOutput": "No files changed, compilation skipped\n2026-08-24T14:27:28.731120Z  WARN evm::traces::external: etherscan config not found\n\nRan 2 tests for test/InstitutionalNettingFork.t.sol:InstitutionalNettingForkTest\n[PASS] testFork_officialSurfacesAndRealStablecoinBytecodeExist() (gas: 31086)\n[PASS] testFork_universalRouterPermit2IndependentAndBundled() (gas: 8283320)\nLogs:\n  FORKBASELINE|mode=independent|output=16991410060|executionGas=188849|totalGas=243957\n  FORKBASELINE|mode=bundled|output=16991410146|executionGas=184218|totalGas=217410\n\nSuite result: ok. 2 passed; 0 failed; 0 skipped; finished in 876.73ms (14.00ms CPU time)\n\nRan 1 test suite in 878.72ms (876.73ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)\n\n"
+  "forkTestOutput": "Compiling 2 files with Solc 0.8.26\nSolc 0.8.26 finished in 397.34ms\nCompiler run successful!\n2026-08-25T04:41:08.955396Z  WARN evm::traces::external: etherscan config not found\n\nRan 1 test for test/ChainlinkStablecoinOracleGuardFork.t.sol:ChainlinkStablecoinOracleGuardForkTest\n[PASS] testFork_realBaseSepoliaFeedsPassGuard() (gas: 2343)\nSuite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.64ms (130.29µs CPU time)\n2026-08-25T04:41:09.555809Z  WARN foundry_fork_db::cache: Failed to read cache file err=Os { code: 2, kind: NotFound, message: \"No such file or directory\" } path=\"/Users/ronny/.foundry/cache/rpc/base/50421294\"\n\nRan 2 tests for test/InstitutionalNettingFork.t.sol:InstitutionalNettingForkTest\n[PASS] testFork_officialSurfacesAndRealStablecoinBytecodeExist() (gas: 31086)\n[PASS] testFork_universalRouterPermit2IndependentAndBundled() (gas: 8283320)\nLogs:\n  FORKBASELINE|mode=independent|output=16991410060|executionGas=188849|totalGas=243957\n  FORKBASELINE|mode=bundled|output=16991410146|executionGas=184218|totalGas=217410\n\nSuite result: ok. 2 passed; 0 failed; 0 skipped; finished in 15.04s (16.86s CPU time)\n\nRan 2 test suites in 15.05s (15.04s CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)\n\n"
 }

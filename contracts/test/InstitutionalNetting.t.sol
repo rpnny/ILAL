@@ -17,13 +17,17 @@ import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
 
 import {PolicyRegistry} from "../src/PolicyRegistry.sol";
+import {IChainlinkAggregatorV3} from "../src/interfaces/IChainlinkAggregatorV3.sol";
 import {HookMiner} from "../src/libraries/HookMiner.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {InstitutionalNettingHook} from "../src/netting/InstitutionalNettingHook.sol";
 import {InstitutionalBatchRouter} from "../src/netting/InstitutionalBatchRouter.sol";
 import {NettingTypes} from "../src/netting/NettingTypes.sol";
+import {ChainlinkStablecoinOracleGuard} from "../src/oracle/ChainlinkStablecoinOracleGuard.sol";
+import {MockChainlinkAggregator} from "./mocks/MockChainlinkAggregator.sol";
 import {MockCNFIssuer} from "./mocks/MockCNFIssuer.sol";
 import {MockERC1271Wallet} from "./mocks/MockERC1271Wallet.sol";
+import {MockStablecoinOracleGuard} from "./mocks/MockStablecoinOracleGuard.sol";
 
 contract InstitutionalNettingTest is Test {
     using PoolIdLibrary for PoolKey;
@@ -46,6 +50,9 @@ contract InstitutionalNettingTest is Test {
     InstitutionalNettingHook internal hook;
     PolicyRegistry internal registry;
     MockCNFIssuer internal issuer;
+    ChainlinkStablecoinOracleGuard internal oracleGuard;
+    MockChainlinkAggregator internal feed0;
+    MockChainlinkAggregator internal feed1;
     MockERC20 internal token0;
     MockERC20 internal token1;
     PoolKey internal key;
@@ -100,13 +107,33 @@ contract InstitutionalNettingTest is Test {
         batchRouter = new InstitutionalBatchRouter(manager);
         registry = new PolicyRegistry();
         issuer = new MockCNFIssuer();
+        feed0 = new MockChainlinkAggregator(8, "USDC / USD", 1e8);
+        feed1 = new MockChainlinkAggregator(8, "USDT / USD", 1e8);
+        oracleGuard = new ChainlinkStablecoinOracleGuard(
+            IChainlinkAggregatorV3(address(feed0)),
+            IChainlinkAggregatorV3(address(feed1)),
+            90_000,
+            90_000,
+            100,
+            100,
+            IChainlinkAggregatorV3(address(0)),
+            0
+        );
 
         MockERC20 tokenA = new MockERC20("Mock USD A", "mUSDA", 6);
         MockERC20 tokenB = new MockERC20("Mock USD B", "mUSDB", 6);
         (token0, token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
 
         bytes memory constructorArgs = abi.encode(
-            manager, registry, address(batchRouter), address(token0), address(token1), FEE, TICK_SPACING, MAX_ABS_TICK
+            manager,
+            registry,
+            oracleGuard,
+            address(batchRouter),
+            address(token0),
+            address(token1),
+            FEE,
+            TICK_SPACING,
+            MAX_ABS_TICK
         );
         (address predicted, bytes32 salt) = HookMiner.find(
             address(this),
@@ -115,7 +142,15 @@ contract InstitutionalNettingTest is Test {
             constructorArgs
         );
         hook = new InstitutionalNettingHook{salt: salt}(
-            manager, registry, address(batchRouter), address(token0), address(token1), FEE, TICK_SPACING, MAX_ABS_TICK
+            manager,
+            registry,
+            oracleGuard,
+            address(batchRouter),
+            address(token0),
+            address(token1),
+            FEE,
+            TICK_SPACING,
+            MAX_ABS_TICK
         );
         assertEq(address(hook), predicted);
         assertEq(uint160(address(hook)) & uint160((1 << 14) - 1), 0x88);
@@ -403,6 +438,8 @@ contract InstitutionalNettingTest is Test {
         MockCNFIssuer replacement = new MockCNFIssuer();
         registry.proposePolicyUpdate(poolId, address(replacement), replacement.defaultCredentialType());
         vm.warp(block.timestamp + registry.POLICY_UPDATE_DELAY());
+        feed0.setRound(2, 1e8, block.timestamp, block.timestamp);
+        feed1.setRound(2, 1e8, block.timestamp, block.timestamp);
         registry.activatePolicyUpdate(poolId);
         (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70WithNonces(51, 52);
         vm.expectRevert(InstitutionalNettingHook.CredentialInvalid.selector);
@@ -450,6 +487,49 @@ contract InstitutionalNettingTest is Test {
         (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70();
         vm.expectRevert();
         batchRouter.executeBatch(key, orders, signatures);
+    }
+
+    function test_oracleRejectionHappensBeforeNonceOrAssetMutation() public {
+        (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70WithNonces(69, 70);
+        uint256 alice0Before = token0.balanceOf(alice);
+        uint256 bob1Before = token1.balanceOf(bob);
+        feed1.setRound(2, 98_000_000, block.timestamp, block.timestamp);
+
+        vm.expectPartialRevert(ChainlinkStablecoinOracleGuard.PegDeviationExceeded.selector);
+        batchRouter.executeBatch(key, orders, signatures);
+
+        assertEq(token0.balanceOf(alice), alice0Before);
+        assertEq(token1.balanceOf(bob), bob1Before);
+        assertFalse(hook.nonceUsed(alice, orders[0].nonce));
+        assertFalse(hook.nonceUsed(bob, orders[1].nonce));
+        assertFalse(hook.batchActive());
+        assertEq(token0.balanceOf(address(hook)), 0);
+        assertEq(token1.balanceOf(address(hook)), 0);
+    }
+
+    function test_oracleStateRaceAfterValidSnapshotRejectsThenRecovers() public {
+        vm.warp(1_000_000);
+        feed0.setRound(2, 1e8, block.timestamp, block.timestamp);
+        feed1.setRound(2, 1e8, block.timestamp, block.timestamp);
+        (NettingTypes.NettingOrder[] memory orders, bytes[] memory signatures) = _orders100By70WithNonces(79, 80);
+        oracleGuard.validate(); // solver's first state snapshot
+        uint256 alice0Before = token0.balanceOf(alice);
+        uint256 bob1Before = token1.balanceOf(bob);
+
+        feed0.setRound(3, 1e8, block.timestamp - 90_001, block.timestamp - 90_001);
+        vm.expectPartialRevert(ChainlinkStablecoinOracleGuard.StalePrice.selector);
+        batchRouter.executeBatch(key, orders, signatures);
+        assertEq(token0.balanceOf(alice), alice0Before);
+        assertEq(token1.balanceOf(bob), bob1Before);
+        assertFalse(hook.nonceUsed(alice, orders[0].nonce));
+        assertFalse(hook.nonceUsed(bob, orders[1].nonce));
+        assertFalse(hook.batchActive());
+
+        feed0.setRound(4, 1e8, block.timestamp, block.timestamp);
+        batchRouter.executeBatch(key, orders, signatures);
+        assertTrue(hook.nonceUsed(alice, orders[0].nonce));
+        assertTrue(hook.nonceUsed(bob, orders[1].nonce));
+        assertFalse(hook.batchActive());
     }
 
     function test_pegGuard_acceptsBoundaryAndRejectsBothSidesOutside() public {
@@ -623,6 +703,28 @@ contract InstitutionalNettingTest is Test {
                 assertTrue(vm.revertToState(snapshot));
             }
         }
+    }
+
+    function testStudy_oracleGuardGas() public {
+        MockStablecoinOracleGuard baseline = new MockStablecoinOracleGuard();
+
+        uint256 baselineBefore = gasleft();
+        baseline.validate();
+        uint256 baselineGas = baselineBefore - gasleft();
+
+        uint256 guardBefore = gasleft();
+        oracleGuard.validate();
+        uint256 guardGas = guardBefore - gasleft();
+
+        assertGt(guardGas, baselineGas);
+        emit log_string(string.concat(
+                "ORACLESTUDY|baselineGas=",
+                vm.toString(baselineGas),
+                "|chainlinkGuardGas=",
+                vm.toString(guardGas),
+                "|incrementalGas=",
+                vm.toString(guardGas - baselineGas)
+            ));
     }
 
     function testFuzz_previewAccounting(uint64 amount0, uint64 amount1) public view {

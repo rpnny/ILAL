@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "version": "0.4.0-v2-poc.7",
+  "tag": "v0.4.0-v2-poc.7",
+  "sourceCommit": "0c4863ce2b2a470f570c59b851d75760c97868ed",
+  "releaseCommit": null,
+  "softwareStatus": "prerelease",
+  "deploymentStatus": "Chainlink-guarded Base Sepolia candidate pending fresh deployment and exact-match verification",
+  "attestationStatus": "issuer-operated private trees plus v1 CNF eligibility for netting",
+  "zkStatus": "Groth16 policy circuit v2; unsafe development ceremony",
+  "productionReadiness": "not production-ready",
+  "auditStatus": "unaudited",
+  "npmPublication": "not published",
+  "deploymentManifest": "base-sepolia/v0.4.0-v2-poc.1.json",
+  "baselineTests": {
+    "foundry": 281,
+    "cli": 55,
+    "fuzzRuns": 256
+  },
+  "lastLocalVerification": {
+    "date": "2026-08-25",
+    "foundry": { "passed": 281, "failed": 0, "skipped": 0 },
+    "cli": { "passed": 55, "failed": 0, "skipped": 0 },
+    "sdk": { "passed": 18, "failed": 0 },
+    "circuitOracle": { "passed": 8, "failed": 0 },
+    "circuitV1": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 3 },
+    "circuitV2": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 4 },
+    "nettingInvariants": { "properties": 6, "stressHandlerCalls": 100000, "reverts": 0 },
+    "minimumFuzzRuns": 256,
+    "chainlinkGuard": {
+      "unitAndIntegration": "passed",
+      "realBaseSepoliaFeedsPinnedFork": "passed",
+      "incrementalLocalGas": 36360
+    }
+  },
+  "releaseBlockers": [
+    "fresh Base Sepolia deployment using Circle test USDC and hUSDT",
+    "Sourcify exact-match verification for changed bytecode",
+    "forward, reverse, 4-order and 16-order transaction evidence",
+    "pinned-block preflight and rejection evidence",
+    "npm next and GitHub prerelease remain disabled until those gates pass"
+  ]
+}

@@ -2,11 +2,11 @@
 
 ## 1. Executive verdict
 
-**PASS — ready for institutional pilot.** This result does not claim production readiness before an independent audit.
+**CONDITIONAL — institutional pilot candidate.** This result does not claim production readiness before an independent audit.
 
-The study emits 160 economic rows, with 40 measured 5 bps scenarios. The 1/30/100 bps rows are explicit unsupported configurations. Official Base Universal Router + Permit2 independent and bundled paths were executed at finalized block 50394803 with real USDC/USDT bytecode.
+The study emits 160 economic rows, with 40 measured 5 bps scenarios. The 1/30/100 bps rows are explicit unsupported configurations. Official Base Universal Router + Permit2 independent and bundled paths were executed at finalized block 50421294 with real USDC/USDT bytecode.
 
-The conservative strict-gate net benefit for $10k/70%/5bps/scaled is **$4.748** against universal-router-bundled, after the 1 gwei L2 gas premium, the full candidate L1 security fee, and a 0.5 bps solver reserve.
+The conservative strict-gate net benefit for $10k/70%/5bps/scaled is **$4.643** against universal-router-bundled, after the 1 gwei L2 gas premium, the full candidate L1 security fee, and a 0.5 bps solver reserve.
 
 ## 2. Research questions and hypotheses
 
@@ -16,13 +16,13 @@ The program tests economic usefulness for stablecoin desks, operational usefulne
 
 - Schema: institutional-study-v1; seed: 0x494c414c2d494e535449545554494f4e414c2d53545544592d5631
 - Local toolchain: forge Version: 1.5.1-stable
-- Base fork: chain 8453, finalized block 50394803
+- Base fork: chain 8453, finalized block 50421294
 - Entry points: make study-local / study-fork / study-rwa / study-report / study-full
 - Website values are generated from machine results.
 
 ## 4. Safety and atomicity
 
-Stateful handler calls: 100000; fuzz runs per property: 10000. Regressions cover peg boundaries, allowance/balance races, deadlines, revocation, policy rotation, permissionless executors, nonce rollback, conservation and zero inventory.
+Stateful handler calls: 100000; fuzz runs per property: 10000. Regressions cover Chainlink price, round, freshness and sequencer states; pool peg boundaries; allowance/balance races; deadlines; revocation; policy rotation; permissionless executors; nonce rollback; conservation; and zero inventory. Either oracle or pool-tick rejection rolls back before nonce or asset mutation.
 
 ## 5. Profitability heatmap
 
@@ -30,19 +30,19 @@ See [profitability-heatmap.svg](charts/profitability-heatmap.svg). Only the 5 bp
 
 ## 6. Capacity frontier
 
-The fixed candidate depth contains 5 measured capacity failures and preserves the 100k/70k atomic rollback regression. The complete binary-search frontier is COMPLETE: 135 rows spanning $257 to $1000000. See [capacity-frontier.svg](charts/capacity-frontier.svg).
+The fixed candidate depth contains 5 measured capacity failures and preserves the 100k/70k atomic rollback regression. The complete binary-search frontier is COMPLETE: 135 rows spanning $137 to $1000000. See [capacity-frontier.svg](charts/capacity-frontier.svg).
 
 ## 7. Multi-order scalability
 
-12 scenarios cover 2/4/8/16 orders and three distributions. Uniform 16-order total gas is 1787349; rounding dust is zero and canonical commitments are permutation-stable.
+12 scenarios cover 2/4/8/16 orders and three distributions. Uniform 16-order total gas is 1825968; rounding dust is zero and canonical commitments are permutation-stable.
 
 ## 8. Base production-fee benchmark
 
-The model includes L2 execution and L1 security fees. The candidate L1 fee uses GasPriceOracle.getL1Fee on the complete serialized historical transaction. The production baseline uses deployed Universal Router V2.1.1, Permit2, the official PoolManager and real token bytecode.
+The model includes L2 execution and L1 security fees. The candidate L1 fee uses GasPriceOracle.getL1Fee on the complete serialized historical transaction. The production baseline uses deployed Universal Router V2.1.1, Permit2, the official PoolManager and real token bytecode. The isolated local two-feed Chainlink guard call costs 37541 gas, or 36360 incremental gas over a constant-snapshot implementation of the same interface; the strict gate uses full measured batch gas instead of substituting this microbenchmark.
 
 ## 9. RWA issuer workflow
 
-Largest dataset: 100000 wallets; total 483.83 seconds; peak RSS 3.63 GiB; proof p95 3459.5 ms.
+Largest dataset: 100000 wallets; total 541.33 seconds; peak RSS 3.57 GiB; proof p95 3612.0 ms.
 
 ## 10. TCO sensitivity
 
@@ -54,7 +54,7 @@ The implementation removes O(n²) issuer import lookup, rejects duplicate wallet
 
 ## 12. Supported operating envelope
 
-2–16 orders; equal-decimal standard ERC-20 stablecoins; raw-unit 1:1; 5 bps; tick spacing 10; ±100 batch-start tick guard. Fee-on-transfer, rebasing, callback/nonstandard tokens, other fee tiers and capacity-exceeding batches are unsupported.
+2–16 orders; equal-decimal standard ERC-20 stablecoins; raw-unit 1:1; 5 bps; tick spacing 10; Chainlink two-feed 100 bps/90,000-second gate; ±100 batch-start tick guard. Fee-on-transfer, rebasing, callback/nonstandard tokens, other fee tiers and capacity-exceeding batches are unsupported. Base Sepolia disables the sequencer check; Base mainnet requires the official uptime feed and a 3600-second grace period.
 
 ## 13. PASS / CONDITIONAL / FAIL
 
@@ -74,7 +74,8 @@ The implementation removes O(n²) issuer import lookup, rejects duplicate wallet
 | local | stateful-handler-calls | PASS |  |
 | local | fuzz-cases-per-property | PASS |  |
 | local | adversarial-regressions | PASS |  |
+| base-sepolia | chainlink-candidate-evidence | NOT_RUN | Fresh deployment, exact-match verification and 2/4/16-order transactions are required |
 
 ## 14. Production blockers and next steps
 
-Independent audit remains mandatory. Proof generation peaked at 3.63 GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
+Independent audit remains mandatory. Fresh Chainlink candidate evidence is **PENDING**; the result stays conditional until deployment, exact-match verification, and 2/4/16-order transactions are recorded. Proof generation peaked at 3.57 GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.

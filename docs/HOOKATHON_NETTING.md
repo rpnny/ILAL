@@ -73,11 +73,20 @@ The BatchRouter is permissionless. It cannot replace signed fields, it never
 becomes the output recipient, and it finishes without Token inventory. The
 Hook also has no long-term custody, cross-transaction queue or inventory.
 
-The ±100 check happens once, in `openBatch`, before any residual swap. It is a
-batch-start depeg guard only. It does not query an oracle and it is not checked
-again after each order, so residual execution can move the ending tick outside
-that range. Signed `minAmountOut` and `maxAmmInput` remain the per-user price
-and AMM-exposure bounds for the entire batch.
+The Chainlink stablecoin guard and ±100 pool-tick check happen once, in
+`openBatch`, before nonce consumption, token movement, or any residual swap.
+The two-feed guard requires fresh, initialized, positive USD rounds and enforces
+100 bps individual and pair deviation limits. It fails closed on feed calls and
+can optionally require an L2 sequencer uptime feed. Neither boundary is checked
+again after every order, so residual execution can move the ending tick outside
+the opening range. Signed `minAmountOut` and `maxAmmInput` remain the per-user
+price and AMM-exposure bounds for the entire batch.
+
+Base Sepolia uses official Chainlink USDC/USD and USDT/USD feeds without a
+sequencer check because no official Base Sepolia uptime proxy is listed. Base
+mainnet requires the official uptime feed and a 3600-second recovery grace
+period. The testnet asset pair is Circle test USDC plus ILAL's hUSDT
+representation; hUSDT is not official USDT.
 
 ## CLI demo
 

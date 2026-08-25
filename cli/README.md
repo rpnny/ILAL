@@ -6,7 +6,7 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.4.0-v2-poc.6` | npm `next` preview | Atomic netting, state-aware batch preflight, and V2 issuer integration; Base Sepolia candidates only, unaudited |
+| `0.4.0-v2-poc.7` | npm `next` preview | Atomic netting, Chainlink-aware state preflight, and V2 issuer integration; Base Sepolia candidates only, unaudited |
 | `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
 | `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
@@ -20,7 +20,7 @@ line; copying its commands or addresses into current releases will fail.
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.4.0-v2-poc.6
+node dist/index.js --version  # 0.4.0-v2-poc.7
 npm test
 ```
 
@@ -30,9 +30,12 @@ npm test
 
 ### Signer-free preflight
 
-`preview` remains offline arithmetic. `preflight` pins one RPC block, checks
-deadline, nonce, balance and allowance for every signer, then simulates the
-complete batch with `eth_call`. On Base it reports L2 execution cost and
+`preview` remains offline arithmetic. `preflight` pins one RPC block, reads and
+validates the Hook's Chainlink guard, checks deadline, nonce, balance and
+allowance for every signer, then simulates the complete batch with `eth_call`.
+Its optional `oracle` object preserves `ilal-netting-preflight-v1` compatibility
+while recording guard/feed addresses, normalized prices, timestamps, limits,
+sequencer status and `valid/rejected/unavailable`. On Base it reports L2 execution cost and
 `GasPriceOracle.getL1Fee` for a fully serialized transaction-shaped payload.
 
 ```bash
@@ -46,6 +49,10 @@ on-chain rejection, and `1` means an RPC/tool error. `batch execute` performs
 preflight before signer access and repeats full simulation immediately before
 broadcast; there is no silent bypass. Preflight remains a snapshot—signed
 limits and atomic rollback are the final safety controls.
+
+Operator-facing decoded rejections include `CHAINLINK_STALE_PRICE`,
+`CHAINLINK_PEG_DEVIATION`, `CHAINLINK_PAIR_DEVIATION` and sequencer errors.
+The complete `eth_call`, not the standalone decoded check, remains authoritative.
 
 The candidate supports standard, equal-decimal ERC-20 stablecoins only.
 Fee-on-transfer, rebasing, callback/nonstandard tokens and fee tiers other than

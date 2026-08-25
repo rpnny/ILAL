@@ -16,13 +16,13 @@ make break-even-benchmark
 With liquidity scaled proportionally to notional, the measured user benefit is
 approximately **7.00 bps of anchor notional**
 (4.12 bps of gross submitted notional).
-The conservative measured total-gas premium is **449,430 gas**.
+The conservative measured total-gas premium is **485,401 gas**.
 
 At a scenario ETH price of $3,000, the resulting anchor-notional break-even is:
 
-- **$19.26** at 0.01 gwei
-- **$192.61** at 0.1 gwei
-- **$1,926.14** at 1 gwei
+- **$20.80** at 0.01 gwei
+- **$208.03** at 0.1 gwei
+- **$2,080.31** at 1 gwei
 
 These are sensitivity inputs, not claims about current ETH or Base gas prices.
 
@@ -30,10 +30,10 @@ These are sensitivity inputs, not claims about current ETH or Base gas prices.
 
 | Anchor notional | Gross notional | User output benefit | Benefit vs gross | Total-gas premium | Break-even gas price at $3k ETH |
 |---:|---:|---:|---:|---:|---:|
-| 100 | 170 | $0.070000 | 4.12 bps | 449,430 | 0.052 gwei |
-| 1,000 | 1,700 | $0.699996 | 4.12 bps | 441,343 | 0.529 gwei |
-| 10,000 | 17,000 | $6.999946 | 4.12 bps | 441,355 | 5.287 gwei |
-| 100,000 | 170,000 | $69.999456 | 4.12 bps | 441,379 | 52.864 gwei |
+| 100 | 170 | $0.070000 | 4.12 bps | 485,401 | 0.048 gwei |
+| 1,000 | 1,700 | $0.699996 | 4.12 bps | 477,290 | 0.489 gwei |
+| 10,000 | 17,000 | $6.999946 | 4.12 bps | 476,818 | 4.894 gwei |
+| 100,000 | 170,000 | $69.999456 | 4.12 bps | 476,830 | 48.934 gwei |
 
 Scaling liquidity keeps price depth constant and isolates gas amortization. The
 gas premium stays approximately fixed while user benefit grows linearly with
@@ -43,18 +43,18 @@ notional.
 
 | ETH/USD scenario | 0.01 gwei | 0.1 gwei | 1 gwei |
 |---:|---:|---:|---:|
-| $2,000 | $12.84 | $128.41 | $1,284.10 |
-| $3,000 | $19.26 | $192.61 | $1,926.14 |
-| $4,000 | $25.68 | $256.82 | $2,568.19 |
+| $2,000 | $13.87 | $138.69 | $1,386.87 |
+| $3,000 | $20.80 | $208.03 | $2,080.31 |
+| $4,000 | $27.74 | $277.37 | $2,773.74 |
 
 ## Net benefit at $3,000 ETH
 
 | Anchor notional | Execution benefit | 0.01 gwei | 0.1 gwei | 1 gwei |
 |---:|---:|---:|---:|---:|
-| 100 | $0.070000 | +$0.057 | −$0.065 | −$1.278 |
-| 1,000 | $0.699996 | +$0.687 | +$0.565 | −$0.648 |
-| 10,000 | $6.999946 | +$6.986 | +$6.865 | +$5.652 |
-| 100,000 | $69.999456 | +$69.986 | +$69.865 | +$68.651 |
+| 100 | $0.070000 | +$0.055 | −$0.076 | −$1.386 |
+| 1,000 | $0.699996 | +$0.685 | +$0.554 | −$0.756 |
+| 10,000 | $6.999946 | +$6.985 | +$6.854 | +$5.544 |
+| 100,000 | $69.999456 | +$69.985 | +$69.854 | +$68.543 |
 
 Positive values mean the measured output improvement exceeds the conservative
 gas premium. Negative values mean gas costs more than the measured execution
