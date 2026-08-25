@@ -3,9 +3,9 @@
 set -euo pipefail
 
 CIRCUITS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="$CIRCUITS_DIR/build-v2"
-PTAU_FILE="$CIRCUITS_DIR/ptau/pot18_final.ptau"
-CONTRACT_OUT="$CIRCUITS_DIR/../contracts/src/verifier/ILALPolicyVerifierV2.sol"
+BUILD_DIR="${ILAL_V2_BUILD_DIR:-$CIRCUITS_DIR/build-v2}"
+PTAU_FILE="${ILAL_V2_PTAU_FILE:-$CIRCUITS_DIR/ptau/pot18_final.ptau}"
+CONTRACT_OUT="${ILAL_V2_VERIFIER_OUT:-$CIRCUITS_DIR/../contracts/src/verifier/ILALPolicyVerifierV2.sol}"
 DEV_BEACON="0000000000000000000000000000000000000000000000000000000000000000"
 BEACON_HASH="${ILAL_CEREMONY_BEACON_HASH:-}"
 
@@ -36,7 +36,7 @@ if [ ! -s "$PTAU_FILE" ]; then
   exit 1
 fi
 
-mkdir -p "$BUILD_DIR"
+mkdir -p "$BUILD_DIR" "$(dirname "$CONTRACT_OUT")"
 
 echo "[1/5] Compiling policy circuit v2..."
 circom "$CIRCUITS_DIR/v2/ilal_policy.circom" \
@@ -66,15 +66,12 @@ sed 's/contract Groth16Verifier/contract ILALPolicyVerifierV2/' \
   "$BUILD_DIR/ILALPolicyVerifierV2.generated.sol" > "$CONTRACT_OUT"
 
 echo "[5/5] Writing artifact manifest..."
-(
-  cd "$CIRCUITS_DIR"
-  shasum -a 256 \
-    build-v2/ilal_policy_v2.zkey \
-    build-v2/ilal_policy_v2_vkey.json \
-    build-v2/ilal_policy_js/ilal_policy.wasm \
-    ../contracts/src/verifier/ILALPolicyVerifierV2.sol \
-    > build-v2/SHA256SUMS
-)
+shasum -a 256 \
+  "$BUILD_DIR/ilal_policy_v2.zkey" \
+  "$BUILD_DIR/ilal_policy_v2_vkey.json" \
+  "$BUILD_DIR/ilal_policy_js/ilal_policy.wasm" \
+  "$CONTRACT_OUT" \
+  > "$BUILD_DIR/SHA256SUMS"
 cat "$BUILD_DIR/SHA256SUMS"
 
 echo

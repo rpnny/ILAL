@@ -5,7 +5,7 @@
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
 Current npm preview: `npm install -g @ilalv3/cli@next`
-(`v0.4.0-v2-poc.5`, including the institutional netting commands). The
+(`v0.4.0-v2-poc.6`, including state-aware institutional netting preflight). The
 public `latest` channel remains `v0.3.3` because the netting and V2 stacks are
 separate unaudited Base Sepolia candidates.
 

@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| CLI | `@ilalv3/cli@0.4.0-v2-poc.5` on npm `next` |
+| CLI | `@ilalv3/cli@0.4.0-v2-poc.6` prepared for npm `next` |
 | SDK | `@ilalv3/sdk@0.3.0-next.1` on npm `next` |
 | Netting | Base Sepolia Hookathon candidate with exact-match source verification |
 | V2 | Base Sepolia policy-grant candidate `v0.4.0-v2-poc.1` |
@@ -52,9 +52,9 @@ make verify
 
 Required baselines:
 
-- Foundry: 229 executed and passed, 0 failed, 0 skipped, fuzz runs at least 256.
-- CLI: 53 executed and passed.
-- Netting invariants: 6 properties × 256 calls, 0 reverts.
+- Foundry: 265 executed and passed, 0 failed, 0 skipped, fuzz runs at least 256.
+- CLI: 54 executed and passed.
+- Netting invariants: 100,000 stress handler calls in the full institutional study, 0 failures/reverts.
 - SDK and circuit constraint suites pass.
 - deployment-derived CLI/site data is synchronized.
 - package metadata, SPDX policy, release status, npm pack, and local secret scan pass.
