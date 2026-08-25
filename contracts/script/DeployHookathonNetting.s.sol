@@ -51,6 +51,7 @@ contract DeployHookathonNetting is Script {
     uint256 internal constant DEFAULT_INSTITUTION_USDC = 100_000;
     uint256 internal constant DEFAULT_LP_USDC = 450_000;
     uint128 internal constant DEFAULT_LIQUIDITY = 1_000_000;
+    uint128 internal constant DEFAULT_STABILIZER_LIQUIDITY = 10_000_000;
 
     struct Roles {
         address deployer;
@@ -238,6 +239,7 @@ contract DeployHookathonNetting is Script {
 
     function _seedLiquidity(uint256 lpKey, Stack memory stack, PoolKey memory key) internal {
         uint128 liquidity = uint128(vm.envOr("INITIAL_LIQUIDITY", uint256(DEFAULT_LIQUIDITY)));
+        uint128 stabilizerLiquidity = uint128(vm.envOr("STABILIZER_LIQUIDITY", uint256(DEFAULT_STABILIZER_LIQUIDITY)));
         vm.startBroadcast(lpKey);
         stack.token0.approve(PERMIT2, type(uint256).max);
         stack.token1.approve(PERMIT2, type(uint256).max);
@@ -246,8 +248,8 @@ contract DeployHookathonNetting is Script {
         IAllowanceTransfer(PERMIT2)
             .approve(address(stack.token1), POSITION_MANAGER, type(uint160).max, type(uint48).max);
 
-        bytes memory actions = abi.encodePacked(uint8(0x02), uint8(0x12), uint8(0x12));
-        bytes[] memory params = new bytes[](3);
+        bytes memory actions = abi.encodePacked(uint8(0x02), uint8(0x02), uint8(0x12), uint8(0x12));
+        bytes[] memory params = new bytes[](4);
         params[0] = abi.encode(
             key,
             int24(-10000),
@@ -258,10 +260,25 @@ contract DeployHookathonNetting is Script {
             vm.addr(lpKey),
             bytes("")
         );
-        params[1] = abi.encode(key.currency0);
-        params[2] = abi.encode(key.currency1);
+        params[1] = abi.encode(
+            key,
+            int24(-100),
+            int24(100),
+            uint256(stabilizerLiquidity),
+            type(uint128).max,
+            type(uint128).max,
+            vm.addr(lpKey),
+            bytes("")
+        );
+        params[2] = abi.encode(key.currency0);
+        params[3] = abi.encode(key.currency1);
         IPositionManager(POSITION_MANAGER).modifyLiquidities(abi.encode(actions, params), block.timestamp + 10 minutes);
         vm.stopBroadcast();
+
+        console.log("Wide-range liquidity:       ", liquidity);
+        console.log("Wide range:                  [-10000, 10000]");
+        console.log("Stabilizer liquidity:        ", stabilizerLiquidity);
+        console.log("Stabilizer range:             [-100, 100]");
     }
 
     function _validateRoles(Roles memory roles) internal pure {

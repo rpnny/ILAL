@@ -11,6 +11,7 @@ import {PoolId, PoolIdLibrary} from "v4-core/src/types/PoolId.sol";
 import {Currency} from "v4-core/src/types/Currency.sol";
 import {ModifyLiquidityParams} from "v4-core/src/types/PoolOperation.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
+import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 
 import {PolicyRegistry} from "../src/PolicyRegistry.sol";
@@ -26,6 +27,7 @@ import {MockCNFIssuer} from "./mocks/MockCNFIssuer.sol";
 
 contract InstitutionalCapacityStudy is Test {
     using PoolIdLibrary for PoolKey;
+    using StateLibrary for IPoolManager;
 
     uint256 internal constant UNIT = 1e6;
     uint24 internal constant FEE = 500;
@@ -106,6 +108,43 @@ contract InstitutionalCapacityStudy is Test {
         _runRangeFrontier(100_000, 10_000);
     }
 
+    function test_candidateLiquiditySupportsSequentialForwardAndReverseEvidenceBatches() public {
+        Fixture memory fixture = _deployFixture(0, 10_000, 0);
+        PoolModifyLiquidityTest liquidityRouter = new PoolModifyLiquidityTest(fixture.manager);
+        fixture.token0.approve(address(liquidityRouter), type(uint256).max);
+        fixture.token1.approve(address(liquidityRouter), type(uint256).max);
+        liquidityRouter.modifyLiquidity(
+            fixture.key,
+            ModifyLiquidityParams({tickLower: -10_000, tickUpper: 10_000, liquidityDelta: 1_000_000, salt: bytes32(0)}),
+            ""
+        );
+        liquidityRouter.modifyLiquidity(
+            fixture.key,
+            ModifyLiquidityParams({tickLower: -100, tickUpper: 100, liquidityDelta: 10_000_000, salt: bytes32(0)}),
+            ""
+        );
+
+        vm.startPrank(fixture.alice);
+        fixture.token1.approve(address(fixture.router), type(uint256).max);
+        vm.stopPrank();
+        vm.startPrank(fixture.bob);
+        fixture.token0.approve(address(fixture.router), type(uint256).max);
+        vm.stopPrank();
+        deal(address(fixture.token0), fixture.alice, 160_000, true);
+        deal(address(fixture.token1), fixture.bob, 160_000, true);
+
+        _executeCandidateBatch(fixture, 100_000, 70_000, 10, 11);
+        (, int24 tickAfterForward,,) = fixture.manager.getSlot0(fixture.key.toId());
+        assertLe(_abs(tickAfterForward), 100, "forward batch must leave next batch inside opening gate");
+
+        _executeCandidateBatch(fixture, 60_000, 90_000, 12, 13);
+        (, int24 tickAfterReverse,,) = fixture.manager.getSlot0(fixture.key.toId());
+        assertLe(_abs(tickAfterReverse), 100, "reverse batch must remain inside candidate operating envelope");
+        assertFalse(fixture.hook.batchActive());
+        assertEq(fixture.token0.balanceOf(address(fixture.hook)), 0);
+        assertEq(fixture.token1.balanceOf(address(fixture.hook)), 0);
+    }
+
     function _runRangeFrontier(uint256 liquidityBps, int24 range) internal {
         int24[3] memory initialTicks = [int24(0), 90, -90];
         uint256[3] memory balanceBps = [uint256(5_000), 10_000, 20_000];
@@ -171,13 +210,15 @@ contract InstitutionalCapacityStudy is Test {
         fixture.token0.approve(address(liquidityRouter), type(uint256).max);
         fixture.token1.approve(address(liquidityRouter), type(uint256).max);
         uint128 liquidity = uint128(uint256(BASE_LIQUIDITY) * liquidityBps / 10_000);
-        liquidityRouter.modifyLiquidity(
-            fixture.key,
-            ModifyLiquidityParams({
-                tickLower: -range, tickUpper: range, liquidityDelta: int256(uint256(liquidity)), salt: 0
-            }),
-            ""
-        );
+        if (liquidity != 0) {
+            liquidityRouter.modifyLiquidity(
+                fixture.key,
+                ModifyLiquidityParams({
+                    tickLower: -range, tickUpper: range, liquidityDelta: int256(uint256(liquidity)), salt: 0
+                }),
+                ""
+            );
+        }
         fixture.alice = vm.addr(ALICE_KEY);
         fixture.bob = vm.addr(BOB_KEY);
         issuer.setValid(fixture.alice, true);
@@ -266,6 +307,27 @@ contract InstitutionalCapacityStudy is Test {
             if (reason.length >= 4) assembly ("memory-safe") { selector := mload(add(reason, 0x20)) }
         }
         assertTrue(vm.revertToState(snapshot));
+    }
+
+    function _executeCandidateBatch(
+        Fixture memory fixture,
+        uint256 amount0,
+        uint256 amount1,
+        uint256 nonce0,
+        uint256 nonce1
+    ) internal {
+        NettingTypes.NettingOrder[] memory orders = new NettingTypes.NettingOrder[](2);
+        orders[0] = _order(fixture, fixture.alice, true, amount0, bytes32(nonce0));
+        orders[1] = _order(fixture, fixture.bob, false, amount1, bytes32(nonce1));
+        bytes[] memory signatures = new bytes[](2);
+        signatures[0] = _sign(fixture.hook, orders[0], ALICE_KEY);
+        signatures[1] = _sign(fixture.hook, orders[1], BOB_KEY);
+        fixture.router.executeBatch(fixture.key, orders, signatures);
+    }
+
+    function _abs(int24 value) internal pure returns (uint256) {
+        int256 signedValue = int256(value);
+        return uint256(signedValue < 0 ? -signedValue : signedValue);
     }
 
     function _order(Fixture memory fixture, address user, bool zeroForOne, uint256 amount, bytes32 nonce)
