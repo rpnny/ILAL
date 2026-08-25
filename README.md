@@ -297,6 +297,13 @@ is explicitly an ILAL test representation, not official USDT.
 
 ## Demo
 
+For the reviewer-facing pitch, double-click
+[`scripts/hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command).
+It runs the real offline CLI preview, replays pinned candidate evidence and
+executes the local oracle rollback regression without a user-supplied or stored
+private key and without a new broadcast. The speaking cues are in the
+[`pitch demo runbook`](docs/hookathon/PITCH_DEMO_RUNBOOK.md).
+
 Each institution signs its own private-key-free order JSON:
 
 ```bash
