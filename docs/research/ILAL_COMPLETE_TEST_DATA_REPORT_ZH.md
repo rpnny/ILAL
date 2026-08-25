@@ -29,7 +29,7 @@
 
 本报告区分三类证据：
 
-1. **当前代码验证**：最新通过的 GitHub CI 是 [`32818359742`](https://github.com/rpnny/ILAL/actions/runs/32818359742)，head `4b14fdea8a7f88ab0965161bc7d31a1010912d1f`，结论 `success`。它覆盖当前合约、CLI、SDK、电路、package、SBOM 与研究 PR gate。
+1. **当前代码验证**：最新通过的公开 `main` GitHub CI 是 [`32818935845`](https://github.com/rpnny/ILAL/actions/runs/32818935845)，head `75b24209f6598e68986987021ca7b001092ce97c`，结论 `success`。它覆盖当前合约、CLI、SDK、电路、package、SBOM 与研究 PR gate。
 2. **研究运行数据**：`local/fork/rwa/stress` JSON 的记录基线是 `2f2c58d4ddb0fe9f0cb507ed2371fd5db0100d47`，并明确记录 `dirty: true`。这些文件是本轮研究实现期间生成、随后提交的测量快照，不应表述为在当前 clean `main` 上重新计时所得。
 3. **最终链上候选**：合约部署与 Sourcify exact-match 对应 `a512e6996735ab83d088a80723d30e4f7bb897a9`，source-tree SHA-256 为 `854775537f58aa1d4312f19c09daa99b3c39b74b652d5e97a76e4cc0b494062b`。
 
