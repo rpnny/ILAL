@@ -72,6 +72,19 @@
     "hook": null
   },
   "poolId": null,
+  "liquidityConfiguration": {
+    "wideRange": {
+      "tickLower": -10000,
+      "tickUpper": 10000,
+      "liquidity": 1000000
+    },
+    "stabilizerRange": {
+      "tickLower": -100,
+      "tickUpper": 100,
+      "liquidity": 10000000,
+      "purpose": "Keep sequential 0.03-token residual evidence inside the next batch's ±100 opening gate"
+    }
+  },
   "roles": {
     "safeAdmin": null,
     "institutionA": null,
