@@ -11,6 +11,7 @@ import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {IPositionManager} from "v4-periphery/src/interfaces/IPositionManager.sol";
 import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 
+import {IChainlinkAggregatorV3} from "../src/interfaces/IChainlinkAggregatorV3.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {MockEAS} from "../src/test/MockEAS.sol";
 import {CNFIssuer} from "../src/CNFIssuer.sol";
@@ -18,6 +19,13 @@ import {PolicyRegistry} from "../src/PolicyRegistry.sol";
 import {HookMiner} from "../src/libraries/HookMiner.sol";
 import {InstitutionalNettingHook} from "../src/netting/InstitutionalNettingHook.sol";
 import {InstitutionalBatchRouter} from "../src/netting/InstitutionalBatchRouter.sol";
+import {ChainlinkStablecoinOracleGuard} from "../src/oracle/ChainlinkStablecoinOracleGuard.sol";
+
+interface IERC20Deploy {
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function approve(address spender, uint256 amount) external returns (bool);
+}
 
 /// @notice Base Sepolia-only deployment for the Hookathon atomic stablecoin netting candidate.
 /// @dev Uses separate testnet keys for deployment, institutions and LP. Never use these
@@ -29,6 +37,9 @@ contract DeployHookathonNetting is Script {
     address internal constant POSITION_MANAGER = 0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80;
     address internal constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
     address internal constant FOUNDRY_CREATE2_DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
+    address internal constant CHAINLINK_USDC_USD = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
+    address internal constant CHAINLINK_USDT_USD = 0x3ec8593F930EA45ea58c968260e6e9FF53FC934f;
+    address internal constant CIRCLE_TEST_USDC = 0x036CBD53842c5426634e7929541ec2318F3DCF7C;
 
     uint160 internal constant INITIAL_SQRT_PRICE = 79228162514264337593543950336;
     uint160 internal constant HOOK_FLAGS = Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_SWAP_RETURNS_DELTA_FLAG;
@@ -36,9 +47,10 @@ contract DeployHookathonNetting is Script {
     int24 internal constant TICK_SPACING = 10;
     int24 internal constant MAX_ABS_TICK = 100;
     bytes32 internal constant SCHEMA_UID = keccak256("ilal.hookathon.institution.v1");
-    uint256 internal constant DEFAULT_INSTITUTION_MINT = 100_000e6;
-    uint256 internal constant DEFAULT_LP_MINT = 1_000_000e6;
-    uint128 internal constant DEFAULT_LIQUIDITY = 1_000_000_000_000;
+    uint256 internal constant DEFAULT_HUSDT_MINT = 1_000e6;
+    uint256 internal constant DEFAULT_INSTITUTION_USDC = 100_000;
+    uint256 internal constant DEFAULT_LP_USDC = 450_000;
+    uint128 internal constant DEFAULT_LIQUIDITY = 1_000_000;
 
     struct Roles {
         address deployer;
@@ -50,11 +62,13 @@ contract DeployHookathonNetting is Script {
     }
 
     struct Stack {
-        MockERC20 token0;
-        MockERC20 token1;
+        IERC20Deploy token0;
+        IERC20Deploy token1;
+        MockERC20 hUSDT;
         MockEAS eas;
         CNFIssuer issuer;
         PolicyRegistry registry;
+        ChainlinkStablecoinOracleGuard oracleGuard;
         InstitutionalBatchRouter router;
         InstitutionalNettingHook hook;
     }
@@ -69,6 +83,7 @@ contract DeployHookathonNetting is Script {
         uint256 institutionAKey = vm.envUint("INSTITUTION_A_PRIVATE_KEY");
         uint256 institutionBKey = vm.envUint("INSTITUTION_B_PRIVATE_KEY");
         uint256 lpKey = vm.envUint("LP_PRIVATE_KEY");
+        uint256 usdcFunderKey = vm.envUint("USDC_FUNDER_PRIVATE_KEY");
         Roles memory roles = Roles({
             deployer: vm.addr(deployerKey),
             admin: vm.envAddress("SAFE_ADMIN"),
@@ -78,6 +93,7 @@ contract DeployHookathonNetting is Script {
             lp: vm.addr(lpKey)
         });
         _validateRoles(roles);
+        _requireUsdcAllocation(usdcFunderKey);
 
         vm.startBroadcast(deployerKey);
         Stack memory stack = _deployStack(roles);
@@ -99,12 +115,13 @@ contract DeployHookathonNetting is Script {
         bytes32 expectedAttestationB = stack.eas.nextUID(SCHEMA_UID, roles.institutionB, roles.admin, sourceExpiry, "");
         bytes32 attestationB = stack.eas.attest(SCHEMA_UID, roles.institutionB, roles.admin, sourceExpiry, "");
         require(attestationB == expectedAttestationB, "DeployHookathonNetting: attestation B UID mismatch");
-        _mintDemoAssets(stack, roles);
+        _mintMockAssets(stack, roles);
         stack.registry.transferOwnership(roles.admin);
         stack.issuer.transferOwnership(roles.admin);
         stack.eas.transferOwnership(roles.admin);
         vm.stopBroadcast();
 
+        _fundOfficialUsdc(usdcFunderKey, roles);
         _onboardInstitution(institutionAKey, stack, attestationA);
         _onboardInstitution(institutionBKey, stack, attestationB);
         _seedLiquidity(lpKey, stack, key);
@@ -112,9 +129,20 @@ contract DeployHookathonNetting is Script {
     }
 
     function _deployStack(Roles memory roles) internal returns (Stack memory stack) {
-        MockERC20 tokenA = new MockERC20("ILAL Hookathon USD A", "hUSDA", 6);
-        MockERC20 tokenB = new MockERC20("ILAL Hookathon USD B", "hUSDB", 6);
-        (stack.token0, stack.token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
+        stack.hUSDT = new MockERC20("ILAL Hookathon USDT Representation", "hUSDT", 6);
+        IChainlinkAggregatorV3 feed0;
+        IChainlinkAggregatorV3 feed1;
+        if (CIRCLE_TEST_USDC < address(stack.hUSDT)) {
+            stack.token0 = IERC20Deploy(CIRCLE_TEST_USDC);
+            stack.token1 = IERC20Deploy(address(stack.hUSDT));
+            feed0 = IChainlinkAggregatorV3(CHAINLINK_USDC_USD);
+            feed1 = IChainlinkAggregatorV3(CHAINLINK_USDT_USD);
+        } else {
+            stack.token0 = IERC20Deploy(address(stack.hUSDT));
+            stack.token1 = IERC20Deploy(CIRCLE_TEST_USDC);
+            feed0 = IChainlinkAggregatorV3(CHAINLINK_USDT_USD);
+            feed1 = IChainlinkAggregatorV3(CHAINLINK_USDC_USD);
+        }
         stack.eas = new MockEAS();
         stack.issuer = new CNFIssuer(
             address(stack.eas),
@@ -131,10 +159,15 @@ contract DeployHookathonNetting is Script {
         );
         stack.registry = new PolicyRegistry();
         stack.router = new InstitutionalBatchRouter(IPoolManager(POOL_MANAGER));
+        stack.oracleGuard = new ChainlinkStablecoinOracleGuard(
+            feed0, feed1, 90_000, 90_000, 100, 100, IChainlinkAggregatorV3(address(0)), 0
+        );
+        stack.oracleGuard.validate();
 
         bytes memory constructorArgs = abi.encode(
             IPoolManager(POOL_MANAGER),
             stack.registry,
+            stack.oracleGuard,
             address(stack.router),
             address(stack.token0),
             address(stack.token1),
@@ -148,6 +181,7 @@ contract DeployHookathonNetting is Script {
         stack.hook = new InstitutionalNettingHook{salt: salt}(
             IPoolManager(POOL_MANAGER),
             stack.registry,
+            stack.oracleGuard,
             address(stack.router),
             address(stack.token0),
             address(stack.token1),
@@ -161,15 +195,37 @@ contract DeployHookathonNetting is Script {
         console.logBytes32(salt);
     }
 
-    function _mintDemoAssets(Stack memory stack, Roles memory roles) internal {
-        uint256 institutionMint = vm.envOr("INSTITUTION_TOKEN_MINT", DEFAULT_INSTITUTION_MINT);
-        uint256 lpMint = vm.envOr("LP_TOKEN_MINT", DEFAULT_LP_MINT);
-        stack.token0.mint(roles.institutionA, institutionMint);
-        stack.token1.mint(roles.institutionA, institutionMint);
-        stack.token0.mint(roles.institutionB, institutionMint);
-        stack.token1.mint(roles.institutionB, institutionMint);
-        stack.token0.mint(roles.lp, lpMint);
-        stack.token1.mint(roles.lp, lpMint);
+    function _mintMockAssets(Stack memory stack, Roles memory roles) internal {
+        uint256 amount = vm.envOr("HUSDT_MINT", DEFAULT_HUSDT_MINT);
+        stack.hUSDT.mint(roles.institutionA, amount);
+        stack.hUSDT.mint(roles.institutionB, amount);
+        stack.hUSDT.mint(roles.lp, amount);
+    }
+
+    function _fundOfficialUsdc(uint256 funderKey, Roles memory roles) internal {
+        IERC20Deploy usdc = IERC20Deploy(CIRCLE_TEST_USDC);
+        uint256 institutionAmount = vm.envOr("INSTITUTION_USDC", DEFAULT_INSTITUTION_USDC);
+        uint256 lpAmount = vm.envOr("LP_USDC", DEFAULT_LP_USDC);
+        vm.startBroadcast(funderKey);
+        require(usdc.transfer(roles.institutionA, institutionAmount), "DeployHookathonNetting: USDC transfer A failed");
+        require(usdc.transfer(roles.institutionB, institutionAmount), "DeployHookathonNetting: USDC transfer B failed");
+        require(usdc.transfer(roles.lp, lpAmount), "DeployHookathonNetting: USDC transfer LP failed");
+        vm.stopBroadcast();
+    }
+
+    function _requireUsdcAllocation(uint256 funderKey) internal view {
+        uint256 institutionAmount = vm.envOr("INSTITUTION_USDC", DEFAULT_INSTITUTION_USDC);
+        uint256 lpAmount = vm.envOr("LP_USDC", DEFAULT_LP_USDC);
+        uint256 required = institutionAmount * 2 + lpAmount;
+        uint256 available = IERC20Deploy(CIRCLE_TEST_USDC).balanceOf(vm.addr(funderKey));
+        if (available < required) {
+            console.log("Circle test USDC available:", available);
+            console.log("Circle test USDC required: ", required);
+            console.log("Circle test USDC deficit:  ", required - available);
+            revert("DeployHookathonNetting: fund USDC role before deployment");
+        }
+        console.log("Circle test USDC preflight available:", available);
+        console.log("Circle test USDC preflight required: ", required);
     }
 
     function _onboardInstitution(uint256 institutionKey, Stack memory stack, bytes32 attestation) internal {
@@ -194,8 +250,8 @@ contract DeployHookathonNetting is Script {
         bytes[] memory params = new bytes[](3);
         params[0] = abi.encode(
             key,
-            int24(-1000),
-            int24(1000),
+            int24(-10000),
+            int24(10000),
             uint256(liquidity),
             type(uint128).max,
             type(uint128).max,
@@ -232,6 +288,17 @@ contract DeployHookathonNetting is Script {
         console.log("Permit2:           ", PERMIT2);
         console.log("Token0:            ", address(stack.token0));
         console.log("Token1:            ", address(stack.token1));
+        console.log("Circle test USDC:  ", CIRCLE_TEST_USDC);
+        console.log("hUSDT:             ", address(stack.hUSDT));
+        console.log("OracleGuard:       ", address(stack.oracleGuard));
+        console.log("Oracle feed0:      ", address(stack.oracleGuard.feed0()));
+        console.log("Oracle feed1:      ", address(stack.oracleGuard.feed1()));
+        _printFeed("feed0", stack.oracleGuard.feed0());
+        _printFeed("feed1", stack.oracleGuard.feed1());
+        console.log("Oracle max age:     ", stack.oracleGuard.maxAge0());
+        console.log("Oracle USD max bps: ", stack.oracleGuard.maxUsdDeviationBps());
+        console.log("Oracle pair max bps:", stack.oracleGuard.maxPairDeviationBps());
+        console.log("Sequencer check:     disabled on Base Sepolia");
         console.log("MockEAS:           ", address(stack.eas));
         console.log("CNFIssuer:         ", address(stack.issuer));
         console.log("PolicyRegistry:    ", address(stack.registry));
@@ -252,5 +319,16 @@ contract DeployHookathonNetting is Script {
         console.log("Institution B attestation:");
         console.logBytes32(attestationB);
         console.log("============================================");
+    }
+
+    function _printFeed(string memory label, IChainlinkAggregatorV3 feed) internal view {
+        (uint80 roundId, int256 answer,, uint256 updatedAt, uint80 answeredInRound) = feed.latestRoundData();
+        console.log(string.concat("Oracle ", label, " description: "), feed.description());
+        console.log(string.concat("Oracle ", label, " decimals:    "), uint256(feed.decimals()));
+        console.log(string.concat("Oracle ", label, " round:       "), uint256(roundId));
+        console.log(string.concat("Oracle ", label, " answer:      "));
+        console.logInt(answer);
+        console.log(string.concat("Oracle ", label, " updatedAt:   "), updatedAt);
+        console.log(string.concat("Oracle ", label, " answered:    "), uint256(answeredInRound));
     }
 }

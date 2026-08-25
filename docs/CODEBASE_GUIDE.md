@@ -11,14 +11,14 @@ not copied from historical audit documents.
 | Goal | Primary files |
 |---|---|
 | Understand the active protocol path | `contracts/src/ILALRouter.sol`, `contracts/src/ComplianceHook.sol`, `contracts/src/CNFIssuer.sol`, `contracts/src/PolicyRegistry.sol` |
-| Understand atomic netting | `contracts/src/netting/InstitutionalNettingHook.sol`, `contracts/src/netting/InstitutionalBatchRouter.sol`, `docs/HOOKATHON_NETTING.md` |
+| Understand atomic netting | `contracts/src/netting/InstitutionalNettingHook.sol`, `contracts/src/netting/InstitutionalBatchRouter.sol`, `contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol`, `docs/HOOKATHON_NETTING.md` |
 | Change session authorization | `contracts/src/libraries/SessionLib.sol`, `cli/src/sessionProtocol.ts`, `sdk/src/session.ts`, `sdk/src/encode.ts` |
 | Change CLI behavior | `cli/src/index.ts`, then the matching file in `cli/src/commands/` |
 | Change the SDK | `sdk/src/index.ts`, `sdk/src/session.ts`, `sdk/src/encode.ts`, `sdk/src/credential.ts` |
 | Review ZK behavior | `circuits/ilal.circom`, `circuits/v2/ilal_policy.circom`, verifier adapters under `contracts/src/verifier/` |
 | Review the v2 policy-grant design | `contracts/src/v2/`, `circuits/v2/`, `cli/src/commands/policyV2.ts` |
 | Inspect active addresses and evidence | `deployments/index.json`, then the active manifest it references |
-| Inspect release state | `releases/v0.4.0-v2-poc.6.json`, `releases/v0.3.3.json`, `RELEASE.md` |
+| Inspect release state | `releases/v0.4.0-v2-poc.7.json`, `releases/v0.3.3.json`, `RELEASE.md` |
 | Run the complete local gate | `make verify` |
 
 ## Active v1 Execution Path
@@ -78,6 +78,8 @@ Changes to the protocol path should preserve these properties:
 - Every nonce is consumed once through a per-user bitmap.
 - EOA signatures remain canonical low-s ECDSA; contract wallets use ERC-1271.
 - Router amount limits are checked on-chain, not only in the CLI.
+- Every netting batch passes the immutable Chainlink guard and pool-tick guard
+  before any nonce or balance mutation; guard rejection is atomic.
 - Liquidity position salts remain scoped to the caller.
 - Credential revocation is live and permanent in v1.
 - ZK credentials are bound to the Merkle root under which they were minted or

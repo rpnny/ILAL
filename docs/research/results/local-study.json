@@ -2,9 +2,9 @@
   "schema": "institutional-study-v1",
   "study": "local",
   "provenance": {
-    "commit": "b3799a03cffe3445f3991cedaa62cfa249c11d44",
+    "commit": "2f2c58d4ddb0fe9f0cb507ed2371fd5db0100d47",
     "dirty": true,
-    "generatedAt": "2026-08-24T14:27:24.720Z",
+    "generatedAt": "2026-08-25T04:29:16.910Z",
     "seed": "0x494c414c2d494e535449545554494f4e414c2d53545544592d5631",
     "toolchain": {
       "node": "v24.13.0",
@@ -67,21 +67,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 200000000,
-          "totalGas": 651701,
+          "totalGas": 686656,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 199899999,
-          "totalGas": 242867,
+          "totalGas": 242891,
           "lpFeeRaw": 100000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 199899999,
-          "totalGas": 221867,
+          "totalGas": 221891,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -102,11 +102,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.100001,
-        "gasPremium": 408834,
-        "l2CostUsdAt1GweiEth3000": 1.226502,
+        "gasPremium": 443765,
+        "l2CostUsdAt1GweiEth3000": 1.3312950000000001,
         "solverReserveUsd": 0.01,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.136501,
+        "netBenefitUsdExcludingL1": -1.2412940000000001,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -165,21 +165,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 124956881,
-          "totalGas": 692323,
+          "totalGas": 727798,
           "endingTick": -2,
           "lpFeeRaw": 37500
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 124931880,
-          "totalGas": 242868,
+          "totalGas": 242892,
           "lpFeeRaw": 62500
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 124931880,
-          "totalGas": 221868,
+          "totalGas": 221892,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -200,11 +200,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.025001,
-        "gasPremium": 449455,
-        "l2CostUsdAt1GweiEth3000": 1.348365,
+        "gasPremium": 484906,
+        "l2CostUsdAt1GweiEth3000": 1.454718,
         "solverReserveUsd": 0.00625,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.329614,
+        "netBenefitUsdExcludingL1": -1.435967,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -263,21 +263,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 149972502,
-          "totalGas": 692693,
+          "totalGas": 727660,
           "endingTick": -1,
           "lpFeeRaw": 25000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 149922502,
-          "totalGas": 242869,
+          "totalGas": 242893,
           "lpFeeRaw": 75000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 149922502,
-          "totalGas": 221869,
+          "totalGas": 221893,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -298,11 +298,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.05,
-        "gasPremium": 449824,
-        "l2CostUsdAt1GweiEth3000": 1.349472,
+        "gasPremium": 484767,
+        "l2CostUsdAt1GweiEth3000": 1.454301,
         "solverReserveUsd": 0.0075,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.306972,
+        "netBenefitUsdExcludingL1": -1.411801,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -361,21 +361,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 169984100,
-          "totalGas": 692184,
+          "totalGas": 728167,
           "endingTick": -1,
           "lpFeeRaw": 15000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 169914100,
-          "totalGas": 242868,
+          "totalGas": 242892,
           "lpFeeRaw": 85000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 169914100,
-          "totalGas": 221868,
+          "totalGas": 221892,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -396,11 +396,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.07,
-        "gasPremium": 449316,
-        "l2CostUsdAt1GweiEth3000": 1.347948,
+        "gasPremium": 485275,
+        "l2CostUsdAt1GweiEth3000": 1.4558250000000001,
         "solverReserveUsd": 0.0085,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.2864479999999998,
+        "netBenefitUsdExcludingL1": -1.394325,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -459,21 +459,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 189994900,
-          "totalGas": 692680,
+          "totalGas": 728155,
           "endingTick": -1,
           "lpFeeRaw": 5000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 189904899,
-          "totalGas": 242868,
+          "totalGas": 242892,
           "lpFeeRaw": 95000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 189904899,
-          "totalGas": 221868,
+          "totalGas": 221892,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -494,11 +494,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.090001,
-        "gasPremium": 449812,
-        "l2CostUsdAt1GweiEth3000": 1.349436,
+        "gasPremium": 485263,
+        "l2CostUsdAt1GweiEth3000": 1.4557890000000002,
         "solverReserveUsd": 0.0095,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.2689350000000001,
+        "netBenefitUsdExcludingL1": -1.3752880000000003,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -557,21 +557,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 2000000000,
-          "totalGas": 651205,
+          "totalGas": 687176,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1998999996,
-          "totalGas": 242933,
+          "totalGas": 242957,
           "lpFeeRaw": 1000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1998999996,
-          "totalGas": 221933,
+          "totalGas": 221957,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -592,11 +592,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 1.000004,
-        "gasPremium": 408272,
-        "l2CostUsdAt1GweiEth3000": 1.2248160000000001,
+        "gasPremium": 444219,
+        "l2CostUsdAt1GweiEth3000": 1.3326570000000002,
         "solverReserveUsd": 0.1,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.3248120000000002,
+        "netBenefitUsdExcludingL1": -0.4326530000000003,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -655,21 +655,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1249063483,
-          "totalGas": 692735,
+          "totalGas": 728210,
           "endingTick": -15,
           "lpFeeRaw": 375000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1248814137,
-          "totalGas": 242713,
+          "totalGas": 242737,
           "lpFeeRaw": 625000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1248814137,
-          "totalGas": 221713,
+          "totalGas": 221737,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -690,11 +690,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.249346,
-        "gasPremium": 450022,
-        "l2CostUsdAt1GweiEth3000": 1.350066,
+        "gasPremium": 485473,
+        "l2CostUsdAt1GweiEth3000": 1.4564190000000001,
         "solverReserveUsd": 0.0625,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.16322,
+        "netBenefitUsdExcludingL1": -1.269573,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -753,21 +753,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1499500374,
-          "totalGas": 692201,
+          "totalGas": 728172,
           "endingTick": -10,
           "lpFeeRaw": 250000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1499001119,
-          "totalGas": 242962,
+          "totalGas": 242986,
           "lpFeeRaw": 750000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1499001119,
-          "totalGas": 221962,
+          "totalGas": 221986,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -788,11 +788,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.499255,
-        "gasPremium": 449239,
-        "l2CostUsdAt1GweiEth3000": 1.347717,
+        "gasPremium": 485186,
+        "l2CostUsdAt1GweiEth3000": 1.4555580000000001,
         "solverReserveUsd": 0.075,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.923462,
+        "netBenefitUsdExcludingL1": -1.031303,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -851,21 +851,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1699760116,
-          "totalGas": 692697,
+          "totalGas": 728172,
           "endingTick": -6,
           "lpFeeRaw": 150000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1699060657,
-          "totalGas": 242975,
+          "totalGas": 242999,
           "lpFeeRaw": 850000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1699060657,
-          "totalGas": 221975,
+          "totalGas": 221999,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -886,11 +886,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.699459,
-        "gasPremium": 449722,
-        "l2CostUsdAt1GweiEth3000": 1.349166,
+        "gasPremium": 485173,
+        "l2CostUsdAt1GweiEth3000": 1.455519,
         "solverReserveUsd": 0.085,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.734707,
+        "netBenefitUsdExcludingL1": -0.8410599999999999,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -949,21 +949,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1899940010,
-          "totalGas": 692175,
+          "totalGas": 728158,
           "endingTick": -2,
           "lpFeeRaw": 50000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1899040204,
-          "totalGas": 242947,
+          "totalGas": 242971,
           "lpFeeRaw": 950000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1899040204,
-          "totalGas": 221947,
+          "totalGas": 221971,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -984,11 +984,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.899806,
-        "gasPremium": 449228,
-        "l2CostUsdAt1GweiEth3000": 1.347684,
+        "gasPremium": 485187,
+        "l2CostUsdAt1GweiEth3000": 1.455561,
         "solverReserveUsd": 0.095,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.5428780000000001,
+        "netBenefitUsdExcludingL1": -0.6507550000000001,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -1047,21 +1047,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 20000000000,
-          "totalGas": 651229,
+          "totalGas": 687200,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 19989990214,
-          "totalGas": 242976,
+          "totalGas": 243000,
           "lpFeeRaw": 10000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 19989990214,
-          "totalGas": 221976,
+          "totalGas": 222000,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -1082,11 +1082,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 10.009786,
-        "gasPremium": 408253,
-        "l2CostUsdAt1GweiEth3000": 1.2247590000000002,
+        "gasPremium": 444200,
+        "l2CostUsdAt1GweiEth3000": 1.3326,
         "solverReserveUsd": 1,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 7.7850269999999995,
+        "netBenefitUsdExcludingL1": 7.677186000000001,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -1145,21 +1145,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 12440474344,
-          "totalGas": 692226,
+          "totalGas": 727713,
           "endingTick": -150,
           "lpFeeRaw": 3750000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 12438621577,
-          "totalGas": 241959,
+          "totalGas": 241983,
           "lpFeeRaw": 6250000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 12438621577,
-          "totalGas": 220959,
+          "totalGas": 220983,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -1180,11 +1180,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 1.852767,
-        "gasPremium": 450267,
-        "l2CostUsdAt1GweiEth3000": 1.3508010000000001,
+        "gasPremium": 485730,
+        "l2CostUsdAt1GweiEth3000": 1.45719,
         "solverReserveUsd": 0.625,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.12303400000000009,
+        "netBenefitUsdExcludingL1": -0.22942299999999993,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -1243,21 +1243,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 14972649185,
-          "totalGas": 692238,
+          "totalGas": 728209,
           "endingTick": -100,
           "lpFeeRaw": 2500000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 14968385703,
-          "totalGas": 242729,
+          "totalGas": 242753,
           "lpFeeRaw": 7500000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 14968385703,
-          "totalGas": 221729,
+          "totalGas": 221753,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -1278,11 +1278,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 4.263482,
-        "gasPremium": 449509,
-        "l2CostUsdAt1GweiEth3000": 1.348527,
+        "gasPremium": 485456,
+        "l2CostUsdAt1GweiEth3000": 1.456368,
         "solverReserveUsd": 0.75,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 2.164955,
+        "netBenefitUsdExcludingL1": 2.0571139999999994,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -1341,21 +1341,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 16989535876,
-          "totalGas": 692217,
+          "totalGas": 727716,
           "endingTick": -60,
           "lpFeeRaw": 1500000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 16983067935,
-          "totalGas": 242221,
+          "totalGas": 242245,
           "lpFeeRaw": 8500000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 16983067935,
-          "totalGas": 221221,
+          "totalGas": 221245,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -1376,11 +1376,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 6.467941,
-        "gasPremium": 449996,
-        "l2CostUsdAt1GweiEth3000": 1.3499880000000002,
+        "gasPremium": 485471,
+        "l2CostUsdAt1GweiEth3000": 1.456413,
         "solverReserveUsd": 0.85,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 4.267953,
+        "netBenefitUsdExcludingL1": 4.161528000000001,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -1439,21 +1439,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 18998501997,
-          "totalGas": 692213,
+          "totalGas": 727688,
           "endingTick": -20,
           "lpFeeRaw": 500000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 18989688208,
-          "totalGas": 242714,
+          "totalGas": 242738,
           "lpFeeRaw": 9500000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 18989688208,
-          "totalGas": 221714,
+          "totalGas": 221738,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -1474,11 +1474,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 8.813789,
-        "gasPremium": 449499,
-        "l2CostUsdAt1GweiEth3000": 1.348497,
+        "gasPremium": 484950,
+        "l2CostUsdAt1GweiEth3000": 1.4548500000000002,
         "solverReserveUsd": 0.95,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 6.515292,
+        "netBenefitUsdExcludingL1": 6.408938999999999,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -1537,7 +1537,7 @@
         "ilal": {
           "succeeded": false,
           "outputRaw": 0,
-          "totalGas": 529883,
+          "totalGas": 546961,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
@@ -1627,7 +1627,7 @@
         "ilal": {
           "succeeded": false,
           "outputRaw": 0,
-          "totalGas": 2664527,
+          "totalGas": 2699999,
           "endingTick": 0,
           "lpFeeRaw": 37500000
         },
@@ -1717,7 +1717,7 @@
         "ilal": {
           "succeeded": false,
           "outputRaw": 0,
-          "totalGas": 570996,
+          "totalGas": 606444,
           "endingTick": 0,
           "lpFeeRaw": 25000000
         },
@@ -1807,7 +1807,7 @@
         "ilal": {
           "succeeded": false,
           "outputRaw": 0,
-          "totalGas": 570957,
+          "totalGas": 547021,
           "endingTick": 0,
           "lpFeeRaw": 15000000
         },
@@ -1897,7 +1897,7 @@
         "ilal": {
           "succeeded": false,
           "outputRaw": 0,
-          "totalGas": 511573,
+          "totalGas": 606403,
           "endingTick": 0,
           "lpFeeRaw": 5000000
         },
@@ -1987,21 +1987,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 200000000,
-          "totalGas": 651689,
+          "totalGas": 687164,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 199899999,
-          "totalGas": 242867,
+          "totalGas": 242891,
           "lpFeeRaw": 100000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 199899999,
-          "totalGas": 221867,
+          "totalGas": 221891,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2022,11 +2022,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.100001,
-        "gasPremium": 408822,
-        "l2CostUsdAt1GweiEth3000": 1.226466,
+        "gasPremium": 444273,
+        "l2CostUsdAt1GweiEth3000": 1.332819,
         "solverReserveUsd": 0.01,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.136465,
+        "netBenefitUsdExcludingL1": -1.242818,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2085,21 +2085,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 124956881,
-          "totalGas": 692692,
+          "totalGas": 727671,
           "endingTick": -2,
           "lpFeeRaw": 37500
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 124931880,
-          "totalGas": 242868,
+          "totalGas": 242892,
           "lpFeeRaw": 62500
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 124931880,
-          "totalGas": 221868,
+          "totalGas": 221892,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2120,11 +2120,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.025001,
-        "gasPremium": 449824,
-        "l2CostUsdAt1GweiEth3000": 1.349472,
+        "gasPremium": 484779,
+        "l2CostUsdAt1GweiEth3000": 1.454337,
         "solverReserveUsd": 0.00625,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.330721,
+        "netBenefitUsdExcludingL1": -1.435586,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2183,21 +2183,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 149972502,
-          "totalGas": 692197,
+          "totalGas": 728144,
           "endingTick": -1,
           "lpFeeRaw": 25000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 149922502,
-          "totalGas": 242869,
+          "totalGas": 242893,
           "lpFeeRaw": 75000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 149922502,
-          "totalGas": 221869,
+          "totalGas": 221893,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2218,11 +2218,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.05,
-        "gasPremium": 449328,
-        "l2CostUsdAt1GweiEth3000": 1.347984,
+        "gasPremium": 485251,
+        "l2CostUsdAt1GweiEth3000": 1.455753,
         "solverReserveUsd": 0.0075,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.305484,
+        "netBenefitUsdExcludingL1": -1.413253,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2281,21 +2281,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 169984100,
-          "totalGas": 692184,
+          "totalGas": 728167,
           "endingTick": -1,
           "lpFeeRaw": 15000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 169914100,
-          "totalGas": 242868,
+          "totalGas": 242892,
           "lpFeeRaw": 85000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 169914100,
-          "totalGas": 221868,
+          "totalGas": 221892,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2316,11 +2316,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.07,
-        "gasPremium": 449316,
-        "l2CostUsdAt1GweiEth3000": 1.347948,
+        "gasPremium": 485275,
+        "l2CostUsdAt1GweiEth3000": 1.4558250000000001,
         "solverReserveUsd": 0.0085,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.2864479999999998,
+        "netBenefitUsdExcludingL1": -1.394325,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2379,21 +2379,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 189994900,
-          "totalGas": 692680,
+          "totalGas": 727623,
           "endingTick": -1,
           "lpFeeRaw": 5000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 189904899,
-          "totalGas": 242868,
+          "totalGas": 242892,
           "lpFeeRaw": 95000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 189904899,
-          "totalGas": 221868,
+          "totalGas": 221892,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2414,11 +2414,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.090001,
-        "gasPremium": 449812,
-        "l2CostUsdAt1GweiEth3000": 1.349436,
+        "gasPremium": 484731,
+        "l2CostUsdAt1GweiEth3000": 1.454193,
         "solverReserveUsd": 0.0095,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.2689350000000001,
+        "netBenefitUsdExcludingL1": -1.3736920000000001,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2477,21 +2477,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 2000000000,
-          "totalGas": 643589,
+          "totalGas": 679064,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1998999999,
-          "totalGas": 242867,
+          "totalGas": 242891,
           "lpFeeRaw": 1000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1998999999,
-          "totalGas": 221867,
+          "totalGas": 221891,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2512,11 +2512,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 1.000001,
-        "gasPremium": 400722,
-        "l2CostUsdAt1GweiEth3000": 1.202166,
+        "gasPremium": 436173,
+        "l2CostUsdAt1GweiEth3000": 1.3085190000000002,
         "solverReserveUsd": 0.1,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.30216500000000013,
+        "netBenefitUsdExcludingL1": -0.40851800000000027,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2575,21 +2575,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1249568810,
-          "totalGas": 684096,
+          "totalGas": 719547,
           "endingTick": -2,
           "lpFeeRaw": 375000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1249318816,
-          "totalGas": 242868,
+          "totalGas": 242892,
           "lpFeeRaw": 625000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1249318816,
-          "totalGas": 221868,
+          "totalGas": 221892,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2610,11 +2610,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.249994,
-        "gasPremium": 441228,
-        "l2CostUsdAt1GweiEth3000": 1.323684,
+        "gasPremium": 476655,
+        "l2CostUsdAt1GweiEth3000": 1.4299650000000002,
         "solverReserveUsd": 0.0625,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -1.13619,
+        "netBenefitUsdExcludingL1": -1.242471,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2673,21 +2673,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1499725026,
-          "totalGas": 684073,
+          "totalGas": 720020,
           "endingTick": -1,
           "lpFeeRaw": 250000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1499225032,
-          "totalGas": 242857,
+          "totalGas": 242881,
           "lpFeeRaw": 750000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1499225032,
-          "totalGas": 221857,
+          "totalGas": 221881,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2708,11 +2708,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.499994,
-        "gasPremium": 441216,
-        "l2CostUsdAt1GweiEth3000": 1.3236480000000002,
+        "gasPremium": 477139,
+        "l2CostUsdAt1GweiEth3000": 1.431417,
         "solverReserveUsd": 0.075,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.8986540000000001,
+        "netBenefitUsdExcludingL1": -1.0064229999999998,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2771,21 +2771,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1699841009,
-          "totalGas": 684072,
+          "totalGas": 720043,
           "endingTick": -1,
           "lpFeeRaw": 150000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1699141013,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 850000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1699141013,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2806,11 +2806,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.699996,
-        "gasPremium": 441216,
-        "l2CostUsdAt1GweiEth3000": 1.3236480000000002,
+        "gasPremium": 477163,
+        "l2CostUsdAt1GweiEth3000": 1.431489,
         "solverReserveUsd": 0.085,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.7086520000000002,
+        "netBenefitUsdExcludingL1": -0.816493,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2869,21 +2869,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 1899949001,
-          "totalGas": 684072,
+          "totalGas": 720043,
           "endingTick": -1,
           "lpFeeRaw": 50000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 1899049002,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 950000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 1899049002,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -2904,11 +2904,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 0.899999,
-        "gasPremium": 441216,
-        "l2CostUsdAt1GweiEth3000": 1.3236480000000002,
+        "gasPremium": 477163,
+        "l2CostUsdAt1GweiEth3000": 1.431489,
         "solverReserveUsd": 0.095,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": -0.5186490000000001,
+        "netBenefitUsdExcludingL1": -0.62649,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -2967,21 +2967,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 20000000000,
-          "totalGas": 643129,
+          "totalGas": 679100,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 19989999999,
-          "totalGas": 242867,
+          "totalGas": 242891,
           "lpFeeRaw": 10000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 19989999999,
-          "totalGas": 221867,
+          "totalGas": 221891,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3002,11 +3002,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 10.000001,
-        "gasPremium": 400262,
-        "l2CostUsdAt1GweiEth3000": 1.2007860000000001,
+        "gasPremium": 436209,
+        "l2CostUsdAt1GweiEth3000": 1.308627,
         "solverReserveUsd": 1,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 7.7992149999999985,
+        "netBenefitUsdExcludingL1": 7.691374,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3065,21 +3065,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 12495688104,
-          "totalGas": 684072,
+          "totalGas": 719571,
           "endingTick": -2,
           "lpFeeRaw": 3750000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 12493188169,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 6250000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 12493188169,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3100,11 +3100,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 2.499935,
-        "gasPremium": 441216,
-        "l2CostUsdAt1GweiEth3000": 1.3236480000000002,
+        "gasPremium": 476691,
+        "l2CostUsdAt1GweiEth3000": 1.430073,
         "solverReserveUsd": 0.625,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 0.5512869999999996,
+        "netBenefitUsdExcludingL1": 0.44486199999999987,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3163,21 +3163,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 14997250262,
-          "totalGas": 684605,
+          "totalGas": 720080,
           "endingTick": -1,
           "lpFeeRaw": 2500000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 14992250336,
-          "totalGas": 242857,
+          "totalGas": 242881,
           "lpFeeRaw": 7500000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 14992250336,
-          "totalGas": 221857,
+          "totalGas": 221881,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3198,11 +3198,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 4.999926,
-        "gasPremium": 441748,
-        "l2CostUsdAt1GweiEth3000": 1.325244,
+        "gasPremium": 477199,
+        "l2CostUsdAt1GweiEth3000": 1.431597,
         "solverReserveUsd": 0.75,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 2.9246820000000002,
+        "netBenefitUsdExcludingL1": 2.8183290000000003,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3261,21 +3261,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 16998410092,
-          "totalGas": 684592,
+          "totalGas": 719571,
           "endingTick": -1,
           "lpFeeRaw": 1500000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 16991410146,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 8500000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 16991410146,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3296,11 +3296,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 6.999946,
-        "gasPremium": 441736,
-        "l2CostUsdAt1GweiEth3000": 1.3252080000000002,
+        "gasPremium": 476691,
+        "l2CostUsdAt1GweiEth3000": 1.430073,
         "solverReserveUsd": 0.85,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 4.824738,
+        "netBenefitUsdExcludingL1": 4.719873,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3359,21 +3359,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 18999490010,
-          "totalGas": 684592,
+          "totalGas": 720067,
           "endingTick": -1,
           "lpFeeRaw": 500000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 18990490029,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 9500000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 18990490029,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3394,11 +3394,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 8.999981,
-        "gasPremium": 441736,
-        "l2CostUsdAt1GweiEth3000": 1.3252080000000002,
+        "gasPremium": 477187,
+        "l2CostUsdAt1GweiEth3000": 1.431561,
         "solverReserveUsd": 0.95,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 6.724773,
+        "netBenefitUsdExcludingL1": 6.6184199999999995,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3457,21 +3457,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 200000000000,
-          "totalGas": 643613,
+          "totalGas": 678592,
           "endingTick": 0,
           "lpFeeRaw": 0
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 199899999998,
-          "totalGas": 242867,
+          "totalGas": 242891,
           "lpFeeRaw": 100000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 199899999998,
-          "totalGas": 221867,
+          "totalGas": 221891,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3492,11 +3492,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 100.000002,
-        "gasPremium": 400746,
-        "l2CostUsdAt1GweiEth3000": 1.202238,
+        "gasPremium": 435701,
+        "l2CostUsdAt1GweiEth3000": 1.3071030000000001,
         "solverReserveUsd": 10,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 88.797764,
+        "netBenefitUsdExcludingL1": 88.692899,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3555,21 +3555,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 124956881044,
-          "totalGas": 684108,
+          "totalGas": 719583,
           "endingTick": -2,
           "lpFeeRaw": 37500000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 124931881699,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 62500000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 124931881699,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3590,11 +3590,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 24.999345,
-        "gasPremium": 441252,
-        "l2CostUsdAt1GweiEth3000": 1.3237560000000002,
+        "gasPremium": 476703,
+        "l2CostUsdAt1GweiEth3000": 1.430109,
         "solverReserveUsd": 6.25,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 17.425589000000002,
+        "netBenefitUsdExcludingL1": 17.319236,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3653,21 +3653,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 149972502624,
-          "totalGas": 684097,
+          "totalGas": 719572,
           "endingTick": -1,
           "lpFeeRaw": 25000000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 149922503372,
-          "totalGas": 242857,
+          "totalGas": 242881,
           "lpFeeRaw": 75000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 149922503372,
-          "totalGas": 221857,
+          "totalGas": 221881,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3688,11 +3688,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 49.999252,
-        "gasPremium": 441240,
-        "l2CostUsdAt1GweiEth3000": 1.32372,
+        "gasPremium": 476691,
+        "l2CostUsdAt1GweiEth3000": 1.430073,
         "solverReserveUsd": 7.5,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 41.175532,
+        "netBenefitUsdExcludingL1": 41.069179,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3751,21 +3751,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 169984100926,
-          "totalGas": 684592,
+          "totalGas": 719583,
           "endingTick": -1,
           "lpFeeRaw": 15000000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 169914101470,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 85000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 169914101470,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3786,11 +3786,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 69.999456,
-        "gasPremium": 441736,
-        "l2CostUsdAt1GweiEth3000": 1.3252080000000002,
+        "gasPremium": 476703,
+        "l2CostUsdAt1GweiEth3000": 1.430109,
         "solverReserveUsd": 8.5,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 60.17424799999999,
+        "netBenefitUsdExcludingL1": 60.06934699999999,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3849,21 +3849,21 @@
         "ilal": {
           "succeeded": true,
           "outputRaw": 189994900100,
-          "totalGas": 684604,
+          "totalGas": 719571,
           "endingTick": -1,
           "lpFeeRaw": 5000000
         },
         "directV4Independent": {
           "fullFill": true,
           "outputRaw": 189904900297,
-          "totalGas": 242856,
+          "totalGas": 242880,
           "lpFeeRaw": 95000000
         },
         "directV4Bundled": {
           "status": "MODELLED_LOCAL_ENVELOPE",
           "fullFill": true,
           "outputRaw": 189904900297,
-          "totalGas": 221856,
+          "totalGas": 221880,
           "note": "Same measured two-swap execution with one transaction intrinsic removed; wrapper overhead is not inferred."
         },
         "universalRouterPermit2Independent": {
@@ -3884,11 +3884,11 @@
       },
       "economics": {
         "outputAdvantageUsd": 89.999803,
-        "gasPremium": 441748,
-        "l2CostUsdAt1GweiEth3000": 1.325244,
+        "gasPremium": 476691,
+        "l2CostUsdAt1GweiEth3000": 1.430073,
         "solverReserveUsd": 9.5,
         "l1SecurityFeeUsd": null,
-        "netBenefitUsdExcludingL1": 79.174559,
+        "netBenefitUsdExcludingL1": 79.06973,
         "productionFeeVerdict": "PENDING_FORK_L1_AND_UNIVERSAL_ROUTER"
       },
       "invariants": {
@@ -3898,6 +3898,15 @@
       }
     }
   ],
+  "oracleGuardGas": {
+    "status": "COMPLETE",
+    "provider": "chainlink-data-feeds",
+    "enforcement": "hook-hard-gate",
+    "baselineGas": 1181,
+    "chainlinkGuardGas": 37541,
+    "incrementalGas": 36360,
+    "note": "Incremental warm local call cost versus the same external interface returning a constant snapshot; transaction-level economics use full measured batch gas."
+  },
   "multiOrder": {
     "status": "COMPLETE",
     "scenarios": [
@@ -3906,144 +3915,144 @@
         "category": "multi-order",
         "orders": 2,
         "distribution": "uniform",
-        "totalGas": 670240,
+        "totalGas": 705715,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 335120,
-        "gasPerMatchedToken": 47.87428571428571
+        "gasPerOrder": 352857.5,
+        "gasPerMatchedToken": 50.40821428571429
       },
       {
         "scenarioId": "multi-4-uniform",
         "category": "multi-order",
         "orders": 4,
         "distribution": "uniform",
-        "totalGas": 816297,
+        "totalGas": 851854,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 204074.25,
-        "gasPerMatchedToken": 58.30692857142857
+        "gasPerOrder": 212963.5,
+        "gasPerMatchedToken": 60.846714285714285
       },
       {
         "scenarioId": "multi-8-uniform",
         "category": "multi-order",
         "orders": 8,
         "distribution": "uniform",
-        "totalGas": 1130485,
+        "totalGas": 1162960,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 141310.625,
-        "gasPerMatchedToken": 80.74892857142858
+        "gasPerOrder": 145370,
+        "gasPerMatchedToken": 83.06857142857143
       },
       {
         "scenarioId": "multi-16-uniform",
         "category": "multi-order",
         "orders": 16,
         "distribution": "uniform",
-        "totalGas": 1787349,
+        "totalGas": 1825968,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 111709.3125,
-        "gasPerMatchedToken": 127.66778571428571
+        "gasPerOrder": 114123,
+        "gasPerMatchedToken": 130.4262857142857
       },
       {
         "scenarioId": "multi-2-one-large-many-small",
         "category": "multi-order",
         "orders": 2,
         "distribution": "one-large-many-small",
-        "totalGas": 670930,
+        "totalGas": 705909,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 335465,
-        "gasPerMatchedToken": 47.92357142857143
+        "gasPerOrder": 352954.5,
+        "gasPerMatchedToken": 50.42207142857143
       },
       {
         "scenarioId": "multi-4-one-large-many-small",
         "category": "multi-order",
         "orders": 4,
         "distribution": "one-large-many-small",
-        "totalGas": 815856,
+        "totalGas": 850144,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 203964,
-        "gasPerMatchedToken": 58.27542857142857
+        "gasPerOrder": 212536,
+        "gasPerMatchedToken": 60.72457142857143
       },
       {
         "scenarioId": "multi-8-one-large-many-small",
         "category": "multi-order",
         "orders": 8,
         "distribution": "one-large-many-small",
-        "totalGas": 1135179,
+        "totalGas": 1168364,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 141897.375,
-        "gasPerMatchedToken": 81.08421428571428
+        "gasPerOrder": 146045.5,
+        "gasPerMatchedToken": 83.45457142857143
       },
       {
         "scenarioId": "multi-16-one-large-many-small",
         "category": "multi-order",
         "orders": 16,
         "distribution": "one-large-many-small",
-        "totalGas": 1787886,
+        "totalGas": 1836087,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 111742.875,
-        "gasPerMatchedToken": 127.70614285714285
+        "gasPerOrder": 114755.4375,
+        "gasPerMatchedToken": 131.14907142857143
       },
       {
         "scenarioId": "multi-2-long-tail",
         "category": "multi-order",
         "orders": 2,
         "distribution": "long-tail",
-        "totalGas": 670677,
+        "totalGas": 706648,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 335338.5,
-        "gasPerMatchedToken": 47.9055
+        "gasPerOrder": 353324,
+        "gasPerMatchedToken": 50.47485714285714
       },
       {
         "scenarioId": "multi-4-long-tail",
         "category": "multi-order",
         "orders": 4,
         "distribution": "long-tail",
-        "totalGas": 820394,
+        "totalGas": 855407,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 205098.5,
-        "gasPerMatchedToken": 58.59957142857143
+        "gasPerOrder": 213851.75,
+        "gasPerMatchedToken": 61.1005
       },
       {
         "scenarioId": "multi-8-long-tail",
         "category": "multi-order",
         "orders": 8,
         "distribution": "long-tail",
-        "totalGas": 1134539,
+        "totalGas": 1177043,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 141817.375,
-        "gasPerMatchedToken": 81.0385
+        "gasPerOrder": 147130.375,
+        "gasPerMatchedToken": 84.0745
       },
       {
         "scenarioId": "multi-16-long-tail",
         "category": "multi-order",
         "orders": 16,
         "distribution": "long-tail",
-        "totalGas": 1760765,
+        "totalGas": 1815753,
         "matchedRaw": 14000000000,
         "roundingDust": 0,
         "permutationStable": true,
-        "gasPerOrder": 110047.8125,
-        "gasPerMatchedToken": 125.76892857142857
+        "gasPerOrder": 113484.5625,
+        "gasPerMatchedToken": 129.69664285714285
       }
     ]
   },
@@ -4059,8 +4068,8 @@
         "range": 100,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 4159,
-        "firstFailureNotional": 4160,
+        "maxSafeNotional": 1011,
+        "firstFailureNotional": 1012,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4098,8 +4107,8 @@
         "range": 100,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 7917,
-        "firstFailureNotional": 7918,
+        "maxSafeNotional": 4125,
+        "firstFailureNotional": 4126,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4137,8 +4146,8 @@
         "range": 100,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 257,
-        "firstFailureNotional": 258,
+        "maxSafeNotional": 137,
+        "firstFailureNotional": 138,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4176,8 +4185,8 @@
         "range": 1000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 32460,
-        "firstFailureNotional": 32461,
+        "maxSafeNotional": 21002,
+        "firstFailureNotional": 21003,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4215,8 +4224,8 @@
         "range": 1000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 41776,
+        "firstFailureNotional": 41777,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4254,8 +4263,8 @@
         "range": 1000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 37341,
-        "firstFailureNotional": 37342,
+        "maxSafeNotional": 2987,
+        "firstFailureNotional": 2988,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4293,8 +4302,8 @@
         "range": 10000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 330766,
-        "firstFailureNotional": 330767,
+        "maxSafeNotional": 521579,
+        "firstFailureNotional": 521580,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4332,8 +4341,8 @@
         "range": 10000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 402770,
+        "firstFailureNotional": 402771,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4371,8 +4380,8 @@
         "range": 10000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 512238,
-        "firstFailureNotional": 512239,
+        "maxSafeNotional": 346222,
+        "firstFailureNotional": 346223,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4410,8 +4419,8 @@
         "range": 100,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 6192,
-        "firstFailureNotional": 6193,
+        "maxSafeNotional": 8132,
+        "firstFailureNotional": 8133,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4449,8 +4458,8 @@
         "range": 100,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 15781,
-        "firstFailureNotional": 15782,
+        "maxSafeNotional": 15838,
+        "firstFailureNotional": 15839,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4488,8 +4497,8 @@
         "range": 100,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 257,
-        "firstFailureNotional": 258,
+        "maxSafeNotional": 137,
+        "firstFailureNotional": 138,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4527,8 +4536,8 @@
         "range": 1000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 83346,
-        "firstFailureNotional": 83347,
+        "maxSafeNotional": 21002,
+        "firstFailureNotional": 21003,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4566,8 +4575,8 @@
         "range": 1000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 41776,
+        "firstFailureNotional": 41777,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4605,8 +4614,8 @@
         "range": 1000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 37341,
-        "firstFailureNotional": 37342,
+        "maxSafeNotional": 71557,
+        "firstFailureNotional": 71558,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4644,8 +4653,8 @@
         "range": 10000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 330766,
-        "firstFailureNotional": 330767,
+        "maxSafeNotional": 635414,
+        "firstFailureNotional": 635415,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4683,8 +4692,8 @@
         "range": 10000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 402770,
+        "firstFailureNotional": 402771,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4722,8 +4731,8 @@
         "range": 10000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 840407,
-        "firstFailureNotional": 840408,
+        "maxSafeNotional": 346222,
+        "firstFailureNotional": 346223,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4761,8 +4770,8 @@
         "range": 100,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 104313,
-        "firstFailureNotional": 104314,
+        "maxSafeNotional": 144230,
+        "firstFailureNotional": 144231,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4800,8 +4809,8 @@
         "range": 100,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 316581,
+        "firstFailureNotional": 316582,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4839,8 +4848,8 @@
         "range": 100,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 16670,
-        "firstFailureNotional": 16671,
+        "maxSafeNotional": 2987,
+        "firstFailureNotional": 2988,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4878,8 +4887,8 @@
         "range": 1000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 330766,
-        "firstFailureNotional": 330767,
+        "maxSafeNotional": 635414,
+        "firstFailureNotional": 635415,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4917,8 +4926,8 @@
         "range": 1000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 402770,
+        "firstFailureNotional": 402771,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4956,8 +4965,8 @@
         "range": 1000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 840407,
-        "firstFailureNotional": 840408,
+        "maxSafeNotional": 346222,
+        "firstFailureNotional": 346223,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -4995,8 +5004,8 @@
         "range": 10000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 330766,
-        "firstFailureNotional": 330767,
+        "maxSafeNotional": 635414,
+        "firstFailureNotional": 635415,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5034,8 +5043,8 @@
         "range": 10000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 402770,
+        "firstFailureNotional": 402771,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5073,8 +5082,8 @@
         "range": 10000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 840407,
-        "firstFailureNotional": 840408,
+        "maxSafeNotional": 346222,
+        "firstFailureNotional": 346223,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5112,8 +5121,8 @@
         "range": 100,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 16672,
-        "firstFailureNotional": 16673,
+        "maxSafeNotional": 16666,
+        "firstFailureNotional": 16667,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5151,8 +5160,8 @@
         "range": 100,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 31265,
-        "firstFailureNotional": 31266,
+        "maxSafeNotional": 31446,
+        "firstFailureNotional": 31447,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5190,8 +5199,8 @@
         "range": 100,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 1671,
-        "firstFailureNotional": 1672,
+        "maxSafeNotional": 137,
+        "firstFailureNotional": 138,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5229,8 +5238,8 @@
         "range": 1000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 104313,
-        "firstFailureNotional": 104314,
+        "maxSafeNotional": 144230,
+        "firstFailureNotional": 144231,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5268,8 +5277,8 @@
         "range": 1000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 41776,
+        "firstFailureNotional": 41777,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5307,8 +5316,8 @@
         "range": 1000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 136258,
-        "firstFailureNotional": 136259,
+        "maxSafeNotional": 96938,
+        "firstFailureNotional": 96939,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5346,8 +5355,8 @@
         "range": 10000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 330766,
-        "firstFailureNotional": 330767,
+        "maxSafeNotional": 635414,
+        "firstFailureNotional": 635415,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5385,8 +5394,8 @@
         "range": 10000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 402770,
+        "firstFailureNotional": 402771,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5424,8 +5433,8 @@
         "range": 10000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 840407,
-        "firstFailureNotional": 840408,
+        "maxSafeNotional": 346222,
+        "firstFailureNotional": 346223,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5463,8 +5472,8 @@
         "range": 100,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 32460,
-        "firstFailureNotional": 32461,
+        "maxSafeNotional": 21002,
+        "firstFailureNotional": 21003,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5502,8 +5511,8 @@
         "range": 100,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 41776,
+        "firstFailureNotional": 41777,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5541,8 +5550,8 @@
         "range": 100,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 3321,
-        "firstFailureNotional": 3322,
+        "maxSafeNotional": 2987,
+        "firstFailureNotional": 2988,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5580,8 +5589,8 @@
         "range": 1000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 330766,
-        "firstFailureNotional": 330767,
+        "maxSafeNotional": 322098,
+        "firstFailureNotional": 322099,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5619,8 +5628,8 @@
         "range": 1000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 344880,
+        "firstFailureNotional": 344881,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5658,8 +5667,8 @@
         "range": 1000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 157438,
-        "firstFailureNotional": 157439,
+        "maxSafeNotional": 274596,
+        "firstFailureNotional": 274597,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5697,8 +5706,8 @@
         "range": 10000,
         "initialTick": 0,
         "balanceBps": 5000,
-        "maxSafeNotional": 330766,
-        "firstFailureNotional": 330767,
+        "maxSafeNotional": 635414,
+        "firstFailureNotional": 635415,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5736,8 +5745,8 @@
         "range": 10000,
         "initialTick": 90,
         "balanceBps": 5000,
-        "maxSafeNotional": 33318,
-        "firstFailureNotional": 33319,
+        "maxSafeNotional": 402770,
+        "firstFailureNotional": 402771,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"
@@ -5775,8 +5784,8 @@
         "range": 10000,
         "initialTick": -90,
         "balanceBps": 5000,
-        "maxSafeNotional": 840407,
-        "firstFailureNotional": 840408,
+        "maxSafeNotional": 346222,
+        "firstFailureNotional": 346223,
         "selector": "0x90bfb86500000000000000000000000000000000000000000000000000000000",
         "limitingFactor": "PHYSICAL_MANAGER_BALANCE",
         "preflightExpected": "REJECT_AT_FIRST_FAILURE"

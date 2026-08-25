@@ -30,6 +30,7 @@ const ORDER_TYPEHASH = keccak256(
   ),
 );
 const ZERO_HASH = `0x${"00".repeat(32)}` as Hex;
+const ZERO_ADDRESS = `0x${"00".repeat(20)}` as Address;
 const PREFLIGHT_CALLER = "0x0000000000000000000000000000000000000001" as Address;
 const BASE_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F" as Address;
 
@@ -112,6 +113,10 @@ const NETTING_ROUTER_ABI = [
 
 const NETTING_HOOK_ABI = [
   {
+    name: "oracleGuard", type: "function", stateMutability: "view", inputs: [],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
     name: "nonceUsed", type: "function", stateMutability: "view",
     inputs: [{ name: "user", type: "address" }, { name: "nonce", type: "bytes32" }],
     outputs: [{ name: "", type: "bool" }],
@@ -126,6 +131,29 @@ const NETTING_HOOK_ABI = [
       { name: "user", type: "address", indexed: true },
       { name: "nonce", type: "bytes32", indexed: true },
     ],
+  },
+] as const;
+
+const ORACLE_SNAPSHOT_COMPONENTS = [
+  { name: "price0Wad", type: "uint256" },
+  { name: "price1Wad", type: "uint256" },
+  { name: "updatedAt0", type: "uint256" },
+  { name: "updatedAt1", type: "uint256" },
+  { name: "sequencerCheckEnabled", type: "bool" },
+] as const;
+
+const ORACLE_GUARD_ABI = [
+  { name: "feed0", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "address" }] },
+  { name: "feed1", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "address" }] },
+  { name: "maxAge0", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
+  { name: "maxAge1", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
+  { name: "maxUsdDeviationBps", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
+  { name: "maxPairDeviationBps", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
+  { name: "sequencerUptimeFeed", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "address" }] },
+  { name: "sequencerGracePeriod", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
+  {
+    name: "validate", type: "function", stateMutability: "view", inputs: [],
+    outputs: [{ name: "snapshot", type: "tuple", components: ORACLE_SNAPSHOT_COMPONENTS }],
   },
 ] as const;
 
@@ -186,6 +214,25 @@ export interface NettingPreflightReport {
     currency0: Address; currency1: Address; fee: number; tickSpacing: number;
     poolManagerBalances: { currency0: string; currency1: string };
   };
+  oracle: {
+    guard: Address | null;
+    provider: "chainlink-data-feeds";
+    enforcement: "hook-hard-gate";
+    feed0: Address | null;
+    feed1: Address | null;
+    price0Wad: string | null;
+    price1Wad: string | null;
+    updatedAt0: string | null;
+    updatedAt1: string | null;
+    maxAge0: string | null;
+    maxAge1: string | null;
+    maxUsdDeviationBps: string | null;
+    maxPairDeviationBps: string | null;
+    sequencerUptimeFeed: Address | null;
+    sequencerGracePeriod: string | null;
+    sequencerCheckEnabled: boolean | null;
+    status: "valid" | "rejected" | "unavailable";
+  } | null;
   checks: Array<{ name: string; ok: boolean; detail: string; orderIndex?: number }>;
   fees: {
     estimatedExecutionGas: string | null; gasPriceWei: string | null;
@@ -196,6 +243,19 @@ export interface NettingPreflightReport {
   decodedRevert: { selector: Hex | null; message: string } | null;
   warning: string;
 }
+
+const ORACLE_ERROR_NAMES = new Map<string, string>([
+  ["FeedCallFailed(address)", "CHAINLINK_FEED_CALL_FAILED"],
+  ["InvalidRound(address,uint80,uint256)", "CHAINLINK_INVALID_ROUND"],
+  ["InvalidAnswer(address,int256)", "CHAINLINK_INVALID_ANSWER"],
+  ["FutureTimestamp(address,uint256,uint256)", "CHAINLINK_FUTURE_TIMESTAMP"],
+  ["StalePrice(address,uint256,uint256)", "CHAINLINK_STALE_PRICE"],
+  ["PegDeviationExceeded(uint8,uint256,uint256)", "CHAINLINK_PEG_DEVIATION"],
+  ["PairDeviationExceeded(uint256,uint256,uint256)", "CHAINLINK_PAIR_DEVIATION"],
+  ["SequencerDown()", "CHAINLINK_SEQUENCER_DOWN"],
+  ["SequencerInvalidTimestamp(uint256,uint256)", "CHAINLINK_SEQUENCER_INVALID_TIMESTAMP"],
+  ["SequencerGracePeriodNotOver(uint256,uint256)", "CHAINLINK_SEQUENCER_GRACE_PERIOD"],
+].map(([signature, name]) => [keccak256(new TextEncoder().encode(signature)).slice(0, 10), name]));
 
 function requireAddress(value: string | undefined, label: string): Address {
   if (!value || !isAddress(value)) die(`${label} must be a valid address.`);
@@ -343,12 +403,14 @@ function printPreview(preview: NettingPreview): void {
   console.log(`batchId:                  ${preview.batchId}`);
 }
 
-function revertDetails(error: unknown): { selector: Hex | null; message: string } {
+export function decodeNettingRevert(error: unknown): { selector: Hex | null; message: string } {
   const message = error instanceof Error ? error.message : String(error);
   const match = message.match(/0x[0-9a-fA-F]{8}/);
+  const selector = match ? match[0].toLowerCase() as Hex : null;
+  const oracleName = selector ? ORACLE_ERROR_NAMES.get(selector) : undefined;
   return {
-    selector: match ? match[0].toLowerCase() as Hex : null,
-    message: message.split("\n")[0]?.slice(0, 500) ?? "Unknown execution rejection",
+    selector,
+    message: oracleName ?? message.split("\n")[0]?.slice(0, 500) ?? "Unknown execution rejection",
   };
 }
 
@@ -381,7 +443,7 @@ export async function runNettingPreflight(opts: {
   try {
     block = await publicClient.getBlock({ blockTag: "latest" });
   } catch (error) {
-    const decodedRevert = revertDetails(error);
+    const decodedRevert = decodeNettingRevert(error);
     const report: NettingPreflightReport = {
       format: "ilal-netting-preflight-v1", generatedAt: new Date().toISOString(), chainId,
       snapshot: { blockNumber: "0", blockHash: ZERO_HASH, timestamp: "0" },
@@ -389,6 +451,7 @@ export async function runNettingPreflight(opts: {
       pool: { poolId: batch.orders[0]!.poolId, router, hook, poolManager: PREFLIGHT_CALLER,
         currency0: token0, currency1: token1, fee, tickSpacing,
         poolManagerBalances: { currency0: "0", currency1: "0" } },
+      oracle: null,
       checks, fees: { estimatedExecutionGas: null, gasPriceWei: null, l2ExecutionFeeWei: null,
         l1SecurityFeeWei: null, estimatedTotalFeeWei: null,
         model: "Base L2 execution plus GasPriceOracle.getL1Fee(serialized transaction)" },
@@ -412,6 +475,7 @@ export async function runNettingPreflight(opts: {
   let l1Fee: bigint | null = null;
   let decodedRevert: NettingPreflightReport["decodedRevert"] = null;
   let simulationPassed = false;
+  let oracle: NettingPreflightReport["oracle"] = null;
 
   try {
     poolManager = await publicClient.readContract({ address: router, abi: NETTING_ROUTER_ABI,
@@ -426,6 +490,84 @@ export async function runNettingPreflight(opts: {
       detail: `total0=${preview.total0}; total1=${preview.total1}` });
     checks.push({ name: "hook-domain", ok: batch.files[0]!.domain.verifyingContract.toLowerCase() === hook.toLowerCase(),
       detail: batch.files[0]!.domain.verifyingContract });
+
+    try {
+      const oracleGuard = await publicClient.readContract({
+        address: hook, abi: NETTING_HOOK_ABI, functionName: "oracleGuard", blockNumber,
+      });
+      const [feed0Address, feed1Address, maxAge0, maxAge1, maxUsdDeviationBps, maxPairDeviationBps,
+        sequencerUptimeFeed, sequencerGracePeriod] = await Promise.all([
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "feed0", blockNumber }),
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "feed1", blockNumber }),
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "maxAge0", blockNumber }),
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "maxAge1", blockNumber }),
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "maxUsdDeviationBps", blockNumber }),
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "maxPairDeviationBps", blockNumber }),
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "sequencerUptimeFeed", blockNumber }),
+        publicClient.readContract({ address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "sequencerGracePeriod", blockNumber }),
+      ]);
+      oracle = {
+        guard: oracleGuard,
+        provider: "chainlink-data-feeds",
+        enforcement: "hook-hard-gate",
+        feed0: feed0Address,
+        feed1: feed1Address,
+        price0Wad: null,
+        price1Wad: null,
+        updatedAt0: null,
+        updatedAt1: null,
+        maxAge0: maxAge0.toString(),
+        maxAge1: maxAge1.toString(),
+        maxUsdDeviationBps: maxUsdDeviationBps.toString(),
+        maxPairDeviationBps: maxPairDeviationBps.toString(),
+        sequencerUptimeFeed: sequencerUptimeFeed.toLowerCase() === ZERO_ADDRESS ? null : sequencerUptimeFeed,
+        sequencerGracePeriod: sequencerGracePeriod.toString(),
+        sequencerCheckEnabled: sequencerUptimeFeed.toLowerCase() !== ZERO_ADDRESS,
+        status: "unavailable",
+      };
+      try {
+        const snapshot = await publicClient.readContract({
+          address: oracleGuard, abi: ORACLE_GUARD_ABI, functionName: "validate", blockNumber,
+        });
+        oracle.price0Wad = snapshot.price0Wad.toString();
+        oracle.price1Wad = snapshot.price1Wad.toString();
+        oracle.updatedAt0 = snapshot.updatedAt0.toString();
+        oracle.updatedAt1 = snapshot.updatedAt1.toString();
+        oracle.sequencerCheckEnabled = snapshot.sequencerCheckEnabled;
+        oracle.status = "valid";
+        checks.push({
+          name: "chainlink-oracle-guard", ok: true,
+          detail: `price0Wad=${snapshot.price0Wad}; price1Wad=${snapshot.price1Wad}; updatedAt0=${snapshot.updatedAt0}; updatedAt1=${snapshot.updatedAt1}`,
+        });
+      } catch (error) {
+        const oracleRevert = decodeNettingRevert(error);
+        oracle.status = oracleRevert.selector && ORACLE_ERROR_NAMES.has(oracleRevert.selector)
+          ? "rejected" : "unavailable";
+        checks.push({ name: "chainlink-oracle-guard", ok: false, detail: oracleRevert.message });
+      }
+    } catch (error) {
+      const oracleRevert = decodeNettingRevert(error);
+      oracle = {
+        guard: null,
+        provider: "chainlink-data-feeds",
+        enforcement: "hook-hard-gate",
+        feed0: null,
+        feed1: null,
+        price0Wad: null,
+        price1Wad: null,
+        updatedAt0: null,
+        updatedAt1: null,
+        maxAge0: null,
+        maxAge1: null,
+        maxUsdDeviationBps: null,
+        maxPairDeviationBps: null,
+        sequencerUptimeFeed: null,
+        sequencerGracePeriod: null,
+        sequencerCheckEnabled: null,
+        status: oracleRevert.selector && ORACLE_ERROR_NAMES.has(oracleRevert.selector) ? "rejected" : "unavailable",
+      };
+      checks.push({ name: "chainlink-oracle-guard", ok: false, detail: oracleRevert.message });
+    }
 
     for (let index = 0; index < batch.orders.length; index += 1) {
       const order = batch.orders[index]!;
@@ -463,7 +605,7 @@ export async function runNettingPreflight(opts: {
         functionName: "getL1Fee", args: [serialized], blockNumber });
     }
   } catch (error) {
-    decodedRevert = revertDetails(error);
+    decodedRevert = decodeNettingRevert(error);
     checks.push({ name: "full-execution-eth-call", ok: false, detail: decodedRevert.message });
   }
 
@@ -482,6 +624,7 @@ export async function runNettingPreflight(opts: {
     },
     pool: { poolId: batch.orders[0]!.poolId, router, hook, poolManager, currency0: token0, currency1: token1,
       fee, tickSpacing, poolManagerBalances: { currency0: managerBalance0.toString(), currency1: managerBalance1.toString() } },
+    oracle,
     checks,
     fees: {
       estimatedExecutionGas: estimatedGas?.toString() ?? null, gasPriceWei: gasPrice?.toString() ?? null,

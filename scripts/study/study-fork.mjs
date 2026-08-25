@@ -43,7 +43,7 @@ try {
       present: code !== "0x",
     };
   }
-  const fork = spawnSync("forge", ["test", "--match-contract", "InstitutionalNettingForkTest", "-vv"], {
+  const fork = spawnSync("forge", ["test", "--match-contract", "(InstitutionalNettingForkTest|ChainlinkStablecoinOracleGuardForkTest)", "-vv"], {
     cwd: resolve(root, "contracts"), encoding: "utf8", maxBuffer: 16 * 1024 * 1024,
     env: { ...process.env, BASE_MAINNET_RPC_URL: rpcUrl, ILAL_FORK_BLOCK: String(forkBlock) },
   });

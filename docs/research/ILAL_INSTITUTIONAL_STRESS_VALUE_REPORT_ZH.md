@@ -2,11 +2,11 @@
 
 ## 1. Executive verdict
 
-**PASS — ready for institutional pilot。** 独立审计前不得称为 production-ready。
+**CONDITIONAL — institutional pilot candidate。** 独立审计前不得称为 production-ready。
 
-本轮生成 160 个经济矩阵行，其中 40 个 5 bps 支持域场景由 Foundry 实测；1/30/100 bps 被明确标记为 candidate 不支持，而不是外推成结果。官方 Base Universal Router + Permit2 在固定 finalized block 50394803 上以真实 USDC/USDT bytecode 完成独立与 bundled 路径。
+本轮生成 160 个经济矩阵行，其中 40 个 5 bps 支持域场景由 Foundry 实测；1/30/100 bps 被明确标记为 candidate 不支持，而不是外推成结果。官方 Base Universal Router + Permit2 在固定 finalized block 50421294 上以真实 USDC/USDT bytecode 完成独立与 bundled 路径。
 
-严格 $10k/70%/5bps/scaled 门槛的保守净收益为 **$4.748**，比较基线为 universal-router-bundled，已扣除 1 gwei L2 gas premium、完整 candidate L1 security fee 与 0.5 bps solver reserve。
+严格 $10k/70%/5bps/scaled 门槛的保守净收益为 **$4.643**，比较基线为 universal-router-bundled，已扣除 1 gwei L2 gas premium、完整 candidate L1 security fee 与 0.5 bps solver reserve。
 
 ## 2. 研究问题与假设
 
@@ -16,13 +16,13 @@
 
 - Schema：institutional-study-v1；固定 seed：0x494c414c2d494e535449545554494f4e414c2d53545544592d5631
 - Local：Foundry forge Version: 1.5.1-stable
-- Base fork：chain 8453，finalized block 50394803
+- Base fork：chain 8453，finalized block 50421294
 - 命令：make study-local / study-fork / study-rwa / study-report / study-full
 - 所有官网数字由机器结果生成，不手工复制。
 
 ## 4. 安全与原子性结果
 
-Stateful handler calls：100000；每项 fuzz：10000。覆盖 peg tick ±99/±100/±101、allowance/balance 状态竞争、deadline、revocation、policy rotation、permissionless malicious executor、nonce rollback 与 canonical ordering。
+Stateful handler calls：100000；每项 fuzz：10000。覆盖 Chainlink 价格、round、freshness 和 sequencer 状态，peg tick ±99/±100/±101，以及 allowance/balance 状态竞争、deadline、revocation、policy rotation、permissionless malicious executor、nonce rollback 与 canonical ordering。外部 Feed 与池内 tick 任一失败均在 nonce 和资产变化前原子回滚。
 
 ## 5. Profitability heatmap
 
@@ -30,19 +30,19 @@ Stateful handler calls：100000；每项 fuzz：10000。覆盖 peg tick ±99/±1
 
 ## 6. Capacity frontier
 
-固定 candidate 深度中共有 5 个实测容量失败行；100k/70k 回归继续原子回滚。完整 5×3×3×3 二分 frontier 已完成 135 行，安全上限从 $257 到 $1000000。见 [capacity-frontier.svg](charts/capacity-frontier.svg)。
+固定 candidate 深度中共有 5 个实测容量失败行；100k/70k 回归继续原子回滚。完整 5×3×3×3 二分 frontier 已完成 135 行，安全上限从 $137 到 $1000000。见 [capacity-frontier.svg](charts/capacity-frontier.svg)。
 
 ## 7. Multi-order scalability
 
-完成 12 个场景（2/4/8/16 × uniform/one-large-many-small/long-tail）。16-order uniform total gas 为 1787349，rounding dust 为 0，canonical commitment 对 permutation 稳定。
+完成 12 个场景（2/4/8/16 × uniform/one-large-many-small/long-tail）。16-order uniform total gas 为 1825968，rounding dust 为 0，canonical commitment 对 permutation 稳定。
 
 ## 8. Base production-fee benchmark
 
-Base fee 同时计 L2 execution 与 L1 security。candidate 代表交易的 L1 fee 由 GasPriceOracle.getL1Fee 对完整历史序列化交易测得；Universal Router V2.1.1 与 Permit2 baseline 在官方 PoolManager 上执行。
+Base fee 同时计 L2 execution 与 L1 security。candidate 代表交易的 L1 fee 由 GasPriceOracle.getL1Fee 对完整历史序列化交易测得；Universal Router V2.1.1 与 Permit2 baseline 在官方 PoolManager 上执行。Chainlink 双 Feed 门禁的独立本地调用为 37541 gas，相对同接口常量快照增量为 36360 gas；严格净收益使用完整 batch gas，不以该微基准代替交易级成本。
 
 ## 9. RWA issuer workflow
 
-最大数据集：100000 wallets；总耗时 483.83 秒；peak RSS 3.63 GiB；20-proof p95 3459.5 ms。数据仅含 wallet、KYC level、country、expiry、status 与 hashed source reference。
+最大数据集：100000 wallets；总耗时 541.33 秒；peak RSS 3.57 GiB；20-proof p95 3612.0 ms。数据仅含 wallet、KYC level、country、expiry、status 与 hashed source reference。
 
 ## 10. TCO sensitivity
 
@@ -57,7 +57,7 @@ TCO 只做 243 行参数模型：人员 $50/$100/$200 每小时、ETH $2k/$3k/$4
 
 ## 12. Supported operating envelope
 
-支持：2–16 orders、等 decimals 标准 ERC-20 stablecoins、raw-unit 1:1、5 bps、tick spacing 10、batch-start ±100 tick。Fee-on-transfer、rebasing、callback/nonstandard tokens、其他 fee tier、超出流动性/物理余额的 batch 不支持。
+支持：2–16 orders、等 decimals 标准 ERC-20 stablecoins、raw-unit 1:1、5 bps、tick spacing 10、Chainlink 双 Feed 100 bps/90,000 秒门禁、batch-start ±100 tick。Fee-on-transfer、rebasing、callback/nonstandard tokens、其他 fee tier、超出流动性/物理余额的 batch 不支持。Base Sepolia 未启用 sequencer uptime 检查；Base mainnet 必须配置官方 uptime feed 与 3600 秒宽限。
 
 ## 13. PASS / CONDITIONAL / FAIL
 
@@ -77,7 +77,8 @@ TCO 只做 243 行参数模型：人员 $50/$100/$200 每小时、ETH $2k/$3k/$4
 | local | stateful-handler-calls | PASS |  |
 | local | fuzz-cases-per-property | PASS |  |
 | local | adversarial-regressions | PASS |  |
+| base-sepolia | chainlink-candidate-evidence | NOT_RUN | Fresh deployment, exact-match verification and 2/4/16-order transactions are required |
 
 ## 14. Production blockers 与下一步
 
-独立审计仍是 production blocker。Proof 峰值为 3.63 GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
+独立审计仍是 production blocker。Chainlink 新 candidate 链上证据状态为 **PENDING**；在 fresh deployment、exact-match verification 与 2/4/16-order 交易完成前保持 CONDITIONAL。Proof 峰值为 3.57 GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。

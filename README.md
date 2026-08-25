@@ -5,7 +5,7 @@
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
 Current npm preview: `npm install -g @ilalv3/cli@next`
-(`v0.4.0-v2-poc.6`, including state-aware institutional netting preflight). The
+(`v0.4.0-v2-poc.7`, including Chainlink-aware institutional netting preflight). The
 public `latest` channel remains `v0.3.3` because the netting and V2 stacks are
 separate unaudited Base Sepolia candidates.
 
@@ -30,10 +30,10 @@ deployment remains unchanged.
 | Reviewer path | Start here |
 |---|---|
 | Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
-| Live Hook | [`0xb385…4088` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
-| Canonical `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
-| Reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |
-| Deployment evidence | [`candidate-manifest.json`](docs/hookathon/candidate-manifest.json) |
+| Previous pre-Chainlink Hook | [`0xb385…4088` — historical Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
+| Previous `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
+| Previous reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |
+| Historical deployment evidence | [`candidate-manifest.json`](docs/hookathon/candidate-manifest.json) |
 | One-command test | `make verify` |
 | Before / built during | [Hookathon scope](#hookathon-scope) |
 | Atomic executor | [`contracts/src/netting/InstitutionalBatchRouter.sol`](contracts/src/netting/InstitutionalBatchRouter.sol) |
@@ -54,6 +54,8 @@ signed + currently eligible orders
                 │ one PoolManager.unlock
                 ▼
       InstitutionalNettingHook
+       ├─ require fresh Chainlink USD feeds
+       ├─ require pool opening tick within ±100
        ├─ verify EIP-712 / ERC-1271
        ├─ verify current v1 Policy + CNF
        ├─ consume nonce
@@ -81,11 +83,43 @@ raw-unit 1:1 matching, zero netting fee, 2–16 orders, and a ±100 tick opening
 guard. `minAmountOut` protects total matched-plus-AMM output;
 `maxAmmInput` caps each order's residual exposure.
 
-The tick bound is checked exactly once in `openBatch`, before the first order.
-It is a **batch-start depeg guard**, not an oracle and not a continuous
-in-batch price constraint. Residual execution may move the pool outside the
-range; every user's continuing safety boundary is their signed
-`minAmountOut` and `maxAmmInput`.
+The immutable Chainlink guard and pool tick are checked exactly once in
+`openBatch`, before nonce consumption or asset movement. Each USD feed must be
+within 100 bps of $1, no older than 90,000 seconds, and within 100 bps of the
+other feed. Chainlink is a **batch-opening circuit breaker**, not the execution
+price. Residual execution may move the pool outside the opening range; every
+user's continuing safety boundary is their signed `minAmountOut` and
+`maxAmmInput`.
+
+## Partner integrations
+
+### Chainlink
+
+ILAL uses [Chainlink Data Feeds](https://docs.chain.link/data-feeds/price-feeds)
+as an onchain hard safety boundary for stablecoin batches. The standalone
+[`ChainlinkStablecoinOracleGuard`](contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol)
+normalizes two USD feeds to 18 decimals and fails closed on bad contracts,
+failed calls, invalid rounds or answers, future/stale timestamps, single-asset
+depegs, and pair divergence. The
+[`openBatch` call site](contracts/src/netting/InstitutionalNettingHook.sol) runs
+this external boundary before the independent Uniswap pool-tick boundary.
+
+The Base Sepolia candidate configuration uses the official Chainlink
+[USDC/USD](https://data.chain.link/feeds/base/base-sepolia/usdc-usd) and
+[USDT/USD](https://data.chain.link/feeds/base/base-sepolia/usdt-usd) feeds.
+Unit, integration, adversarial, real-feed fork and CLI decoding coverage live in
+[`ChainlinkStablecoinOracleGuard.t.sol`](contracts/test/ChainlinkStablecoinOracleGuard.t.sol),
+[`ChainlinkStablecoinOracleGuardFork.t.sol`](contracts/test/ChainlinkStablecoinOracleGuardFork.t.sol),
+and [`InstitutionalNetting.t.sol`](contracts/test/InstitutionalNetting.t.sol).
+This maps to the Request for Hooks stable-focused, permissioned institutional
+execution track.
+
+Base Sepolia does not enable a sequencer uptime check because Chainlink does not
+currently list an official Base Sepolia uptime proxy. A Base mainnet deployment
+must use the official uptime feed with a 3600-second recovery grace period; its
+absence is a production blocker. Circle's official Base Sepolia USDC is an
+asset dependency, not a claimed Circle partner integration. The paired hUSDT
+is explicitly an ILAL test representation, not official USDT.
 
 ## Hookathon scope
 
@@ -106,6 +140,7 @@ mechanism.
 - Solver-independent allocation through Hook-enforced ascending order hashes.
 - EIP-712/low-s ECDSA/ERC-1271 validation, nonce cancellation and replay protection.
 - Per-order total-output and AMM-exposure bounds.
+- Chainlink USDC/USD and USDT/USD hard gate plus the independent pool-tick gate.
 - Real v4 integration, fuzz, maximum-16-order gas, and stateful invariant tests.
 - Reproducible impact benchmark against both vanilla two-swap execution orders.
 - Four CLI commands and a terminal demo.
@@ -160,17 +195,19 @@ make verify
 
 | Suite | Current result |
 |---|---:|
-| Foundry | 265 passed, 0 failed, 0 skipped |
+| Foundry | 281 passed, 0 failed, 0 skipped |
 | Netting stateful invariants | 100,000 handler calls, 0 failures/reverts |
-| CLI | 54 passed |
+| CLI | 55 passed |
 | SDK | 18 passed |
 | Circuit oracle | 8 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
 
 The integration suite proves that the final pool state and manager balance
 changes for the `100/70` batch exactly equal a vanilla 30-token0 residual swap
-from the same initialized state. The 16-order case currently uses about 1.53M
-gas in the Foundry test environment. `make verify` also checks release/
+from the same initialized state. The 16-order case currently uses about 1.83M
+gas in the Foundry test environment. The isolated two-feed guard call adds
+36,360 gas over a constant-snapshot implementation of the same interface;
+transaction-level economics below use the full measured batch cost. `make verify` also checks release/
 deployment consistency, package contents, Git history, secrets, and dependency
 SBOMs.
 
@@ -187,11 +224,11 @@ the headline does not depend on a favorable ordering.
 
 | `100 token0` vs | AMM exposure reduction | User output advantage | LP fee reduction | Local execution gas: ILAL / vanilla |
 |---:|---:|---:|---:|---:|
-| `25 token1` | 40.00% | +0.025001 (2.00 bps) | 40.00% | 662,890 / 195,556 (3.39x) |
-| `50 token1` | 66.67% | +0.050000 (3.34 bps) | 66.67% | 662,891 / 195,557 (3.39x) |
-| `70 token1` | 82.35% | +0.070000 (4.12 bps) | 82.35% | 663,386 / 195,556 (3.39x) |
-| `90 token1` | 94.74% | +0.090001 (4.74 bps) | 94.74% | 662,890 / 195,556 (3.39x) |
-| `100 token1` | 100.00% | +0.100001 (5.00 bps) | 100.00% | 622,455 / 195,567 (3.18x) |
+| `25 token1` | 40.00% | +0.025001 (2.00 bps) | 40.00% | 698,849 / 195,556 (3.57x) |
+| `50 token1` | 66.67% | +0.050000 (3.34 bps) | 66.67% | 698,850 / 195,557 (3.57x) |
+| `70 token1` | 82.35% | +0.070000 (4.12 bps) | 82.35% | 698,353 / 195,556 (3.57x) |
+| `90 token1` | 94.74% | +0.090001 (4.74 bps) | 94.74% | 698,849 / 195,556 (3.57x) |
+| `100 token1` | 100.00% | +0.100001 (5.00 bps) | 100.00% | 657,422 / 195,567 (3.36x) |
 
 For the public `100/70` configuration, aggregate ILAL output is 169.984100
 tokens versus 169.914100 for the better vanilla ordering. That is a 0.070000
@@ -212,13 +249,14 @@ make break-even-benchmark
 The notional sweep fixes opposing flow at `N / 0.7N` and scales liquidity with
 notional to isolate gas amortization. User output improves by approximately
 **7.00 bps of anchor notional** while the conservative measured total-gas
-premium is **449,430 gas**. With ETH/USD fixed at a **$3,000 scenario input**:
+premium is **485,401 gas**, including the Chainlink gate. With ETH/USD fixed at
+a **$3,000 scenario input**:
 
 | Gas-price scenario | Break-even anchor notional | Break-even gross notional |
 |---:|---:|---:|
-| 0.01 gwei | $19.26 | $32.74 |
-| 0.1 gwei | $192.61 | $327.44 |
-| 1 gwei | $1,926.14 | $3,274.44 |
+| 0.01 gwei | $20.80 | $35.37 |
+| 0.1 gwei | $208.03 | $353.65 |
+| 1 gwei | $2,080.31 | $3,536.52 |
 
 These are sensitivity scenarios, not live ETH or Base gas quotes. The fixed
 candidate-liquidity stress test also reports the `100k/70k` case as
@@ -253,17 +291,23 @@ blocker. See [`docs/research/`](docs/research/).
 The Hookathon stack has a Base Sepolia-only deployment script at
 [`contracts/script/DeployHookathonNetting.s.sol`](contracts/script/DeployHookathonNetting.s.sol).
 It binds the official PoolManager, PositionManager and Permit2 addresses,
-deploys two 6-decimal mock stablecoins, MockEAS, CNFIssuer, PolicyRegistry,
-BatchRouter and a CREATE2-mined `0x88` Hook, onboards two distinct institutions,
-and seeds liquidity through the standard v4 PositionManager.
+uses Circle's official 6-decimal test USDC, deploys a 6-decimal hUSDT test
+representation, then deploys the Chainlink guard, MockEAS, CNFIssuer,
+PolicyRegistry, BatchRouter and a CREATE2-mined `0x88` Hook. It sorts token/feed
+pairs by address, validates both real feeds before continuing, onboards two
+distinct institutions, and seeds liquidity through the standard v4
+PositionManager in the `[-10000,10000]` range. The funder must provide at least
+0.65 test USDC or deployment stops before allocation.
 
-The Hookathon deployment is a separate, source-verified **candidate** and does
-not replace the active v0.3.3 Base Sepolia demo. The canonical `100/70` batch
+The prior Hookathon deployment is separate, source-verified historical
+**candidate** evidence and does not replace the active v0.3.3 Base Sepolia
+demo. Because the Chainlink integration changes Hook bytecode, its old address
+and transactions do not prove the new implementation. The old canonical `100/70` batch
 matched 140,000,000 gross raw units and sent only 30,000,000 token0 units to
 the AMM. The reverse `60/90` batch sent only 30,000,000 token1 units. All seven
 first-party contracts are Sourcify creation/runtime `exact_match`; addresses,
 transactions, decoded events, pool states, CREATE2 salt and bytecode hashes are
-recorded in the
+recorded in the historical
 [`candidate manifest`](docs/hookathon/candidate-manifest.json).
 
 ## Supporting infrastructure
@@ -281,8 +325,8 @@ recorded in the
 ## Security and scope
 
 This is unaudited testnet software. Do not use it with production funds or
-identity data. The tick guard is a batch-start depeg circuit breaker, not an
-oracle or a continuous price bound.
+identity data. Chainlink and the pool tick are batch-opening circuit breakers,
+not execution-price or continuous in-batch bounds.
 The Hook is immutable and a serious defect requires a new Hook and pool; see
 [`docs/INCIDENT_AND_MIGRATION_RUNBOOK.md`](docs/INCIDENT_AND_MIGRATION_RUNBOOK.md).
 

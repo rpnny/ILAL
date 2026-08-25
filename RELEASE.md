@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| CLI | `@ilalv3/cli@0.4.0-v2-poc.6` prepared for npm `next` |
+| CLI | `@ilalv3/cli@0.4.0-v2-poc.7` prepared for npm `next` |
 | SDK | `@ilalv3/sdk@0.3.0-next.1` on npm `next` |
 | Netting | Base Sepolia Hookathon candidate with exact-match source verification |
 | V2 | Base Sepolia policy-grant candidate `v0.4.0-v2-poc.1` |
@@ -13,8 +13,10 @@
 | Audit | Unaudited |
 
 The CLI preview adds atomic signed-order netting, residual-only Uniswap v4
-routing, nonce cancellation and canonical batch previews alongside the V2
-issuer kit. The SDK preview adds v2 policy-bound session signing and encoding.
+routing, nonce cancellation, canonical batch previews, and pinned-block
+Chainlink guard reporting alongside the V2 issuer kit. The Hook calls an
+immutable two-feed Chainlink circuit breaker before its independent pool-tick
+guard. The SDK preview adds v2 policy-bound session signing and encoding.
 Neither preview replaces npm `latest` or the active v0.3.3 demo preset.
 
 ## Current release
@@ -52,8 +54,8 @@ make verify
 
 Required baselines:
 
-- Foundry: 265 executed and passed, 0 failed, 0 skipped, fuzz runs at least 256.
-- CLI: 54 executed and passed.
+- Foundry: 281 executed and passed, 0 failed, 0 skipped, fuzz runs at least 256.
+- CLI: 55 executed and passed.
 - Netting invariants: 100,000 stress handler calls in the full institutional study, 0 failures/reverts.
 - SDK and circuit constraint suites pass.
 - deployment-derived CLI/site data is synchronized.
@@ -78,6 +80,9 @@ exact-match netting candidate. SDK tags are independently versioned with the
 - The Base Sepolia demo Safe is live; `admin` and `treasury` remain separate manifest fields even though this demo shares one address.
 - Fresh encrypted deployment, role handoff, positive/negative swaps, code hashes, and Sourcify exact-match verification are recorded in the v0.3.3 manifest.
 - Production use still requires independent audit, production attestation/proving, hardened governance and monitoring.
+- Base mainnet must configure the official Chainlink sequencer uptime feed with
+  a 3600-second recovery grace period; Base Sepolia intentionally leaves the
+  optional check disabled because no official testnet uptime proxy is listed.
 - npm Trusted Publisher and GitHub protected-environment configuration must be verified before revoking old automation credentials.
 - Production remains blocked by independent audit, production ceremony/proving review, governance, monitoring, real attestation integration, incorporation/IP assignment, and customer/legal evidence.
 

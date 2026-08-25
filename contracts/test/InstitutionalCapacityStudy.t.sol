@@ -14,11 +14,14 @@ import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 
 import {PolicyRegistry} from "../src/PolicyRegistry.sol";
+import {IChainlinkAggregatorV3} from "../src/interfaces/IChainlinkAggregatorV3.sol";
 import {HookMiner} from "../src/libraries/HookMiner.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {InstitutionalNettingHook} from "../src/netting/InstitutionalNettingHook.sol";
 import {InstitutionalBatchRouter} from "../src/netting/InstitutionalBatchRouter.sol";
 import {NettingTypes} from "../src/netting/NettingTypes.sol";
+import {ChainlinkStablecoinOracleGuard} from "../src/oracle/ChainlinkStablecoinOracleGuard.sol";
+import {MockChainlinkAggregator} from "./mocks/MockChainlinkAggregator.sol";
 import {MockCNFIssuer} from "./mocks/MockCNFIssuer.sol";
 
 contract InstitutionalCapacityStudy is Test {
@@ -35,6 +38,7 @@ contract InstitutionalCapacityStudy is Test {
         IPoolManager manager;
         InstitutionalBatchRouter router;
         InstitutionalNettingHook hook;
+        ChainlinkStablecoinOracleGuard oracleGuard;
         MockERC20 token0;
         MockERC20 token1;
         PoolKey key;
@@ -121,12 +125,14 @@ contract InstitutionalCapacityStudy is Test {
         fixture.router = new InstitutionalBatchRouter(fixture.manager);
         PolicyRegistry registry = new PolicyRegistry();
         MockCNFIssuer issuer = new MockCNFIssuer();
+        fixture.oracleGuard = _deployOracleGuard();
         MockERC20 tokenA = new MockERC20("Capacity USD A", "cUSDA", 6);
         MockERC20 tokenB = new MockERC20("Capacity USD B", "cUSDB", 6);
         (fixture.token0, fixture.token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
         bytes memory args = abi.encode(
             fixture.manager,
             registry,
+            fixture.oracleGuard,
             address(fixture.router),
             address(fixture.token0),
             address(fixture.token1),
@@ -143,6 +149,7 @@ contract InstitutionalCapacityStudy is Test {
         fixture.hook = new InstitutionalNettingHook{salt: salt}(
             fixture.manager,
             registry,
+            fixture.oracleGuard,
             address(fixture.router),
             address(fixture.token0),
             address(fixture.token1),
@@ -180,6 +187,21 @@ contract InstitutionalCapacityStudy is Test {
         fixture.token0.approve(address(fixture.router), type(uint256).max);
         vm.prank(fixture.bob);
         fixture.token1.approve(address(fixture.router), type(uint256).max);
+    }
+
+    function _deployOracleGuard() internal returns (ChainlinkStablecoinOracleGuard) {
+        MockChainlinkAggregator feed0 = new MockChainlinkAggregator(8, "USDC / USD", 1e8);
+        MockChainlinkAggregator feed1 = new MockChainlinkAggregator(8, "USDT / USD", 1e8);
+        return new ChainlinkStablecoinOracleGuard(
+            IChainlinkAggregatorV3(address(feed0)),
+            IChainlinkAggregatorV3(address(feed1)),
+            90_000,
+            90_000,
+            100,
+            100,
+            IChainlinkAggregatorV3(address(0)),
+            0
+        );
     }
 
     function _measureFrontier(

@@ -38,7 +38,7 @@ release-check:
 
 contracts-test:
 	cd contracts && test -d lib/v4-core || ./scripts/install-deps.sh
-	cd contracts && forge fmt --check src/*.sol src/interfaces src/libraries src/mocks src/netting src/test src/v2 script test
+	cd contracts && forge fmt --check src/*.sol src/interfaces src/libraries src/mocks src/netting src/oracle src/test src/v2 script test
 	cd contracts && forge build && forge test
 
 cli-test:

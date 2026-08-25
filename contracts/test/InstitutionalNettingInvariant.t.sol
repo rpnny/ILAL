@@ -15,11 +15,14 @@ import {ModifyLiquidityParams} from "v4-core/src/types/PoolOperation.sol";
 import {Hooks} from "v4-core/src/libraries/Hooks.sol";
 
 import {PolicyRegistry} from "../src/PolicyRegistry.sol";
+import {IChainlinkAggregatorV3} from "../src/interfaces/IChainlinkAggregatorV3.sol";
 import {HookMiner} from "../src/libraries/HookMiner.sol";
 import {MockERC20} from "../src/mocks/MockERC20.sol";
 import {InstitutionalNettingHook} from "../src/netting/InstitutionalNettingHook.sol";
 import {InstitutionalBatchRouter} from "../src/netting/InstitutionalBatchRouter.sol";
 import {NettingTypes} from "../src/netting/NettingTypes.sol";
+import {ChainlinkStablecoinOracleGuard} from "../src/oracle/ChainlinkStablecoinOracleGuard.sol";
+import {MockChainlinkAggregator} from "./mocks/MockChainlinkAggregator.sol";
 import {MockCNFIssuer} from "./mocks/MockCNFIssuer.sol";
 
 contract InstitutionalNettingHandler is Test {
@@ -128,12 +131,32 @@ contract InstitutionalNettingInvariantTest is StdInvariant, Test {
         router = new InstitutionalBatchRouter(manager);
         PolicyRegistry registry = new PolicyRegistry();
         MockCNFIssuer issuer = new MockCNFIssuer();
+        MockChainlinkAggregator feed0 = new MockChainlinkAggregator(8, "USDC / USD", 1e8);
+        MockChainlinkAggregator feed1 = new MockChainlinkAggregator(8, "USDT / USD", 1e8);
+        ChainlinkStablecoinOracleGuard oracleGuard = new ChainlinkStablecoinOracleGuard(
+            IChainlinkAggregatorV3(address(feed0)),
+            IChainlinkAggregatorV3(address(feed1)),
+            90_000,
+            90_000,
+            100,
+            100,
+            IChainlinkAggregatorV3(address(0)),
+            0
+        );
         MockERC20 tokenA = new MockERC20("Invariant USD A", "iUSDA", 6);
         MockERC20 tokenB = new MockERC20("Invariant USD B", "iUSDB", 6);
         (token0, token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
 
         bytes memory args = abi.encode(
-            manager, registry, address(router), address(token0), address(token1), FEE, TICK_SPACING, int24(100)
+            manager,
+            registry,
+            oracleGuard,
+            address(router),
+            address(token0),
+            address(token1),
+            FEE,
+            TICK_SPACING,
+            int24(100)
         );
         (, bytes32 salt) = HookMiner.find(
             address(this),
@@ -142,7 +165,7 @@ contract InstitutionalNettingInvariantTest is StdInvariant, Test {
             args
         );
         hook = new InstitutionalNettingHook{salt: salt}(
-            manager, registry, address(router), address(token0), address(token1), FEE, TICK_SPACING, 100
+            manager, registry, oracleGuard, address(router), address(token0), address(token1), FEE, TICK_SPACING, 100
         );
         PoolKey memory key = PoolKey({
             currency0: Currency.wrap(address(token0)),

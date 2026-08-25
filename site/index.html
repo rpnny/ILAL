@@ -67,7 +67,7 @@
     <div class="hero-text">
       <div class="hero-badge">
         <span class="badge-dot"></span>
-        Netting candidate live · npm preview updated
+        Chainlink candidate in release validation · previous chain evidence retained
         &nbsp;&nbsp;
         <span class="uni-badge"><span class="uni-badge__dot"></span>Uniswap v4 Hook</span>
       </div>
@@ -91,7 +91,7 @@
           <div><span>canonical batch</span><strong>100 / 70</strong></div>
           <div><span>internal match</span><strong>140 gross</strong></div>
           <div><span>AMM residual</span><strong>30 token0</strong></div>
-          <div><span>Solidity tests</span><strong>265</strong></div>
+          <div><span>Solidity tests</span><strong>281</strong></div>
         </div>
       </div>
     </div>
@@ -102,7 +102,7 @@
         scroll <span class="scroll-line"></span>
       </div>
       <span class="canvas-pool-status">
-        <span class="pool-dot"></span>candidate live · source exact match
+        <span class="pool-dot"></span>new bytecode under validation · previous candidate exact-matched
       </span>
     </div>
   </section>
@@ -115,11 +115,11 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">265</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">54</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">281</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">55</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>previous source <span class="ticker-item__val">exact match</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>network <span class="ticker-item__val">Base Sepolia</span></span>
       <!-- duplicate for seamless loop -->
       <span class="ticker-item"><span class="ticker-item__dot"></span>submitted gross <span class="ticker-item__val">170m</span></span>
@@ -127,11 +127,11 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">265</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">54</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">281</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">55</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>previous source <span class="ticker-item__val">exact match</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>network <span class="ticker-item__val">Base Sepolia</span></span>
     </div>
   </div>
@@ -143,12 +143,11 @@
     <div class="section-inner">
       <div class="section-head section-head--split">
         <div>
-          <p class="eyebrow">Live netting evidence</p>
+          <p class="eyebrow">Historical pre-Chainlink netting evidence</p>
           <h2>Offset first.<br/><em>Route only what remains.</em></h2>
         </div>
         <p class="section-lead">
-          The Base Sepolia candidate is source-verified and reproducible: canonical orders are matched atomically, only the residual reaches Uniswap v4, and settlement goes directly to users.
-          Active v0.3.3 remains a separate unaudited testnet demo.
+          The previous Base Sepolia candidate remains source-verified evidence for atomic residual-only netting. It does not prove the new Chainlink-guarded Hook bytecode; that candidate requires a fresh deployment and verification. Active v0.3.3 remains a separate unaudited testnet demo.
         </p>
       </div>
 
@@ -164,25 +163,25 @@
         </div>
         <div class="proof-grid">
           <a class="proof-card" href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/candidate-manifest.json" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">01 · Manifest</span>
-            <strong>Candidate recorded</strong>
+            <span class="proof-card__label">01 · Historical manifest</span>
+            <strong>Previous candidate recorded</strong>
             <span class="proof-card__meta">addresses, transactions and acceptance checks</span>
             <code>candidate-manifest.json ↗</code>
           </a>
           <a class="proof-card" href="https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">02 · Source</span>
-            <strong>Exact match</strong>
+            <span class="proof-card__label">02 · Previous source</span>
+            <strong>Historical exact match</strong>
             <span class="proof-card__meta">InstitutionalNettingHook verified by Sourcify</span>
             <code>chain 84532 ↗</code>
           </a>
           <a class="proof-card" href="https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">03 · Canonical batch</span>
+            <span class="proof-card__label">03 · Previous canonical batch</span>
             <strong>100 / 70 netted</strong>
             <span class="proof-card__meta">140m matched · 30m token0 residual</span>
             <code>0x4dc049…d6dfa9 ↗</code>
           </a>
           <a class="proof-card" href="https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">04 · Reverse batch</span>
+            <span class="proof-card__label">04 · Previous reverse batch</span>
             <strong>60 / 90 netted</strong>
             <span class="proof-card__meta">120m matched · 30m token1 residual</span>
             <code>0x4e4e2d…f82fd8 ↗</code>
@@ -197,7 +196,7 @@
       </div>
 
       <div class="proof-verdict">
-        <span>Canonical acceptance</span>
+        <span>Historical canonical acceptance</span>
         <strong>170m submitted → 140m matched internally → 30m routed to the AMM.</strong>
       </div>
     </div>
@@ -218,6 +217,7 @@
         <article class="study-card"><span>Economic matrix</span><strong id="studyRows">—</strong><small>measured + explicit unsupported rows</small></article>
         <article class="study-card"><span>Stateful pressure</span><strong id="studyStress">—</strong><small>handler calls</small></article>
         <article class="study-card"><span>RWA issuer scale</span><strong id="studyRwa">—</strong><small>PII-free synthetic wallets</small></article>
+        <article class="study-card"><span>Chainlink guard delta</span><strong id="studyOracleGas">—</strong><small>gas over constant snapshot; full batch used for verdict</small></article>
       </div>
       <div class="study-envelope">
         <p><span>SUPPORTED</span><code id="studySupported">—</code></p>
@@ -228,6 +228,39 @@
         <figure><img src="research-capacity-frontier.svg" alt="ILAL capacity frontier by liquidity multiplier"><figcaption>Capacity · safe notional changes with depth, tick and physical balances</figcaption></figure>
       </div>
       <a class="study-report-link" href="https://github.com/rpnny/ILAL/tree/main/docs/research" target="_blank" rel="noreferrer">Full method, JSON, CSV and bilingual reports ↗</a>
+    </div>
+  </section>
+
+  <section class="content-section content-section--alt" id="chainlink">
+    <div class="section-inner">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="eyebrow">Partner integration · Chainlink</p>
+          <h2>External peg truth.<br/><em>Pool-local price discipline.</em></h2>
+        </div>
+        <p class="section-lead">Every batch must pass two independent opening boundaries: fresh Chainlink USDC/USD and USDT/USD data, then the Uniswap pool tick. Either failure reverts before nonce consumption or asset movement.</p>
+      </div>
+      <div class="customer-grid">
+        <div class="customer-card">
+          <span class="customer-card__type">Chainlink Data Feeds</span>
+          <h3>100 bps deviation. 90,000-second freshness.</h3>
+          <p>Both USD feeds are normalized onchain and checked individually and against each other. Invalid rounds, failed calls, stale or future timestamps, and depegs fail closed.</p>
+          <div class="customer-card__outcome">Role: batch-opening circuit breaker</div>
+        </div>
+        <div class="customer-card">
+          <span class="customer-card__type">Signed execution limits</span>
+          <h3>The oracle does not set the trade price.</h3>
+          <p>Uniswap v4 executes only the unmatched residual. Each institution retains its signed minAmountOut and maxAmmInput limits throughout the atomic batch.</p>
+          <div class="customer-card__outcome">Role: continuing user protection</div>
+        </div>
+        <div class="customer-card">
+          <span class="customer-card__type">Testnet boundary</span>
+          <h3>Base mainnet needs the uptime feed.</h3>
+          <p>Base Sepolia has no listed official sequencer uptime proxy, so that optional check is disabled. Mainnet requires the official feed and a 3600-second recovery grace period.</p>
+          <div class="customer-card__outcome">Status: institutional pilot candidate · unaudited</div>
+        </div>
+      </div>
+      <a class="study-report-link" href="https://github.com/rpnny/ILAL/tree/main/contracts/src/oracle" target="_blank" rel="noreferrer">Inspect guard source, tests and evidence ↗</a>
     </div>
   </section>
 
@@ -309,7 +342,7 @@
         <div class="product-card">
           <span class="product-card__tag">Audit</span>
           <h3>Security package</h3>
-          <p>265 Solidity, 54 CLI and 18 SDK tests, plus 100,000 stateful invariant handler calls and 10,000 fixed-seed fuzz cases per critical property. Coverage includes conservation, canonical ordering, solver independence, cancellation, zero inventory and notional break-even stress tests.</p>
+          <p>281 Solidity, 55 CLI and 18 SDK tests, plus 100,000 stateful invariant handler calls and 10,000 fixed-seed fuzz cases per critical property. Coverage includes Chainlink failure modes and post-preflight state races, conservation, canonical ordering, solver independence, cancellation, zero inventory and notional break-even stress tests.</p>
         </div>
       </div>
     </div>
@@ -525,19 +558,19 @@
             <a href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/BREAK_EVEN.md" target="_blank" rel="noreferrer">Notional sweep + JSON ↗</a>
           </div>
           <div class="break-even-grid" aria-label="Break-even anchor notional at a 3,000 dollar ETH scenario">
-            <div><span>0.01 gwei</span><strong>$19.26</strong><small>anchor notional</small></div>
-            <div><span>0.1 gwei</span><strong>$192.61</strong><small>anchor notional</small></div>
-            <div><span>1 gwei</span><strong>$1,926.14</strong><small>anchor notional</small></div>
+            <div><span>0.01 gwei</span><strong>$20.80</strong><small>anchor notional</small></div>
+            <div><span>0.1 gwei</span><strong>$208.03</strong><small>anchor notional</small></div>
+            <div><span>1 gwei</span><strong>$2,080.31</strong><small>anchor notional</small></div>
           </div>
           <div class="break-even-sweep">
-            <span><b>100</b> → +$0.070 output · 0.052 gwei break-even</span>
-            <span><b>1k</b> → +$0.700 · 0.529 gwei</span>
-            <span><b>10k</b> → +$7.000 · 5.287 gwei</span>
-            <span><b>100k</b> → +$69.999 · 52.864 gwei</span>
+            <span><b>100</b> → +$0.070 output · 0.048 gwei break-even</span>
+            <span><b>1k</b> → +$0.700 · 0.489 gwei</span>
+            <span><b>10k</b> → +$7.000 · 4.894 gwei</span>
+            <span><b>100k</b> → +$69.999 · 48.934 gwei</span>
           </div>
           <div class="break-even-panel__meta">
             <span>Scenario input: ETH/USD $3,000 · not a live quote</span>
-            <span>Conservative total-gas premium: +449,430</span>
+            <span>Conservative total-gas premium: +485,401 · includes Chainlink guard</span>
             <span>Fixed candidate depth at 100k/70k: capacity-limited</span>
           </div>
         </div>
@@ -647,7 +680,7 @@ ilal policy grant activate --proof ./artifacts/v2-proof/proof.json \
           </div>
           <pre class="cli-step__pre"><code>npm install -g @ilalv3/cli@next
 ilal init
-ilal --version <span class="c-comment"># 0.4.0-v2-poc.6</span>
+ilal --version <span class="c-comment"># 0.4.0-v2-poc.7</span>
 
 <span class="c-comment"># Public testnet prototype.
 # Production use requires audited contracts
@@ -756,7 +789,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.6</span>
       </div>
 
       <div class="section-head section-head--compact">
-        <p class="eyebrow">Public candidate · institutional netting</p>
+        <p class="eyebrow">Historical public candidate · pre-Chainlink netting</p>
         <h2>170m gross submitted.<br/><em>30m reached the AMM.</em></h2>
         <p class="section-lead">Equal-decimal ERC-20 stablecoin PoC: exact-input, raw-unit 1:1 matching, zero netting fee, 2–16 orders and a batch-start ±100 tick guard. Permissionless solver; unaudited.</p>
       </div>
@@ -775,7 +808,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.6</span>
       </div>
 
       <div class="tx-list">
-        <p class="eyebrow">Netting candidate execution evidence</p>
+        <p class="eyebrow">Previous netting candidate execution evidence</p>
         <a class="tx-row" href="https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9" target="_blank" rel="noreferrer">
           <span class="tx-row__dot"></span>
           <span class="tx-row__name">Canonical 100m / 70m batch</span>
@@ -789,14 +822,14 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.6</span>
       </div>
 
       <div class="pool-info">
-        <p class="eyebrow">Netting candidate pool</p>
+        <p class="eyebrow">Previous netting candidate pool</p>
         <div class="pool-info__row">
           <span>Pool ID</span>
           <code>0xea91d6…59326</code>
         </div>
         <div class="pool-info__row">
           <span>Deployment classification</span>
-          <code>public testnet candidate · unaudited</code>
+          <code>historical testnet candidate · unaudited · pre-Chainlink</code>
         </div>
       </div>
 
@@ -996,7 +1029,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.6</span>
         <div class="fstat"><span class="fstat__val">140m</span><span class="fstat__l">gross matched</span></div>
         <div class="fstat"><span class="fstat__val">30m</span><span class="fstat__l">AMM residual</span></div>
         <div class="fstat"><span class="fstat__val">0</span><span class="fstat__l">inventory after</span></div>
-        <div class="fstat"><span class="fstat__val">265</span><span class="fstat__l">Solidity tests</span></div>
+        <div class="fstat"><span class="fstat__val">281</span><span class="fstat__l">Solidity tests</span></div>
       </div>
       <div class="footer-meta">
         <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>

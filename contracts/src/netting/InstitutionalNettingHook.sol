@@ -17,6 +17,7 @@ import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
 
 import {ICNFIssuer} from "../interfaces/ICNFIssuer.sol";
 import {IPolicyRegistry} from "../interfaces/IPolicyRegistry.sol";
+import {IStablecoinOracleGuard} from "../interfaces/IStablecoinOracleGuard.sol";
 import {NettingTypes} from "./NettingTypes.sol";
 
 interface IERC20Decimals {
@@ -44,6 +45,7 @@ contract InstitutionalNettingHook is IHooks {
     error NotInsideBatchUnlock();
     error InvalidPoolManager();
     error InvalidPolicyRegistry();
+    error InvalidOracleGuard();
     error InvalidTokenPair();
     error TokenDecimalsMismatch();
     error InvalidPoolConfiguration();
@@ -90,6 +92,7 @@ contract InstitutionalNettingHook is IHooks {
 
     IPoolManager public immutable poolManager;
     IPolicyRegistry public immutable policyRegistry;
+    IStablecoinOracleGuard public immutable oracleGuard;
     address public immutable authorizedRouter;
     address public immutable token0;
     address public immutable token1;
@@ -123,6 +126,7 @@ contract InstitutionalNettingHook is IHooks {
     constructor(
         IPoolManager _poolManager,
         IPolicyRegistry _policyRegistry,
+        IStablecoinOracleGuard _oracleGuard,
         address _authorizedRouter,
         address _token0,
         address _token1,
@@ -133,6 +137,7 @@ contract InstitutionalNettingHook is IHooks {
         Hooks.validateHookPermissions(IHooks(address(this)), getHookPermissions());
         if (address(_poolManager).code.length == 0) revert InvalidPoolManager();
         if (address(_policyRegistry).code.length == 0) revert InvalidPolicyRegistry();
+        if (address(_oracleGuard).code.length == 0) revert InvalidOracleGuard();
         if (_authorizedRouter.code.length == 0) revert OnlyBatchRouter();
         if (_token0 == address(0) || _token0 >= _token1) revert InvalidTokenPair();
         if (IERC20Decimals(_token0).decimals() != IERC20Decimals(_token1).decimals()) {
@@ -144,6 +149,7 @@ contract InstitutionalNettingHook is IHooks {
 
         poolManager = _poolManager;
         policyRegistry = _policyRegistry;
+        oracleGuard = _oracleGuard;
         authorizedRouter = _authorizedRouter;
         token0 = _token0;
         token1 = _token1;
@@ -217,8 +223,9 @@ contract InstitutionalNettingHook is IHooks {
             revert InvalidBatchSize();
         }
 
-        // This is deliberately a batch-start depeg guard, not an oracle or a
-        // continuously enforced post-swap price bound.
+        // The external reference guard and pool tick are batch-opening safety
+        // boundaries. User-signed limits remain the continuing execution bounds.
+        oracleGuard.validate();
         (, int24 tick,,) = StateLibrary.getSlot0(poolManager, PoolId.wrap(supportedPoolId));
         if (tick > maxAbsTick || tick < -maxAbsTick) revert PegTickExceeded(tick, maxAbsTick);
 
