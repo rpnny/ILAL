@@ -6,9 +6,15 @@ CEO framing:
 
 > Compliant pools are the wedge. Verified-flow liquidity is the company.
 
-Core line:
+Core thesis:
 
-> Compliance is the hook. Just prove it and swap.
+> **Prove eligibility once.**
+> **Reuse scoped access.**
+> **Net verified flow before the market.**
+
+ILAL removes redundancy from both sides of institutional DeFi: repeated
+identity verification at the access layer, and offsetting gross flow at the
+execution layer.
 
 ## 1. Opening
 
@@ -20,7 +26,7 @@ Institutional capital is moving on-chain, but DeFi liquidity still treats every 
 
 That does not work for RWA issuers, regulated funds, or market makers serving institutional order flow.
 
-ILAL is the verified-flow layer for institutional DeFi.
+ILAL is an institutional access and execution layer for Uniswap v4.
 
 Issuers define eligible flow. Institutions prove privately. Market makers price that verified flow inside Uniswap v4 pools.
 
@@ -100,23 +106,29 @@ A verified-flow liquidity network is harder to copy.
 
 ## 6. Thesis
 
-Most compliance crypto products treat compliance as friction.
+Institutional DeFi repeats work at two boundaries.
 
-We think compliance can become a liquidity advantage.
+At the access layer, identity and compliance checks are repeatedly dragged into
+transaction execution. ILAL lets an institution prove eligibility and reuse a
+short-lived, scoped authorization without repeatedly exposing its underlying
+identity information.
 
-Most KYC hooks answer: who can pass?
+At the execution layer, mutually offsetting gross flow is mechanically routed
+through public liquidity. ILAL's SOEE path nets verified opposing orders first
+and sends only the imbalance to Uniswap v4.
 
-ILAL answers: if this flow is verified, how should liquidity price it?
+Session removes redundant identity verification. SOEE removes redundant market
+execution.
 
-That is the wedge.
-
-Verified flow can get lower fees, better routing, and eventually better liquidity incentives.
-
-The hook is not the end product. The hook is how we turn verified flow into a DeFi-native pricing signal.
+This is not a blanket low-cost claim. Session lowers repeated
+compliance-verification overhead. SOEE costs more execution gas, but under
+tested notional, matching, liquidity and fee conditions, reduced AMM exposure
+and improved aggregate execution can outweigh that premium.
 
 ## 7. Product
 
-The first product is a verified-flow execution lane for Uniswap v4.
+The product has two connected layers: Session for institutional access and SOEE
+for institutional execution on Uniswap v4.
 
 There are three sides.
 
