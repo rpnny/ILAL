@@ -7,7 +7,7 @@
   "hookFlags": "0x0088",
   "assets": {
     "circleTestUsdc": {
-      "address": "0x036CBD53842c5426634e7929541ec2318F3DCF7C",
+      "address": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
       "classification": "Circle official Base Sepolia test USDC",
       "partnerClaim": false
     },

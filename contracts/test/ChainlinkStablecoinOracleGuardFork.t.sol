@@ -7,7 +7,12 @@ import {IChainlinkAggregatorV3} from "../src/interfaces/IChainlinkAggregatorV3.s
 import {IStablecoinOracleGuard} from "../src/interfaces/IStablecoinOracleGuard.sol";
 import {ChainlinkStablecoinOracleGuard} from "../src/oracle/ChainlinkStablecoinOracleGuard.sol";
 
+interface IERC20MetadataFork {
+    function decimals() external view returns (uint8);
+}
+
 contract ChainlinkStablecoinOracleGuardForkTest is Test {
+    address internal constant CIRCLE_TEST_USDC = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
     address internal constant USDC_USD = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
     address internal constant USDT_USD = 0x3ec8593F930EA45ea58c968260e6e9FF53FC934f;
     uint256 internal constant PINNED_BLOCK = 45_931_635;
@@ -23,6 +28,8 @@ contract ChainlinkStablecoinOracleGuardForkTest is Test {
 
     function testFork_realBaseSepoliaFeedsPassGuard() public {
         if (!forkConfigured) return;
+        assertGt(CIRCLE_TEST_USDC.code.length, 0);
+        assertEq(IERC20MetadataFork(CIRCLE_TEST_USDC).decimals(), 6);
         assertGt(USDC_USD.code.length, 0);
         assertGt(USDT_USD.code.length, 0);
         assertEq(IChainlinkAggregatorV3(USDC_USD).description(), "USDC / USD");
