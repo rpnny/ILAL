@@ -67,7 +67,7 @@
     <div class="hero-text">
       <div class="hero-badge">
         <span class="badge-dot"></span>
-        Chainlink candidate in release validation · previous chain evidence retained
+        Chainlink candidate live · exact-match source · four successful evidence paths
         &nbsp;&nbsp;
         <span class="uni-badge"><span class="uni-badge__dot"></span>Uniswap v4 Hook</span>
       </div>
@@ -143,11 +143,11 @@
     <div class="section-inner">
       <div class="section-head section-head--split">
         <div>
-          <p class="eyebrow">Historical pre-Chainlink netting evidence</p>
+          <p class="eyebrow">Live Chainlink-guarded netting evidence</p>
           <h2>Offset first.<br/><em>Route only what remains.</em></h2>
         </div>
         <p class="section-lead">
-          The previous Base Sepolia candidate remains source-verified evidence for atomic residual-only netting. It does not prove the new Chainlink-guarded Hook bytecode; that candidate requires a fresh deployment and verification. Active v0.3.3 remains a separate unaudited testnet demo.
+          The current Base Sepolia candidate checks real Chainlink USDC/USD and USDT/USD feeds before opening every batch, then nets verified orders and sends only the residual to Uniswap v4. All first-party contracts have Sourcify exact creation/runtime matches. Active v0.3.3 remains a separate unaudited testnet demo.
         </p>
       </div>
 
@@ -162,29 +162,29 @@
           <span class="rail-dot rail-dot--on"></span>
         </div>
         <div class="proof-grid">
-          <a class="proof-card" href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/candidate-manifest.json" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">01 · Historical manifest</span>
-            <strong>Previous candidate recorded</strong>
-            <span class="proof-card__meta">addresses, transactions and acceptance checks</span>
-            <code>candidate-manifest.json ↗</code>
+          <a class="proof-card" href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/chainlink-candidate-manifest.json" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">01 · Evidence manifest</span>
+            <strong>Current candidate recorded</strong>
+            <span class="proof-card__meta">feeds, source, addresses, preflights and transactions</span>
+            <code>chainlink-candidate-manifest.json ↗</code>
           </a>
-          <a class="proof-card" href="https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">02 · Previous source</span>
-            <strong>Historical exact match</strong>
-            <span class="proof-card__meta">InstitutionalNettingHook verified by Sourcify</span>
+          <a class="proof-card" href="https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">02 · Current source</span>
+            <strong>Hook exact match</strong>
+            <span class="proof-card__meta">Chainlink-guarded InstitutionalNettingHook</span>
             <code>chain 84532 ↗</code>
           </a>
-          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">03 · Previous canonical batch</span>
-            <strong>100 / 70 netted</strong>
-            <span class="proof-card__meta">140m matched · 30m token0 residual</span>
-            <code>0x4dc049…d6dfa9 ↗</code>
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">03 · Forward batch</span>
+            <strong>0.10 / 0.07 netted</strong>
+            <span class="proof-card__meta">0.14 matched · 0.03 USDC residual</span>
+            <code>0x91770c…0998 ↗</code>
           </a>
-          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8" target="_blank" rel="noreferrer">
-            <span class="proof-card__label">04 · Previous reverse batch</span>
-            <strong>60 / 90 netted</strong>
-            <span class="proof-card__meta">120m matched · 30m token1 residual</span>
-            <code>0x4e4e2d…f82fd8 ↗</code>
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">04 · Reverse batch</span>
+            <strong>0.06 / 0.09 netted</strong>
+            <span class="proof-card__meta">0.12 matched · 0.03 hUSDT residual</span>
+            <code>0x588ac8…5172 ↗</code>
           </a>
           <a class="proof-card" href="https://github.com/rpnny/ILAL/tree/main/test/netting" target="_blank" rel="noreferrer">
             <span class="proof-card__label">05 · Invariants</span>
@@ -196,8 +196,8 @@
       </div>
 
       <div class="proof-verdict">
-        <span>Historical canonical acceptance</span>
-        <strong>170m submitted → 140m matched internally → 30m routed to the AMM.</strong>
+        <span>Current candidate acceptance</span>
+        <strong>Real Chainlink feeds → atomic netting → only the 0.03 residual reached the AMM.</strong>
       </div>
     </div>
   </section>
@@ -789,47 +789,47 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.7</span>
       </div>
 
       <div class="section-head section-head--compact">
-        <p class="eyebrow">Historical public candidate · pre-Chainlink netting</p>
-        <h2>170m gross submitted.<br/><em>30m reached the AMM.</em></h2>
+        <p class="eyebrow">Current public candidate · Chainlink-guarded netting</p>
+        <h2>Oracle checked first.<br/><em>Only residual reached the AMM.</em></h2>
         <p class="section-lead">Equal-decimal ERC-20 stablecoin PoC: exact-input, raw-unit 1:1 matching, zero netting fee, 2–16 orders and a batch-start ±100 tick guard. Permissionless solver; unaudited.</p>
       </div>
 
       <div class="deploy-grid">
-        <a class="deploy-card" href="https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088" target="_blank" rel="noreferrer">
+        <a class="deploy-card" href="https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088" target="_blank" rel="noreferrer">
           <span class="deploy-card__name">InstitutionalNettingHook</span>
           <span class="deploy-card__desc">Exact-match source · eligibility · matching · residual guard</span>
-          <code class="deploy-card__addr">0xb38504…2F4088 ↗</code>
+          <code class="deploy-card__addr">0x8d1fA4…600088 ↗</code>
         </a>
-        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xA64676eA840426D94800dB00a11ea70a1E746e8D" target="_blank" rel="noreferrer">
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x96456C68f25A1Fa6C2F2751183401ac26A732506" target="_blank" rel="noreferrer">
           <span class="deploy-card__name">InstitutionalBatchRouter</span>
           <span class="deploy-card__desc">Permissionless atomic execution · direct user settlement</span>
-          <code class="deploy-card__addr">0xA64676…E746e8D ↗</code>
+          <code class="deploy-card__addr">0x96456C…732506 ↗</code>
         </a>
       </div>
 
       <div class="tx-list">
-        <p class="eyebrow">Previous netting candidate execution evidence</p>
-        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9" target="_blank" rel="noreferrer">
+        <p class="eyebrow">Current candidate execution evidence</p>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998" target="_blank" rel="noreferrer">
           <span class="tx-row__dot"></span>
-          <span class="tx-row__name">Canonical 100m / 70m batch</span>
-          <span class="tx-row__hash">140m matched · 30m token0 residual ↗</span>
+          <span class="tx-row__name">Forward 0.10 / 0.07 batch</span>
+          <span class="tx-row__hash">0.14 matched · 0.03 USDC residual ↗</span>
         </a>
-        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8" target="_blank" rel="noreferrer">
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7" target="_blank" rel="noreferrer">
           <span class="tx-row__dot"></span>
-          <span class="tx-row__name">Reverse 60m / 90m batch</span>
-          <span class="tx-row__hash">120m matched · 30m token1 residual ↗</span>
+          <span class="tx-row__name">16-order reverse batch</span>
+          <span class="tx-row__hash">permissionless execution · 1,896,404 gas ↗</span>
         </a>
       </div>
 
       <div class="pool-info">
-        <p class="eyebrow">Previous netting candidate pool</p>
+        <p class="eyebrow">Current Chainlink candidate pool</p>
         <div class="pool-info__row">
           <span>Pool ID</span>
-          <code>0xea91d6…59326</code>
+          <code>0xeab91a…fbc87</code>
         </div>
         <div class="pool-info__row">
           <span>Deployment classification</span>
-          <code>historical testnet candidate · unaudited · pre-Chainlink</code>
+          <code>institutional pilot evidence · unaudited · not production-ready</code>
         </div>
       </div>
 

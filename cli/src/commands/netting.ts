@@ -257,6 +257,18 @@ const ORACLE_ERROR_NAMES = new Map<string, string>([
   ["SequencerGracePeriodNotOver(uint256,uint256)", "CHAINLINK_SEQUENCER_GRACE_PERIOD"],
 ].map(([signature, name]) => [keccak256(new TextEncoder().encode(signature)).slice(0, 10), name]));
 
+const NETTING_ERROR_NAMES = new Map<string, string>([
+  ["OrderExpired()", "ILAL_ORDER_EXPIRED"],
+  ["NonceAlreadyUsed()", "ILAL_NONCE_ALREADY_USED"],
+  ["PolicyNotConfigured()", "ILAL_POLICY_NOT_CONFIGURED"],
+  ["CredentialInvalid()", "ILAL_CREDENTIAL_INVALID"],
+  ["PegTickExceeded(int24,int24)", "ILAL_POOL_TICK_EXCEEDED"],
+  ["AmmInputLimitExceeded(uint256,uint256)", "ILAL_AMM_INPUT_LIMIT_EXCEEDED"],
+  ["ERC20TransferFailed()", "ILAL_ERC20_TRANSFER_FAILED"],
+  ["IncompleteFill(uint256,uint256)", "ILAL_INCOMPLETE_FILL"],
+  ["SlippageTooHigh(uint256,uint256)", "ILAL_SLIPPAGE_TOO_HIGH"],
+].map(([signature, name]) => [keccak256(new TextEncoder().encode(signature)).slice(0, 10), name]));
+
 function requireAddress(value: string | undefined, label: string): Address {
   if (!value || !isAddress(value)) die(`${label} must be a valid address.`);
   return value as Address;
@@ -405,12 +417,29 @@ function printPreview(preview: NettingPreview): void {
 
 export function decodeNettingRevert(error: unknown): { selector: Hex | null; message: string } {
   const message = error instanceof Error ? error.message : String(error);
-  const match = message.match(/0x[0-9a-fA-F]{8}/);
-  const selector = match ? match[0].toLowerCase() as Hex : null;
-  const oracleName = selector ? ORACLE_ERROR_NAMES.get(selector) : undefined;
+  const seen = new Set<object>();
+  let current: unknown = error;
+  let revertData: string | null = null;
+  while (current && typeof current === "object" && !seen.has(current)) {
+    seen.add(current);
+    const record = current as Record<string, unknown>;
+    if (typeof record.data === "string" && /^0x[0-9a-fA-F]{8,}$/.test(record.data)) {
+      revertData = record.data;
+      break;
+    }
+    current = record.cause;
+  }
+  if (!revertData) {
+    const exactSelector = message.match(/0x[0-9a-fA-F]{8}(?![0-9a-fA-F])/);
+    revertData = exactSelector?.[0] ?? null;
+  }
+  const selector = revertData ? revertData.slice(0, 10).toLowerCase() as Hex : null;
+  const readableName = selector
+    ? ORACLE_ERROR_NAMES.get(selector) ?? NETTING_ERROR_NAMES.get(selector)
+    : undefined;
   return {
     selector,
-    message: oracleName ?? message.split("\n")[0]?.slice(0, 500) ?? "Unknown execution rejection",
+    message: readableName ?? message.split("\n")[0]?.slice(0, 500) ?? "Unknown execution rejection",
   };
 }
 

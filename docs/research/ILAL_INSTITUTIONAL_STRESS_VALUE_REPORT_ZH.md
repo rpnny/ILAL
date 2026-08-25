@@ -2,7 +2,7 @@
 
 ## 1. Executive verdict
 
-**CONDITIONAL — institutional pilot candidate。** 独立审计前不得称为 production-ready。
+**PASS — ready for institutional pilot。** 独立审计前不得称为 production-ready。
 
 本轮生成 160 个经济矩阵行，其中 40 个 5 bps 支持域场景由 Foundry 实测；1/30/100 bps 被明确标记为 candidate 不支持，而不是外推成结果。官方 Base Universal Router + Permit2 在固定 finalized block 50421294 上以真实 USDC/USDT bytecode 完成独立与 bundled 路径。
 
@@ -77,8 +77,8 @@ TCO 只做 243 行参数模型：人员 $50/$100/$200 每小时、ETH $2k/$3k/$4
 | local | stateful-handler-calls | PASS |  |
 | local | fuzz-cases-per-property | PASS |  |
 | local | adversarial-regressions | PASS |  |
-| base-sepolia | chainlink-candidate-evidence | NOT_RUN | Fresh deployment, exact-match verification and 2/4/16-order transactions are required |
+| base-sepolia | chainlink-candidate-evidence | PASS | Fresh deployment, exact-match verification and 2/4/16-order transactions are required |
 
 ## 14. Production blockers 与下一步
 
-独立审计仍是 production blocker。Chainlink 新 candidate 链上证据状态为 **PENDING**；在 fresh deployment、exact-match verification 与 2/4/16-order 交易完成前保持 CONDITIONAL。Proof 峰值为 3.57 GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
+独立审计仍是 production blocker。Chainlink 新 candidate 链上证据状态为 **COMPLETE**。Fresh deployment、exact-match verification 与 2/4/16-order 交易均已记录。 Proof 峰值为 3.57 GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。

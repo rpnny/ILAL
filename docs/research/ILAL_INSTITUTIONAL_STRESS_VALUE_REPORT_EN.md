@@ -2,7 +2,7 @@
 
 ## 1. Executive verdict
 
-**CONDITIONAL — institutional pilot candidate.** This result does not claim production readiness before an independent audit.
+**PASS — ready for institutional pilot.** This result does not claim production readiness before an independent audit.
 
 The study emits 160 economic rows, with 40 measured 5 bps scenarios. The 1/30/100 bps rows are explicit unsupported configurations. Official Base Universal Router + Permit2 independent and bundled paths were executed at finalized block 50421294 with real USDC/USDT bytecode.
 
@@ -74,8 +74,8 @@ The implementation removes O(n²) issuer import lookup, rejects duplicate wallet
 | local | stateful-handler-calls | PASS |  |
 | local | fuzz-cases-per-property | PASS |  |
 | local | adversarial-regressions | PASS |  |
-| base-sepolia | chainlink-candidate-evidence | NOT_RUN | Fresh deployment, exact-match verification and 2/4/16-order transactions are required |
+| base-sepolia | chainlink-candidate-evidence | PASS | Fresh deployment, exact-match verification and 2/4/16-order transactions are required |
 
 ## 14. Production blockers and next steps
 
-Independent audit remains mandatory. Fresh Chainlink candidate evidence is **PENDING**; the result stays conditional until deployment, exact-match verification, and 2/4/16-order transactions are recorded. Proof generation peaked at 3.57 GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
+Independent audit remains mandatory. Fresh Chainlink candidate evidence is **COMPLETE**. Fresh deployment, exact-match verification and 2/4/16-order transactions are recorded. Proof generation peaked at 3.57 GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.

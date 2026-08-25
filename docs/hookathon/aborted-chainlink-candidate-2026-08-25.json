@@ -1,0 +1,20 @@
+{
+  "schema": "ilal-aborted-candidate-v1",
+  "status": "aborted",
+  "network": "base-sepolia",
+  "reason": "The original single wide liquidity position let the first 0.03-token residual move the pool from tick 0 to -591, outside the configured ±100 operating envelope.",
+  "contracts": {
+    "hUSDT": "0x4702fD8E261a0E91ACB091E92F169f32B0babeF5",
+    "mockEAS": "0x50751D1c5AbfbfDBDd33B691C71E696372809217",
+    "cnfIssuer": "0x828118102BcbB7E9cE1E3318A44DEbC0D0cfA484",
+    "policyRegistry": "0x75fEbC1796ba38f5C8c9feb6D358Dd51F7CfEF34",
+    "batchRouter": "0xAb0E730A26616f091F947527Cf84903b7B15303a",
+    "oracleGuard": "0xAFF8278E9a6b6AaF2bDf6d237E519e57472D0780",
+    "nettingHook": "0x059b2B591A61c8750a270E53D6FD3a096966C088"
+  },
+  "poolId": "0x4626ebbcd7275a48c73bae335de0e1428ad0844e0a8832ed80d06830f631f823",
+  "observedForwardTransaction": "0x6aabd489a5f36c5c287260103f5eed093f19777716b0a2d9fad295ea621c6f37",
+  "observedTickAfterForward": -591,
+  "disposition": "Never treated as final evidence. The following reverse batch was rejected during preflight; it was not broadcast, and no nonce or asset state changed.",
+  "replacement": "docs/hookathon/chainlink-candidate-manifest.json"
+}

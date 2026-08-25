@@ -1,7 +1,7 @@
 {
   "schema": "ilal-site-study-summary-v1",
-  "verdict": "CONDITIONAL",
-  "maturity": "institutional pilot candidate",
+  "verdict": "PASS",
+  "maturity": "ready for institutional pilot",
   "productionNetBenefitUsd": 4.643449790483895,
   "productionBaseline": "universal-router-bundled",
   "coreRows": 160,
@@ -22,7 +22,7 @@
   "tcoRows": 243,
   "oracleGuardGas": 37541,
   "oracleIncrementalGas": 36360,
-  "chainlinkCandidateEvidence": "PENDING",
+  "chainlinkCandidateEvidence": "COMPLETE",
   "caveat": "Institutional pilot evidence; unaudited and not production-ready. Proof peak 3.57 GiB; pilot hosts need memory headroom above 4 GiB.",
   "supported": "2–16 orders · standard equal-decimal ERC-20 · 5 bps · Chainlink 100 bps/90,000s · ±100 tick",
   "unsupported": "fee-on-transfer/rebasing/nonstandard tokens · other fee tiers · capacity-exceeding batches"

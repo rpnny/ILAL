@@ -2,25 +2,26 @@
   "schemaVersion": 1,
   "version": "0.4.0-v2-poc.7",
   "tag": "v0.4.0-v2-poc.7",
-  "sourceCommit": "0c4863ce2b2a470f570c59b851d75760c97868ed",
+  "sourceCommit": "a512e6996735ab83d088a80723d30e4f7bb897a9",
   "releaseCommit": null,
   "softwareStatus": "prerelease",
-  "deploymentStatus": "Chainlink-guarded Base Sepolia candidate pending fresh deployment and exact-match verification",
+  "deploymentStatus": "Chainlink-guarded Base Sepolia candidate deployed with exact-match verification and 2/4/16-order evidence",
   "attestationStatus": "issuer-operated private trees plus v1 CNF eligibility for netting",
   "zkStatus": "Groth16 policy circuit v2; unsafe development ceremony",
   "productionReadiness": "not production-ready",
   "auditStatus": "unaudited",
-  "npmPublication": "not published",
+  "npmPublication": "next",
   "deploymentManifest": "base-sepolia/v0.4.0-v2-poc.1.json",
+  "nettingCandidateManifest": "docs/hookathon/chainlink-candidate-manifest.json",
   "baselineTests": {
-    "foundry": 281,
-    "cli": 55,
+    "foundry": 282,
+    "cli": 56,
     "fuzzRuns": 256
   },
   "lastLocalVerification": {
     "date": "2026-08-25",
-    "foundry": { "passed": 281, "failed": 0, "skipped": 0 },
-    "cli": { "passed": 55, "failed": 0, "skipped": 0 },
+    "foundry": { "passed": 282, "failed": 0, "skipped": 0 },
+    "cli": { "passed": 56, "failed": 0, "skipped": 0 },
     "sdk": { "passed": 18, "failed": 0 },
     "circuitOracle": { "passed": 8, "failed": 0 },
     "circuitV1": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 3 },
@@ -34,10 +35,7 @@
     }
   },
   "releaseBlockers": [
-    "fresh Base Sepolia deployment using Circle test USDC and hUSDT",
-    "Sourcify exact-match verification for changed bytecode",
-    "forward, reverse, 4-order and 16-order transaction evidence",
-    "pinned-block preflight and rejection evidence",
-    "npm next and GitHub prerelease remain disabled until those gates pass"
+    "independent security audit before production use",
+    "Base mainnet deployment must configure the official sequencer uptime feed with a 3600-second recovery grace period"
   ]
 }

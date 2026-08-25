@@ -139,7 +139,7 @@ ${gateRows()}
 
 ## 14. Production blockers 与下一步
 
-独立审计仍是 production blocker。Chainlink 新 candidate 链上证据状态为 **${sharedFacts.chainlinkCandidateEvidence}**；在 fresh deployment、exact-match verification 与 2/4/16-order 交易完成前保持 CONDITIONAL。Proof 峰值为 ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
+独立审计仍是 production blocker。Chainlink 新 candidate 链上证据状态为 **${sharedFacts.chainlinkCandidateEvidence}**。${chainlinkCandidateComplete ? "Fresh deployment、exact-match verification 与 2/4/16-order 交易均已记录。" : "在 fresh deployment、exact-match verification 与 2/4/16-order 交易完成前保持 CONDITIONAL。"} Proof 峰值为 ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB，pilot 主机应提供超过 4 GiB 的实际可用内存与额外余量。若 capacity full frontier 或 100k issuer/proof 门槛未完成，则保持 CONDITIONAL；任何 P0/P1 或经济门槛失败则为 FAIL/NO-GO。
 `;
 
 const en = `# ILAL Institutional Stress & Value Validation Report
@@ -208,7 +208,7 @@ ${gateRows()}
 
 ## 14. Production blockers and next steps
 
-Independent audit remains mandatory. Fresh Chainlink candidate evidence is **${sharedFacts.chainlinkCandidateEvidence}**; the result stays conditional until deployment, exact-match verification, and 2/4/16-order transactions are recorded. Proof generation peaked at ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
+Independent audit remains mandatory. Fresh Chainlink candidate evidence is **${sharedFacts.chainlinkCandidateEvidence}**. ${chainlinkCandidateComplete ? "Fresh deployment, exact-match verification and 2/4/16-order transactions are recorded." : "The result stays conditional until deployment, exact-match verification and 2/4/16-order transactions are recorded."} Proof generation peaked at ${fmt((sharedFacts.rwaPeakRssBytes ?? 0) / 2 ** 30, 2)} GiB, so a pilot host needs more than 4 GiB of actually available memory plus operating headroom. Missing full capacity or 100k issuer/proof evidence keeps the result conditional; any P0/P1 or strict economic failure is a FAIL/NO-GO.
 `;
 
 mkdirSync(resolve(root, "docs/research/charts"), { recursive: true });
@@ -259,8 +259,11 @@ const findingsLedger = [
     title: "Monolithic frontier test exceeded the Foundry test gas ceiling", resolution: "Matrix split into 15 deterministic groups; all 135 rows complete." },
   { id: "P3-REPRO-RUNTIME-FIELDS", study: "full", severity: "P3", status: "fixed",
     title: "Initial reproducibility normalization retained gate wall-time and RSS observations", resolution: "Observed runtime and memory gate values are excluded while thresholds, status and semantic outputs remain hashed." },
-  { id: "P3-SEPOLIA-EXTENDED-BATCH", study: "fork", severity: "P3", status: "open",
-    title: "Chainlink candidate deployment and 4/16-order Sepolia transactions are pending", resolution: "No signer material was available. Chainlink changes Hook bytecode, so the previous candidate remains historical evidence only and cannot prove this implementation." },
+  { id: "P3-SEPOLIA-EXTENDED-BATCH", study: "fork", severity: "P3", status: chainlinkCandidateComplete ? "fixed" : "open",
+    title: "Chainlink candidate deployment and 4/16-order Sepolia transactions",
+    resolution: chainlinkCandidateComplete
+      ? "Fresh candidate deployed from the recorded source commit; forward, reverse, 4-order and 16-order batches succeeded and all first-party contracts have Sourcify exact creation/runtime matches."
+      : "Fresh deployment, exact-match verification and extended transaction evidence remain required." },
 ];
 writeJson("findings-ledger.json", { schema: "ilal-findings-ledger-v1", findings: findingsLedger });
 writeCsv("findings-ledger.csv", findingsLedger, ["id", "study", "severity", "status", "title", "resolution", "disposition"]);
@@ -275,16 +278,36 @@ writeJson("sepolia-evidence.json", {
     reverseTransaction: "0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8",
     sourceVerification: candidateManifest.verification ?? null,
   },
-  requestedExtensions: {
-    oracleGuardDeployment: "PENDING_SIGNER_MATERIAL",
-    forward010By007: "PENDING_NEW_CANDIDATE",
-    reverse006By009: "PENDING_NEW_CANDIDATE",
-    fourOrderBatch: "LOCAL_EXECUTION_COMPLETE_NEW_CANDIDATE_NOT_BROADCAST",
-    sixteenOrderBatch: "LOCAL_EXECUTION_COMPLETE_NEW_CANDIDATE_NOT_BROADCAST",
-    nearCapacitySuccess: "LOCAL_BINARY_SEARCH_COMPLETE_NEW_CANDIDATE_NOT_BROADCAST",
-    pinnedBlockRejections: "PENDING_NEW_CANDIDATE_AND_SIGNED_FIXTURES",
+  currentCandidate: chainlinkCandidateComplete ? {
+    sourceCommit: chainlinkCandidate.sourceCommit,
+    sourceTreeHash: chainlinkCandidate.sourceTreeHash,
+    hook: chainlinkCandidate.contracts.nettingHook.address,
+    router: chainlinkCandidate.contracts.batchRouter.address,
+    oracleGuard: chainlinkCandidate.contracts.oracleGuard.address,
+    poolId: chainlinkCandidate.pool.poolId,
+    sourceVerification: chainlinkCandidate.sourceVerification,
+    oracle: chainlinkCandidate.oracle,
+    batches: chainlinkCandidate.batches,
+    postconditions: chainlinkCandidate.postconditions,
+  } : null,
+  requestedExtensions: chainlinkCandidateComplete ? {
+    oracleGuardDeployment: "COMPLETE",
+    forward010By007: "COMPLETE",
+    reverse006By009: "COMPLETE",
+    fourOrderBatch: "COMPLETE",
+    sixteenOrderBatch: "COMPLETE",
+    nearCapacitySuccess: "LOCAL_BINARY_SEARCH_COMPLETE",
+    pinnedBlockRejections: "LOCAL_AND_FORK_REGRESSION_COMPLETE_NO_REVERTING_TRANSACTION_BROADCAST",
+  } : {
+    oracleGuardDeployment: "PENDING",
+    forward010By007: "PENDING",
+    reverse006By009: "PENDING",
+    fourOrderBatch: "PENDING",
+    sixteenOrderBatch: "PENDING",
+    nearCapacitySuccess: "LOCAL_BINARY_SEARCH_COMPLETE",
+    pinnedBlockRejections: "LOCAL_AND_FORK_REGRESSION_COMPLETE",
   },
-  note: "No reverting transaction was broadcast and no signer credentials were fabricated. The previous candidate is not current implementation evidence because the Chainlink integration changes Hook bytecode.",
+  note: "No reverting transaction was broadcast. The previous candidate remains historical evidence only because the Chainlink integration changes Hook bytecode.",
 });
 writeFileSync(resolve(root, "site/institutional-study-summary.js"), `window.ILAL_STUDY_SUMMARY = ${JSON.stringify(summary, null, 2)};
 (function hydrateInstitutionalStudy(summary) {
