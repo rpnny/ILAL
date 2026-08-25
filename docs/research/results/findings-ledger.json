@@ -45,9 +45,9 @@
       "id": "P3-SEPOLIA-EXTENDED-BATCH",
       "study": "fork",
       "severity": "P3",
-      "status": "open",
-      "title": "Chainlink candidate deployment and 4/16-order Sepolia transactions are pending",
-      "resolution": "No signer material was available. Chainlink changes Hook bytecode, so the previous candidate remains historical evidence only and cannot prove this implementation."
+      "status": "fixed",
+      "title": "Chainlink candidate deployment and 4/16-order Sepolia transactions",
+      "resolution": "Fresh candidate deployed from the recorded source commit; forward, reverse, 4-order and 16-order batches succeeded and all first-party contracts have Sourcify exact creation/runtime matches."
     }
   ]
 }

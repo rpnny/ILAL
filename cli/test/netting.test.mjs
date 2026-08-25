@@ -60,6 +60,20 @@ test("Chainlink guard selectors are decoded into operator-facing rejection names
   assert.equal(depeg.message, "CHAINLINK_PEG_DEVIATION");
 });
 
+test("revert decoding ignores addresses and prefers nested RPC revert data", () => {
+  const noData = decodeNettingRevert(new Error(
+    "execution reverted from 0x58B24A10593a50a83E9F74bB1Ff3F98421288797 for an unknown reason",
+  ));
+  assert.equal(noData.selector, null);
+
+  const nested = decodeNettingRevert({
+    message: "request failed for 0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+    cause: { data: "0xc56873ba" },
+  });
+  assert.equal(nested.selector, "0xc56873ba");
+  assert.equal(nested.message, "ILAL_ORDER_EXPIRED");
+});
+
 test("offline batch preview reads signed JSON without any private key", () => {
   const dir = mkdtempSync(join(tmpdir(), "ilal-netting-"));
   try {

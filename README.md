@@ -30,6 +30,12 @@ deployment remains unchanged.
 | Reviewer path | Start here |
 |---|---|
 | Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
+| Chainlink-guarded Hook | [`0x8d1f…0088` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088) |
+| Oracle Guard | [`0x1dEc…199D3` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3) |
+| Live forward `0.10/0.07` | [`0x9177…0998`](https://sepolia.basescan.org/tx/0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998) |
+| Live reverse `0.06/0.09` | [`0x588a…5172`](https://sepolia.basescan.org/tx/0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172) |
+| Live 4 / 16 order | [`4-order`](https://sepolia.basescan.org/tx/0xf6d74bd973b6c26c63ec7317dff87ba8055d8946eb2b637791b5376e1d335954) · [`16-order`](https://sepolia.basescan.org/tx/0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7) |
+| Current evidence manifest | [`chainlink-candidate-manifest.json`](docs/hookathon/chainlink-candidate-manifest.json) |
 | Previous pre-Chainlink Hook | [`0xb385…4088` — historical Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
 | Previous `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
 | Previous reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |

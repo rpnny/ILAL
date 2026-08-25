@@ -1,0 +1,110 @@
+{
+  "schema": "ilal-chainlink-candidate-v1",
+  "status": "candidate",
+  "candidate": "hookathon-institutional-netting",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "deployedAt": "2026-08-25T06:05:00Z",
+  "sourceCommit": "a512e6996735ab83d088a80723d30e4f7bb897a9",
+  "sourceTreeHash": "854775537f58aa1d4312f19c09daa99b3c39b74b652d5e97a76e4cc0b494062b",
+  "sourceTreeHashAlgorithm": "sha256(git archive of deployment source tree)",
+  "create2Salt": "0x0000000000000000000000000000000000000000000000000000000000000768",
+  "infrastructure": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "positionManager": "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80",
+    "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+  },
+  "roles": {
+    "deployer": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+    "safeAdmin": "0x67ceEC895B2668d95D79c164437dF4609c26c6cD",
+    "institutionA": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+    "institutionB": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+    "solver": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+    "liquidityProvider": "0x359C370fC666A01216895ddD050eeE5E86702990",
+    "usdcFunder": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC"
+  },
+  "assets": {
+    "token0": {
+      "symbol": "USDC",
+      "address": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "decimals": 6,
+      "provenance": "Circle official Base Sepolia test USDC"
+    },
+    "token1": {
+      "symbol": "hUSDT",
+      "address": "0xC4946fEC334f4B9350dF08E311261e4361B7c72C",
+      "decimals": 6,
+      "provenance": "ILAL test representation; not official USDT",
+      "transactionHash": "0x967a30f86f7c453eb239de3ccd73fb67987293814d67a09f6d6a3520b65559e5",
+      "blockNumber": 45934419
+    }
+  },
+  "contracts": {
+    "mockEAS": {"address": "0xDF986849d855A177602332E280f0C457253DEecd", "transactionHash": "0x6670ceed79978c28afcdc22507d5f77dffb618342804cb10c68b212c2f80829b", "blockNumber": 45934420},
+    "cnfIssuer": {"address": "0x4B3fAf8664eB85ED59059491925F763459E72386", "transactionHash": "0xd2bed493fb522db0e27a43b71866428ebd407cb07f268ed1f402a0fd72bb3908", "blockNumber": 45934422},
+    "policyRegistry": {"address": "0x12C7982Fe897037c6A6c80c52f6bf3e180D85a61", "transactionHash": "0xfb4d6b76eb3cee65855dfd09cb70f5a9369001529eed13789dd161cb3a9b465a", "blockNumber": 45934424},
+    "batchRouter": {"address": "0x96456C68f25A1Fa6C2F2751183401ac26A732506", "transactionHash": "0x3b8b44bd40a7c2624bf7e7a3d9c3efb6e063cacace4438f3910ff56312e03964", "blockNumber": 45934425},
+    "oracleGuard": {"address": "0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3", "transactionHash": "0x8a1ed80313ca616421464be4b3bd253e0074eb813ec0380df52dad8ed0467410", "blockNumber": 45934426},
+    "nettingHook": {"address": "0x8d1fA43F848701b2adB105D5c925A9247E600088", "transactionHash": "0x3d00ced96d38acf989a55969d45a71064fdd395b3b6e0aef6205fcce516e0c63", "blockNumber": 45934427}
+  },
+  "pool": {
+    "poolId": "0xeab91a1421cb5c170df74c1eaf676a8836eda1fc5a833f62ab9c2d516acfbc87",
+    "fee": 500,
+    "tickSpacing": 10,
+    "initialization": {"transactionHash": "0x9dd60e222cf4af3387da79a3adb3795325cae9336fce404d55a2b8f006d4cc68", "blockNumber": 45934428, "tick": 0},
+    "liquidity": {
+      "transactionHash": "0x18f58921655d03a7e3501391a8989698bc8548d868d12e6cc9ba81ffd7b33c6a",
+      "blockNumber": 45934454,
+      "wide": {"tickLower": -10000, "tickUpper": 10000, "liquidity": "1000000"},
+      "stabilizer": {"tickLower": -100, "tickUpper": 100, "liquidity": "10000000"},
+      "token0Used": "443328",
+      "token1Used": "443328"
+    },
+    "finalState": {"sqrtPriceX96": "79229312400232397521189340657", "tick": 0}
+  },
+  "oracle": {
+    "provider": "Chainlink Data Feeds",
+    "enforcement": "fail-closed at openBatch",
+    "maxAgeSeconds": 90000,
+    "maxIndividualDeviationBps": 100,
+    "maxPairDeviationBps": 100,
+    "sequencerCheck": {"enabled": false, "reason": "No official Base Sepolia uptime proxy is listed; Base mainnet requires it with a 3600-second grace period."},
+    "usdcUsd": {"address": "0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165", "description": "USDC / USD", "decimals": 8, "roundId": "18446744073709552777", "answer": "100000000", "normalizedPrice": "1000000000000000000", "updatedAt": 1787552094},
+    "usdtUsd": {"address": "0x3ec8593F930EA45ea58c968260e6e9FF53FC934f", "description": "USDT / USD", "decimals": 8, "roundId": "18446744073709552865", "answer": "99994000", "normalizedPrice": "999940000000000000", "updatedAt": 1787593352}
+  },
+  "compliance": {
+    "policyTransactionHash": "0xc00cf310c71506821900a0fe486f95fea9b5d8ba5e93988942993036b397bf81",
+    "institutionA": {"attestationUID": "0xf639d66decc0e9a0dad976c5b5f13a856033adab092d3d8d75d2f5fe52c2cb1d", "credentialTokenId": 1},
+    "institutionB": {"attestationUID": "0x7f5dcad4cc40eda559266d1bb49d3a19e60f638a0ac4ce8680b9ac745a3a3b91", "credentialTokenId": 2}
+  },
+  "batches": {
+    "forward010By007": {"transactionHash": "0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998", "blockNumber": 45934588, "gasUsed": 640837, "batchId": "0x6f066658caa8a4631db43789ef361f03f322d8ce0c992e6387d7166bfe86f872", "submitted": {"token0": "100000", "token1": "70000"}, "residual": {"token0": "30000", "token1": "0"}, "preflight": {"blockNumber": 45934560, "blockHash": "0x2f2453d03672608937f95dcbb9a969da55ca9a459014f3f7c7d00b3e0ee7dedb", "status": "executable", "estimatedGas": 828310}},
+    "reverse006By009": {"transactionHash": "0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172", "blockNumber": 45934631, "gasUsed": 640650, "batchId": "0xdf3d2356bb9842c8ff2c02302db1c21457823f59aee4ca50c573bce32e728510", "submitted": {"token0": "60000", "token1": "90000"}, "residual": {"token0": "0", "token1": "30000"}, "preflight": {"blockNumber": 45934604, "blockHash": "0x805a0b49b62ad774071622be6f117e6d3ad5ad20940c2ea59cddf319fcbe0acd", "status": "executable", "estimatedGas": 828068}},
+    "fourOrder": {"transactionHash": "0xf6d74bd973b6c26c63ec7317dff87ba8055d8946eb2b637791b5376e1d335954", "blockNumber": 45934699, "gasUsed": 801183, "batchId": "0xb2cae941b0acf87b5671caf264e02595ef9a73203452b413b832ccf68762981e", "orderCount": 4, "preflight": {"blockNumber": 45934672, "blockHash": "0x519de68921446957487b42a1ab3e0c58e2de50b57ccf282752ea1eaef1c22268", "status": "executable", "estimatedGas": 1034970}},
+    "sixteenOrder": {"transactionHash": "0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7", "blockNumber": 45934788, "gasUsed": 1896404, "batchId": "0x05a00660bb222eca4bb954e25e5d6f62c1c971f6e4a6087db6e9d1bf1b6c3ca8", "orderCount": 16, "preflight": {"blockNumber": 45934755, "blockHash": "0x60fd90e0f991cb7731557793877ab5d54568cd229988031eb0d6940c76f3ea86", "status": "executable", "estimatedGas": 2270429}}
+  },
+  "postconditions": {"hookToken0Balance": "0", "hookToken1Balance": "0", "routerToken0Balance": "0", "routerToken1Balance": "0", "batchActive": false, "allBroadcastTransactionsSucceeded": true, "revertingTransactionsBroadcast": 0},
+  "sourceVerification": {
+    "verifier": "Sourcify",
+    "status": "exact_match",
+    "contracts": {
+      "hUSDT": {"jobId": "050c516c-d562-4de1-a5c7-048884b49089", "matchId": "46813747", "verifiedAt": "2026-08-25T06:05:44Z"},
+      "mockEAS": {"jobId": "8af6ec2e-8fe0-48da-bc1a-7dd9552fbce0", "matchId": "46813759", "verifiedAt": "2026-08-25T06:06:07Z"},
+      "cnfIssuer": {"jobId": "01b0c89b-6cc3-4693-a6fa-b7bc74af695b", "matchId": "46813757", "verifiedAt": "2026-08-25T06:06:06Z"},
+      "policyRegistry": {"jobId": "ef6c29a2-2210-45e9-bd47-2fa54434dafd", "matchId": "46813755", "verifiedAt": "2026-08-25T06:06:05Z"},
+      "batchRouter": {"jobId": "db6f3777-8b35-40a5-9936-97e2136d2f52", "matchId": "46813758", "verifiedAt": "2026-08-25T06:06:06Z"},
+      "oracleGuard": {"jobId": "d89a024a-8820-4b01-ae8b-d802fbb684b7", "matchId": "46813756", "verifiedAt": "2026-08-25T06:06:05Z"},
+      "nettingHook": {"jobId": "a9646e6d-c51d-4dc0-b596-19952703aecc", "matchId": "46813760", "verifiedAt": "2026-08-25T06:06:07Z"}
+    },
+    "links": {
+      "hook": "https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088",
+      "router": "https://sourcify.dev/server/v2/contract/84532/0x96456C68f25A1Fa6C2F2751183401ac26A732506",
+      "guard": "https://sourcify.dev/server/v2/contract/84532/0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3"
+    }
+  },
+  "notes": [
+    "Ready for institutional pilot evidence only; unaudited and not production-ready.",
+    "Chainlink is a batch-opening circuit breaker and does not determine execution price.",
+    "The Base Sepolia sequencer uptime check is disabled; a mainnet deployment without the official uptime feed and 3600-second grace period is a production blocker."
+  ]
+}
