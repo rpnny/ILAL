@@ -39,7 +39,7 @@ contract DeployHookathonNetting is Script {
     address internal constant FOUNDRY_CREATE2_DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
     address internal constant CHAINLINK_USDC_USD = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
     address internal constant CHAINLINK_USDT_USD = 0x3ec8593F930EA45ea58c968260e6e9FF53FC934f;
-    address internal constant CIRCLE_TEST_USDC = 0x036CBD53842c5426634e7929541ec2318F3DCF7C;
+    address internal constant CIRCLE_TEST_USDC = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
 
     uint160 internal constant INITIAL_SQRT_PRICE = 79228162514264337593543950336;
     uint160 internal constant HOOK_FLAGS = Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_SWAP_RETURNS_DELTA_FLAG;
