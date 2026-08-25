@@ -423,7 +423,9 @@ make study-full    # complete run plus normalized reproducibility check
 
 The strict verdict is `PASS / CONDITIONAL / FAIL`; a passing result means only
 **ready for institutional pilot**. Independent audit remains a production
-blocker. See [`docs/research/`](docs/research/).
+blocker. Start with the consolidated Chinese
+[`complete test data and evidence report`](docs/research/ILAL_COMPLETE_TEST_DATA_REPORT_ZH.md),
+or read the full [research directory](docs/research/).
 
 ## Deployment status
 
