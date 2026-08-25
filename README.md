@@ -5,7 +5,7 @@
 [![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
 Current npm preview: `npm install -g @ilalv3/cli@next`
-(`v0.4.0-v2-poc.5`, including the institutional netting commands). The
+(`v0.4.0-v2-poc.6`, including state-aware institutional netting preflight). The
 public `latest` channel remains `v0.3.3` because the netting and V2 stacks are
 separate unaudited Base Sepolia candidates.
 
@@ -160,9 +160,9 @@ make verify
 
 | Suite | Current result |
 |---|---:|
-| Foundry | 242 passed, 0 failed, 0 skipped |
-| Netting stateful invariants | 6 properties × 256 calls, 0 reverts |
-| CLI | 53 passed |
+| Foundry | 265 passed, 0 failed, 0 skipped |
+| Netting stateful invariants | 100,000 handler calls, 0 failures/reverts |
+| CLI | 54 passed |
 | SDK | 18 passed |
 | Circuit oracle | 8 passed |
 | Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
@@ -226,6 +226,27 @@ candidate-liquidity stress test also reports the `100k/70k` case as
 the row is excluded from break-even interpolation. See the full assumptions,
 100/1k/10k/100k sweep and machine-readable output in the
 [`gas-cost break-even benchmark`](docs/hookathon/BREAK_EVEN.md).
+
+## Institutional stress and value study
+
+The fail-closed research runner emits `institutional-study-v1` JSON/CSV, pins
+the Base fork block and official contract bytecode, measures Base L1 security
+fees, exercises the deployed Universal Router + Permit2 surface, runs the
+issuer workflow at scale, and generates bilingual reports plus the website
+summary.
+
+```bash
+make study-local   # 160-row economic grid + 12 multi-order scenarios
+make study-fork    # finalized Base fork, real token bytecode, production router
+make study-rwa     # 100/1k/10k/100k PII-free issuer datasets + 20 proofs
+make study-stress  # >=100k invariant handler calls + 10k fuzz/property
+make study-report  # JSON/CSV-derived reports, chart and website summary
+make study-full    # complete run plus normalized reproducibility check
+```
+
+The strict verdict is `PASS / CONDITIONAL / FAIL`; a passing result means only
+**ready for institutional pilot**. Independent audit remains a production
+blocker. See [`docs/research/`](docs/research/).
 
 ## Deployment status
 

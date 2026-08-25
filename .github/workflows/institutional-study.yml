@@ -1,0 +1,51 @@
+name: institutional study
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  full-study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24.13.0"
+          cache: npm
+          cache-dependency-path: |
+            cli/package-lock.json
+            circuits/package-lock.json
+      - uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
+        with:
+          version: v1.5.1
+      - name: Install dependencies
+        run: |
+          npm ci --prefix cli
+          npm ci --prefix circuits
+          contracts/scripts/install-deps.sh
+      - name: Install circom 2.2.3
+        run: cargo install --locked --git https://github.com/iden3/circom --tag v2.2.3 --root "$RUNNER_TEMP/circom" circom
+      - name: Build V2 testnet proving artifacts
+        run: PATH="$RUNNER_TEMP/circom/bin:$PATH" circuits/scripts/prepare_v2_test_artifacts.sh
+      - name: Run full institutional study twice
+        env:
+          BASE_MAINNET_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL || 'https://mainnet.base.org' }}
+          BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org' }}
+        run: make study-full
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        with:
+          name: institutional-study-${{ github.sha }}
+          path: |
+            docs/research/results/
+            docs/research/charts/
+            docs/research/ILAL_INSTITUTIONAL_STRESS_VALUE_REPORT_*.md
+          if-no-files-found: error
+          retention-days: 30

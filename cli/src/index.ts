@@ -41,7 +41,7 @@ import { fmt } from "./ui.js";
 import { COINBASE_SCHEMA_UID } from "./constants.js";
 import { configureSignerOptions, type GlobalSignerOptions } from "./signer.js";
 import { safePropose } from "./safe.js";
-import { nettingBatchExecute, nettingBatchPreview, nettingNonceCancel, nettingOrderSign } from "./commands/netting.js";
+import { nettingBatchExecute, nettingBatchPreflight, nettingBatchPreview, nettingNonceCancel, nettingOrderSign } from "./commands/netting.js";
 import { base, baseSepolia } from "viem/chains";
 
 const program = new Command();
@@ -49,7 +49,7 @@ const program = new Command();
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.4.0-v2-poc.5")
+  .version("0.4.0-v2-poc.6")
   .option("--keystore <path>", "Encrypted Web3 Secret Storage v3 keystore")
   .option("--password-file <path>", "Keystore password file (must be mode 600)")
   .option("--rpc-account <address>", "Account managed by the configured JSON-RPC node")
@@ -185,6 +185,22 @@ nettingBatch
   .action(async (opts: { orders: string[] }) => { await nettingBatchPreview(opts).catch(err); });
 
 nettingBatch
+  .command("preflight")
+  .description("Validate a batch against one pinned chain snapshot and simulate full execution")
+  .requiredOption("--orders <files...>", "Two to sixteen signed order JSON files")
+  .requiredOption("-o, --output <path>", "Write ilal-netting-preflight-v1 JSON")
+  .option("--router <address>", "InstitutionalBatchRouter address")
+  .option("-H, --hook <address>", "InstitutionalNettingHook address")
+  .option("--token-a <address>", "currency0 address")
+  .option("--token-b <address>", "currency1 address")
+  .option("--fee <uint24>", "Static pool fee", "500")
+  .option("--tick-spacing <int24>", "Pool tick spacing", "10")
+  .option("--from <address>", "Executor address used for eth_call and gas estimation")
+  .option("-c, --chain <chainId>", "Chain ID")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (opts) => { await nettingBatchPreflight(opts).catch(err); });
+
+nettingBatch
   .command("execute")
   .description("Permissionlessly submit a signed atomic batch")
   .requiredOption("--orders <files...>", "Two to sixteen signed order JSON files")
@@ -194,6 +210,7 @@ nettingBatch
   .option("--token-b <address>", "currency1 address")
   .option("--fee <uint24>", "Static pool fee", "500")
   .option("--tick-spacing <int24>", "Pool tick spacing", "10")
+  .option("--from <address>", "Executor address used for the first signer-free preflight")
   .option("-c, --chain <chainId>", "Chain ID")
   .option("-r, --rpc <url>", "Custom RPC URL")
   .action(async (opts) => { await nettingBatchExecute(opts).catch(err); });

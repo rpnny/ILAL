@@ -102,6 +102,10 @@ test("netting commands are discoverable and order signing requires one direction
   assert.match(help.stdout, /batch/);
   assert.match(help.stdout, /nonce/);
 
+  const batchHelp = spawnSync(process.execPath, [cli, "netting", "batch", "--help"], { encoding: "utf8" });
+  assert.equal(batchHelp.status, 0);
+  assert.match(batchHelp.stdout, /preflight/);
+
   const invalid = spawnSync(process.execPath, [
     cli, "netting", "order", "sign", "--amount-in", "1", "--min-amount-out", "1",
     "--max-amm-input", "0", "--output", "order.json",

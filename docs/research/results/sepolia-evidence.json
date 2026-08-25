@@ -1,0 +1,20 @@
+{
+  "schema": "ilal-sepolia-study-evidence-v1",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "contractBytecodeChanged": false,
+  "reusedCandidate": {
+    "hook": "0xb385043E7489E2683473a0158710e3F9932F4088",
+    "router": "0xA64676eA840426D94800dB00a11ea70a1E746e8D",
+    "canonicalTransaction": "0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9",
+    "reverseTransaction": "0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8",
+    "sourceVerification": null
+  },
+  "requestedExtensions": {
+    "fourOrderBatch": "LOCAL_EXECUTION_COMPLETE_SEPOLIA_NOT_BROADCAST",
+    "sixteenOrderBatch": "LOCAL_EXECUTION_COMPLETE_SEPOLIA_NOT_BROADCAST",
+    "nearCapacitySuccess": "LOCAL_BINARY_SEARCH_COMPLETE_SEPOLIA_NOT_BROADCAST",
+    "pinnedBlockRejections": "NOT_RUN_NO_VALID_SIGNED_ORDER_FIXTURE"
+  },
+  "note": "No reverting transaction was broadcast and no signer credentials were fabricated. Existing candidate evidence remains applicable because source contract bytecode did not change."
+}

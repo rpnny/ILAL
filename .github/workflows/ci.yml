@@ -42,6 +42,17 @@ jobs:
           mkdir -p artifacts
           PATH="$RUNNER_TEMP/circom/bin:$PATH" make verify 2>&1 | tee artifacts/verify.log
           node scripts/summarize-tests.mjs artifacts/verify.log artifacts/test-summary.json
+      - name: Prepare V2 testnet proving artifacts
+        run: PATH="$RUNNER_TEMP/circom/bin:$PATH" circuits/scripts/prepare_v2_test_artifacts.sh
+      - name: Institutional study PR gate
+        env:
+          ILAL_STUDY_RWA_SIZES: "100"
+          ILAL_STUDY_PROOF_RUNS: "1"
+        run: |
+          make study-local
+          make study-rwa
+          make study-report
+          test "$(node -p 'require("./docs/research/results/local-study.json").scenarios.length')" = "160"
       - name: Generate SBOMs
         run: |
           cd cli && npm sbom --sbom-format cyclonedx > ../artifacts/cli.cdx.json

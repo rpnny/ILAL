@@ -18,7 +18,7 @@ not copied from historical audit documents.
 | Review ZK behavior | `circuits/ilal.circom`, `circuits/v2/ilal_policy.circom`, verifier adapters under `contracts/src/verifier/` |
 | Review the v2 policy-grant design | `contracts/src/v2/`, `circuits/v2/`, `cli/src/commands/policyV2.ts` |
 | Inspect active addresses and evidence | `deployments/index.json`, then the active manifest it references |
-| Inspect release state | `releases/v0.4.0-v2-poc.5.json`, `releases/v0.3.3.json`, `RELEASE.md` |
+| Inspect release state | `releases/v0.4.0-v2-poc.6.json`, `releases/v0.3.3.json`, `RELEASE.md` |
 | Run the complete local gate | `make verify` |
 
 ## Active v1 Execution Path

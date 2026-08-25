@@ -1,0 +1,124 @@
+{
+  "schema": "institutional-study-v1",
+  "study": "fork",
+  "provenance": {
+    "commit": "b3799a03cffe3445f3991cedaa62cfa249c11d44",
+    "dirty": true,
+    "generatedAt": "2026-08-24T14:27:31.887Z",
+    "seed": "0x494c414c2d494e535449545554494f4e414c2d53545544592d5631",
+    "toolchain": {
+      "node": "v24.13.0",
+      "forge": "forge Version: 1.5.1-stable",
+      "solc": "unavailable",
+      "platform": "darwin-arm64"
+    },
+    "chainId": 8453,
+    "forkBlock": 50394803,
+    "forkBlockHash": "0x86c9f6df7d22ee4d9664b7c4cdc032577e5b001041f772c26c166949c38de43c"
+  },
+  "status": "COMPLETE",
+  "addresses": {
+    "usdc": {
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "source": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+      "byteLength": 1852,
+      "sha256": "98d785fcb1bf847f287adc2310759fd94cc13e754b974bc72131382e8266f607",
+      "present": true
+    },
+    "usdt": {
+      "address": "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+      "source": "Base deployed token bytecode; issuer provenance requires separate diligence",
+      "byteLength": 6774,
+      "sha256": "41afdc26b4b5b699a89e8e576499fb713c97b3904af1cec322b8781bbe834bea",
+      "present": true
+    },
+    "poolManager": {
+      "address": "0x498581ff718922c3f8e6a244956af099b2652b2b",
+      "source": "https://github.com/Uniswap/sdks/blob/main/sdks/sdk-core/src/addresses.ts",
+      "byteLength": 24009,
+      "sha256": "b08ceda0478797f4a64fa9a089a97290411d71ce00131ccf599412210c191868",
+      "present": true
+    },
+    "universalRouter": {
+      "address": "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
+      "source": "https://github.com/Uniswap/universal-router/blob/main/deploy-addresses/base.json",
+      "byteLength": 24546,
+      "sha256": "7dbc8755c7ba92c2263f109720d0c6efd34b8a26bce8680348ba865421b99f9c",
+      "present": true
+    },
+    "permit2": {
+      "address": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+      "source": "Uniswap canonical Permit2 deployment",
+      "byteLength": 9152,
+      "sha256": "14aac65013451ac5878cca13f96c26e761c659ceece37c822604451e1608f5fc",
+      "present": true
+    },
+    "gasPriceOracle": {
+      "address": "0x420000000000000000000000000000000000000F",
+      "source": "https://docs.base.org/base-chain/network-information/base-contracts",
+      "byteLength": 2055,
+      "sha256": "5dcd6f463e4a502836560cbd1e7e4dd3eb37d3282b1c14f70bb31ff8c35ca112",
+      "present": true
+    }
+  },
+  "scenarios": [
+    {
+      "scenarioId": "fork-universal-router-independent-10000-70-5bps",
+      "category": "production-router-baseline",
+      "mode": "independent",
+      "output": 16991410060,
+      "executionGas": 188849,
+      "totalGas": 243957,
+      "fullFill": true
+    },
+    {
+      "scenarioId": "fork-universal-router-bundled-10000-70-5bps",
+      "category": "production-router-baseline",
+      "mode": "bundled",
+      "output": 16991410146,
+      "executionGas": 184218,
+      "totalGas": 217410,
+      "fullFill": true
+    }
+  ],
+  "baseFeeModel": {
+    "source": "https://docs.base.org/base-chain/network-information/network-fees",
+    "components": [
+      "L2 execution",
+      "L1 security"
+    ],
+    "representativeCandidateTransaction": "0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9",
+    "l1SecurityFeeStatus": "COMPLETE",
+    "representativeL1FeeWei": "16558816289"
+  },
+  "baselines": {
+    "directV4": "MEASURED_LOCAL",
+    "universalRouterPermit2": "MEASURED_ON_PINNED_BASE_FORK",
+    "note": "Official deployed router and Permit2 execute against a controlled vanilla pool on the official PoolManager with real USDC/USDT bytecode."
+  },
+  "gates": [
+    {
+      "id": "fork-code-surface",
+      "status": "PASS"
+    },
+    {
+      "id": "official-universal-router-full-fill",
+      "status": "PASS"
+    },
+    {
+      "id": "production-economic-gate",
+      "status": "PASS",
+      "baseline": "universal-router-bundled",
+      "outputAdvantageUsd": 6.999946,
+      "gasPremium": 467182,
+      "l2PremiumUsd": 1.401546,
+      "candidateL1FeeUsd": 0.000049676448866999996,
+      "solverReserveUsd": 0.85,
+      "netBenefitUsd": 4.748350323551133,
+      "conservativeNote": "Charges the full candidate L1 fee and credits no L1 fee to vanilla, understating ILAL net benefit."
+    }
+  ],
+  "findings": [],
+  "verdict": "PASS",
+  "forkTestOutput": "No files changed, compilation skipped\n2026-08-24T14:27:28.731120Z  WARN evm::traces::external: etherscan config not found\n\nRan 2 tests for test/InstitutionalNettingFork.t.sol:InstitutionalNettingForkTest\n[PASS] testFork_officialSurfacesAndRealStablecoinBytecodeExist() (gas: 31086)\n[PASS] testFork_universalRouterPermit2IndependentAndBundled() (gas: 8283320)\nLogs:\n  FORKBASELINE|mode=independent|output=16991410060|executionGas=188849|totalGas=243957\n  FORKBASELINE|mode=bundled|output=16991410146|executionGas=184218|totalGas=217410\n\nSuite result: ok. 2 passed; 0 failed; 0 skipped; finished in 876.73ms (14.00ms CPU time)\n\nRan 1 test suite in 878.72ms (876.73ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)\n\n"
+}

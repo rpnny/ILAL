@@ -91,7 +91,7 @@
           <div><span>canonical batch</span><strong>100 / 70</strong></div>
           <div><span>internal match</span><strong>140 gross</strong></div>
           <div><span>AMM residual</span><strong>30 token0</strong></div>
-          <div><span>Solidity tests</span><strong>242</strong></div>
+          <div><span>Solidity tests</span><strong>265</strong></div>
         </div>
       </div>
     </div>
@@ -115,8 +115,8 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">242</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">265</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">54</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
@@ -127,8 +127,8 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">242</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">53</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">265</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">54</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>max batch <span class="ticker-item__val">16 orders</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>inventory after <span class="ticker-item__val">zero</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>source verification <span class="ticker-item__val">exact match</span></span>
@@ -189,7 +189,7 @@
           </a>
           <a class="proof-card" href="https://github.com/rpnny/ILAL/tree/main/test/netting" target="_blank" rel="noreferrer">
             <span class="proof-card__label">05 · Invariants</span>
-            <strong>Six × 256 runs</strong>
+            <strong>100k handler calls</strong>
             <span class="proof-card__meta">allocation, conservation and zero inventory</span>
             <code>test/netting ↗</code>
           </a>
@@ -200,6 +200,34 @@
         <span>Canonical acceptance</span>
         <strong>170m submitted → 140m matched internally → 30m routed to the AMM.</strong>
       </div>
+    </div>
+  </section>
+
+  <section class="study-section" id="institutional-study" aria-labelledby="study-title">
+    <div class="section-inner">
+      <div class="study-head">
+        <div>
+          <p class="eyebrow">Machine-generated institutional validation</p>
+          <h2 id="study-title">Pressure tested.<br><em>Economically bounded.</em></h2>
+        </div>
+        <div class="study-verdict" id="studyVerdict">RESULT PENDING</div>
+      </div>
+      <p class="section-lead" id="studyCaveat">Run <code>make study-report</code> to generate this evidence from repository results.</p>
+      <div class="study-grid">
+        <article class="study-card"><span>Strict-gate net benefit</span><strong id="studyNetBenefit">—</strong><small id="studyBaseline">Base fee + solver reserve</small></article>
+        <article class="study-card"><span>Economic matrix</span><strong id="studyRows">—</strong><small>measured + explicit unsupported rows</small></article>
+        <article class="study-card"><span>Stateful pressure</span><strong id="studyStress">—</strong><small>handler calls</small></article>
+        <article class="study-card"><span>RWA issuer scale</span><strong id="studyRwa">—</strong><small>PII-free synthetic wallets</small></article>
+      </div>
+      <div class="study-envelope">
+        <p><span>SUPPORTED</span><code id="studySupported">—</code></p>
+        <p><span>NOT SUPPORTED</span><code id="studyUnsupported">—</code></p>
+      </div>
+      <div class="study-charts" aria-label="Generated research charts">
+        <figure><img src="research-profitability-heatmap.svg" alt="ILAL profitability heatmap across notional and matching ratio"><figcaption>Profitability · local signal; strict Base fee gate shown above</figcaption></figure>
+        <figure><img src="research-capacity-frontier.svg" alt="ILAL capacity frontier by liquidity multiplier"><figcaption>Capacity · safe notional changes with depth, tick and physical balances</figcaption></figure>
+      </div>
+      <a class="study-report-link" href="https://github.com/rpnny/ILAL/tree/main/docs/research" target="_blank" rel="noreferrer">Full method, JSON, CSV and bilingual reports ↗</a>
     </div>
   </section>
 
@@ -281,7 +309,7 @@
         <div class="product-card">
           <span class="product-card__tag">Audit</span>
           <h3>Security package</h3>
-          <p>242 Solidity, 53 CLI and 18 SDK tests, plus six netting invariants at 256 runs each. Coverage includes conservation, canonical ordering, solver independence, cancellation, zero inventory and notional break-even stress tests.</p>
+          <p>265 Solidity, 54 CLI and 18 SDK tests, plus 100,000 stateful invariant handler calls and 10,000 fixed-seed fuzz cases per critical property. Coverage includes conservation, canonical ordering, solver independence, cancellation, zero inventory and notional break-even stress tests.</p>
         </div>
       </div>
     </div>
@@ -619,7 +647,7 @@ ilal policy grant activate --proof ./artifacts/v2-proof/proof.json \
           </div>
           <pre class="cli-step__pre"><code>npm install -g @ilalv3/cli@next
 ilal init
-ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
+ilal --version <span class="c-comment"># 0.4.0-v2-poc.6</span>
 
 <span class="c-comment"># Public testnet prototype.
 # Production use requires audited contracts
@@ -968,7 +996,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
         <div class="fstat"><span class="fstat__val">140m</span><span class="fstat__l">gross matched</span></div>
         <div class="fstat"><span class="fstat__val">30m</span><span class="fstat__l">AMM residual</span></div>
         <div class="fstat"><span class="fstat__val">0</span><span class="fstat__l">inventory after</span></div>
-        <div class="fstat"><span class="fstat__val">242</span><span class="fstat__l">Solidity tests</span></div>
+        <div class="fstat"><span class="fstat__val">265</span><span class="fstat__l">Solidity tests</span></div>
       </div>
       <div class="footer-meta">
         <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>
@@ -978,6 +1006,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.5</span>
     </div>
   </footer>
 
+  <script src="./institutional-study-summary.js"></script>
   <script src="./script.js"></script>
 </body>
 </html>

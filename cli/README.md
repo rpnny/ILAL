@@ -6,7 +6,7 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
-| `0.4.0-v2-poc.5` | npm `next` preview | Atomic netting CLI plus V2 issuer integration kit; Base Sepolia candidates only, unaudited |
+| `0.4.0-v2-poc.6` | npm `next` preview | Atomic netting, state-aware batch preflight, and V2 issuer integration; Base Sepolia candidates only, unaudited |
 | `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
 | `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
@@ -20,13 +20,36 @@ line; copying its commands or addresses into current releases will fail.
 cd cli
 npm ci
 npm run build
-node dist/index.js --version  # 0.4.0-v2-poc.5
+node dist/index.js --version  # 0.4.0-v2-poc.6
 npm test
 ```
 
 `ilal init` selects only the active v0.3.3 manifest on Base Sepolia. Deprecated presets are never selected automatically.
 
 ## Atomic netting (Hookathon candidate)
+
+### Signer-free preflight
+
+`preview` remains offline arithmetic. `preflight` pins one RPC block, checks
+deadline, nonce, balance and allowance for every signer, then simulates the
+complete batch with `eth_call`. On Base it reports L2 execution cost and
+`GasPriceOracle.getL1Fee` for a fully serialized transaction-shaped payload.
+
+```bash
+ilal netting batch preflight \
+  --orders order-a.json order-b.json \
+  --output preflight.json
+```
+
+Exit `0` means executable at the recorded snapshot, `2` means an explicit
+on-chain rejection, and `1` means an RPC/tool error. `batch execute` performs
+preflight before signer access and repeats full simulation immediately before
+broadcast; there is no silent bypass. Preflight remains a snapshot—signed
+limits and atomic rollback are the final safety controls.
+
+The candidate supports standard, equal-decimal ERC-20 stablecoins only.
+Fee-on-transfer, rebasing, callback/nonstandard tokens and fee tiers other than
+5 bps are outside the supported operating envelope.
 
 Institutions sign exact-input orders locally; the JSON contains no private key.
 The solver previews the canonical batch commitment and submits it permissionlessly:

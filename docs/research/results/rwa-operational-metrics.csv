@@ -1,0 +1,17 @@
+scenarioId,category,walletCount,churnPercent,changedWallets,durationMs,timingsMs,cpuMs,peakRssBytes,filesBytes,status
+rwa-base-100,issuer-base,100,,,,"{""init"":352.153,""importAndRoot"":229.0315,""root"":420.138208,""witness"":419.847125,""total"":1421.1698330000002}","{""user"":1280,""system"":170}",138838016,"{""csv"":8250,""encryptedStore"":39328,""policy"":651,""witness"":4875}",COMPLETE
+rwa-churn-100-1,issuer-churn,100,1,1,644.564042,"{""import"":227.709875,""root"":416.854167}","{""user"":640,""system"":70}",138199040,,COMPLETE
+rwa-churn-100-5,issuer-churn,100,5,5,628.765042,"{""import"":227.810375,""root"":400.954667}","{""user"":620,""system"":70}",138149888,,COMPLETE
+rwa-churn-100-10,issuer-churn,100,10,10,613.765291,"{""import"":224.468583,""root"":389.296708}","{""user"":610,""system"":60}",138100736,,COMPLETE
+rwa-base-1000,issuer-base,1000,,,,"{""init"":209.9375,""importAndRoot"":248.63725,""root"":2176.815167,""witness"":2162.973291,""total"":4798.363208000001}","{""user"":4770,""system"":180}",142213120,"{""csv"":82950,""encryptedStore"":386128,""policy"":652,""witness"":4875}",COMPLETE
+rwa-churn-1000-1,issuer-churn,1000,1,10,2376.08625,"{""import"":226.959542,""root"":2149.126708}","{""user"":2350,""system"":80}",140918784,,COMPLETE
+rwa-churn-1000-5,issuer-churn,1000,5,50,2424.50625,"{""import"":233.266666,""root"":2191.239584}","{""user"":2320,""system"":100}",140967936,,COMPLETE
+rwa-churn-1000-10,issuer-churn,1000,10,100,2215.243958,"{""import"":249.994166,""root"":1965.249792}","{""user"":2200,""system"":90}",141524992,,COMPLETE
+rwa-base-10000,issuer-base,10000,,,,"{""init"":211.052542,""importAndRoot"":1075.597083,""root"":21172.025542,""witness"":20555.387375,""total"":43014.062542}","{""user"":42090,""system"":710}",227835904,"{""csv"":838950,""encryptedStore"":3854128,""policy"":653,""witness"":4875}",COMPLETE
+rwa-churn-10000-1,issuer-churn,10000,1,100,19980.256459,"{""import"":251.840959,""root"":19728.4155}","{""user"":19770,""system"":240}",190447616,,COMPLETE
+rwa-churn-10000-5,issuer-churn,10000,5,500,19745.082124999997,"{""import"":263.18425,""root"":19481.897875}","{""user"":19450,""system"":260}",190054400,,COMPLETE
+rwa-churn-10000-10,issuer-churn,10000,10,1000,17888.824417,"{""import"":272.132125,""root"":17616.692292}","{""user"":17690,""system"":230}",190185472,,COMPLETE
+rwa-base-100000,issuer-base,100000,,,,"{""init"":216.1695,""importAndRoot"":82678.616875,""root"":202867.015125,""witness"":198072.940666,""total"":483834.742166}","{""user"":473600,""system"":5320}",696664064,"{""csv"":8488950,""encryptedStore"":38534128,""policy"":654,""witness"":4872}",COMPLETE
+rwa-churn-100000-1,issuer-churn,100000,1,1000,198984.16675,"{""import"":598.578541,""root"":198385.588209}","{""user"":194360,""system"":2220}",609632256,,COMPLETE
+rwa-churn-100000-5,issuer-churn,100000,5,5000,190297.48833300002,"{""import"":703.726625,""root"":189593.761708}","{""user"":187070,""system"":1820}",637779968,,COMPLETE
+rwa-churn-100000-10,issuer-churn,100000,10,10000,174885.14775099998,"{""import"":756.814292,""root"":174128.333459}","{""user"":173200,""system"":1400}",693387264,,COMPLETE

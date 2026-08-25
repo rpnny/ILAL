@@ -419,4 +419,19 @@
   }, { threshold: 0.2 });
   qs('.fee-callout') && feeIO.observe(qs('.fee-callout'));
 
+  /* Machine-generated institutional study summary. */
+  const study = window.ILAL_STUDY_SUMMARY;
+  if (study) {
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    set('studyVerdict', `${study.verdict} · ${study.maturity}`);
+    set('studyCaveat', study.caveat);
+    set('studyNetBenefit', study.productionNetBenefitUsd == null ? 'NOT RUN' : `+$${study.productionNetBenefitUsd.toFixed(2)}`);
+    set('studyBaseline', study.productionBaseline || 'production baseline pending');
+    set('studyRows', `${study.supportedRowsMeasured}/${study.coreRows}`);
+    set('studyStress', study.stressCalls == null ? 'NOT RUN' : study.stressCalls.toLocaleString('en-US'));
+    set('studyRwa', study.rwaWallets == null ? 'NOT RUN' : study.rwaWallets.toLocaleString('en-US'));
+    set('studySupported', study.supported);
+    set('studyUnsupported', study.unsupported);
+  }
+
 })();

@@ -259,14 +259,16 @@ export function createIssuerTreeState(options: {
 export function upsertIssuerCredential(
   state: IssuerTreeState,
   input: IssuerCredentialInput,
-  options: { defaultExpiresInDays?: number; now?: Date } = {}
+  options: { defaultExpiresInDays?: number; now?: Date; index?: Map<string, IssuerCredentialRecord> } = {}
 ): IssuerCredentialRecord {
   const wallet = normalizeWallet(input.wallet);
   const kycLevel = parseInteger(input.kycLevel, "KYC level", 0, 3);
   const countryCode = parseInteger(input.countryCode, "country code", 1, 999);
   const expiresAt = parseExpiry({ ...input, expiresInDays: input.expiresInDays ?? options.defaultExpiresInDays });
   const timestamp = (options.now ?? new Date()).toISOString();
-  const existing = state.credentials.find((credential) => credential.wallet.toLowerCase() === wallet.toLowerCase());
+  const walletKey = wallet.toLowerCase();
+  const existing = options.index?.get(walletKey)
+    ?? state.credentials.find((credential) => credential.wallet.toLowerCase() === walletKey);
   const record: IssuerCredentialRecord = {
     wallet,
     kycLevel,
@@ -279,13 +281,21 @@ export function upsertIssuerCredential(
   };
   if (existing) Object.assign(existing, record, { revokedAt: undefined });
   else state.credentials.push(record);
+  options.index?.set(walletKey, existing ?? record);
   state.updatedAt = timestamp;
   return existing ?? record;
 }
 
-export function revokeIssuerCredential(state: IssuerTreeState, walletInput: string, now = new Date()): IssuerCredentialRecord {
+export function revokeIssuerCredential(
+  state: IssuerTreeState,
+  walletInput: string,
+  now = new Date(),
+  index?: Map<string, IssuerCredentialRecord>,
+): IssuerCredentialRecord {
   const wallet = normalizeWallet(walletInput);
-  const credential = state.credentials.find((item) => item.wallet.toLowerCase() === wallet.toLowerCase());
+  const walletKey = wallet.toLowerCase();
+  const credential = index?.get(walletKey)
+    ?? state.credentials.find((item) => item.wallet.toLowerCase() === walletKey);
   if (!credential) throw new Error(`wallet is not present in the issuer tree: ${wallet}`);
   const timestamp = now.toISOString();
   credential.status = "revoked";
@@ -297,25 +307,33 @@ export function revokeIssuerCredential(state: IssuerTreeState, walletInput: stri
 
 export function computeIssuerPolicy(state: IssuerTreeState): IssuerPolicyArtifacts {
   const credential = buildCredentialTree(state);
+  return computeIssuerPolicyFromRoot(state, credential.tree.root, credential.credentials.length);
+}
+
+function computeIssuerPolicyFromRoot(
+  state: IssuerTreeState,
+  credentialRoot: bigint,
+  activeCredentialCount: number,
+): IssuerPolicyArtifacts {
   const jurisdiction = buildJurisdictionTree(state);
   const policyHash = poseidon6([
     CIRCUIT_VERSION,
     BigInt(state.issuer.issuerHash),
     BigInt(state.issuer.schemaHash),
-    credential.tree.root,
+    credentialRoot,
     BigInt(state.policy.minKycLevel),
     jurisdiction.root,
   ]);
   return {
     issuerHash: state.issuer.issuerHash,
     schemaHash: state.issuer.schemaHash,
-    credentialRoot: credential.tree.root.toString(),
+    credentialRoot: credentialRoot.toString(),
     jurisdictionRoot: jurisdiction.root.toString(),
     policyHash: policyHash.toString(),
     minKycLevel: state.policy.minKycLevel.toString(),
     maxGrantTTL: state.policy.maxGrantTTL.toString(),
     circuitVersion: CIRCUIT_VERSION.toString(),
-    activeCredentials: credential.credentials.length,
+    activeCredentials: activeCredentialCount,
     allowedCountries: [...state.policy.allowedCountries],
   };
 }
@@ -336,7 +354,7 @@ export function buildIssuerWitness(state: IssuerTreeState, walletInput: string, 
   const jurisdictionTree = buildJurisdictionTree(state);
   const credentialProof = credentialTree.createProof(credentialIndex);
   const jurisdictionProof = jurisdictionTree.createProof(countryIndex);
-  const policy = computeIssuerPolicy(state);
+  const policy = computeIssuerPolicyFromRoot(state, credentialTree.root, credentials.length);
   return {
     walletField: BigInt(wallet).toString(),
     walletBits: walletBits(wallet),
@@ -474,18 +492,24 @@ function importCredentials(state: IssuerTreeState, records: IssuerCredentialInpu
   let approved = 0;
   let revoked = 0;
   let skipped = 0;
+  const index = new Map(state.credentials.map((credential) => [credential.wallet.toLowerCase(), credential]));
+  const seen = new Set<string>();
   for (const record of records) {
+    const normalized = normalizeWallet(record.wallet);
+    const walletKey = normalized.toLowerCase();
+    if (seen.has(walletKey)) throw new Error(`duplicate wallet in credential import: ${normalized}`);
+    seen.add(walletKey);
     const status = (record.status ?? "approved").trim().toLowerCase();
     if (["approved", "active", "pass", "passed"].includes(status)) {
-      upsertIssuerCredential(state, record, { defaultExpiresInDays });
+      upsertIssuerCredential(state, record, { defaultExpiresInDays, index });
       approved += 1;
       continue;
     }
     if (["rejected", "revoked", "denied", "failed"].includes(status)) {
-      const wallet = normalizeWallet(record.wallet);
-      const existing = state.credentials.find((credential) => credential.wallet.toLowerCase() === wallet.toLowerCase());
+      const wallet = normalized;
+      const existing = index.get(walletKey);
       if (existing) {
-        revokeIssuerCredential(state, wallet);
+        revokeIssuerCredential(state, wallet, new Date(), index);
         revoked += 1;
       } else skipped += 1;
       continue;
@@ -597,7 +621,7 @@ export async function issuerTreeImport(opts: {
     log.kv("approved", result.approved.toString());
     log.kv("revoked", result.revoked.toString());
     log.kv("skipped", result.skipped.toString());
-    log.kv("credential root", computeIssuerPolicy(state).credentialRoot);
+    log.info("Run `ilal issuer tree root` to compute and export the updated commitment.");
     console.log();
   } catch (error) {
     commandError(error);
