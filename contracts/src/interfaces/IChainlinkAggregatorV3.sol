@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.24;
 
 /// @dev Minimal Chainlink AggregatorV3 interface. See https://docs.chain.link/data-feeds/api-reference.
