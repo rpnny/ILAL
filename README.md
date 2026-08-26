@@ -297,11 +297,14 @@ is explicitly an ILAL test representation, not official USDT.
 
 ## Demo
 
-For the reviewer-facing pitch, double-click
-[`scripts/hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command).
-It runs the real offline CLI preview, replays pinned candidate evidence and
-executes the local oracle rollback regression without a user-supplied or stored
-private key and without a new broadcast. The speaking cues are in the
+For a presenter-controlled terminal walkthrough, follow the Chinese
+[`manual CLI demo guide`](docs/hookathon/CLI_DEMO_GUIDE_ZH.md). It contains each
+command, expected output and speaking cue. The integrated
+[`4:15 English pitch and CLI script`](docs/hookathon/UHI10_PITCH_WITH_CLI_EN.md)
+adds precise timing, stage directions and claim boundaries. The optional
+[`click-to-run pitch demo`](scripts/hookathon-pitch-demo.command) covers the same
+evidence without a user-supplied or stored private key and without a new
+broadcast; its timing notes are in the
 [`pitch demo runbook`](docs/hookathon/PITCH_DEMO_RUNBOOK.md).
 
 Each institution signs its own private-key-free order JSON:
