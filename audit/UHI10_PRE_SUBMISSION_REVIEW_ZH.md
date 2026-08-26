@@ -27,7 +27,8 @@
 - 聚焦回归 `4 passed / 0 failed`：canonical fixed-set permutation、完整 slippage
   rollback、`100/70` residual pool equivalence、oracle-before-mutation。
 - Chainlink Guard 单元套件通过。
-- GitHub API 在 review 时返回 `main.protected = false`。
+- GitHub API 在初次 review 时返回 `main.protected = false`；owner 授权后已在
+  2026-08-26 启用保护。
 
 ## Findings summary
 
@@ -40,7 +41,7 @@
 | ILAL-UHI-05 | P3 | immutable EIP-712 separator 缓存部署时 chain ID | 提交后 harden |
 | ILAL-UHI-06 | P3 | v1/v2 ComplianceHook constructor hardening 不一致 | 提交后 harden |
 | ILAL-UHI-07 | P3 docs | 可复用的是 eligibility grant，不是同一个 action token | 立即修正文案 |
-| ILAL-UHI-08 | P2 operational | `main` 未启用 branch protection | Owner 在提交/试点前配置 |
+| ILAL-UHI-08 | P2 operational | `main` 未启用 branch protection | Resolved 2026-08-26 |
 
 ---
 
@@ -270,13 +271,16 @@ action 仍使用 scoped one-time authorization。
 ## ILAL-UHI-08 — `main` has no branch protection
 
 **Severity:** P2 operational / supply chain  
-**Status:** Confirmed through GitHub API on 2026-08-26
+**Status:** Resolved on 2026-08-26
 
-当前 `main` 可绕过重型 CI 直接 push，与 institutional-pilot 级验证不匹配。
+初次 review 时 `main` 可绕过重型 CI 直接 push，与 institutional-pilot 级验证
+不匹配。
 
-**Recommendation:** 在合并当前必要 PR 后配置：require PR、require `verify`、
-require branch up to date、block force push，并优先要求至少一名 reviewer。该动作
-会改变 GitHub repository policy，应由 owner 明确执行。
+Owner 授权后已启用：require PR、require `verify`、require branch up to date、
+enforce for administrators、required conversation resolution、linear history、
+禁止 force push 和 branch deletion。仓库当前只有 PR 作者一位 collaborator，
+因此 approval count 保持 `0`，避免无法自我批准而锁死所有 PR；加入第二位
+reviewer 后应提升为 `1`。
 
 ---
 
@@ -288,7 +292,7 @@ require branch up to date、block force push，并优先要求至少一名 revie
 - [x] 将 solver-independence 限定为 fixed signed set 的 permutation independence。
 - [x] 明确 raw-unit 1:1、batch-opening-only 和 hUSDT reference-feed 限制。
 - [x] 明确 reusable grant / one-time action token。
-- [ ] Owner 启用 `main` branch protection。
+- [x] Owner 启用 `main` branch protection。
 - [ ] 用最终 Pitch 再做一次 4:15 真人计时与 claim review。
 
 ### Hookathon 提交前不要仓促改
