@@ -299,7 +299,9 @@ is explicitly an ILAL test representation, not official USDT.
 
 For a presenter-controlled terminal walkthrough, follow the Chinese
 [`manual CLI demo guide`](docs/hookathon/CLI_DEMO_GUIDE_ZH.md). It contains each
-command, expected output and speaking cue. The optional
+command, expected output and speaking cue. The integrated
+[`4:15 English pitch and CLI script`](docs/hookathon/UHI10_PITCH_WITH_CLI_EN.md)
+adds precise timing, stage directions and claim boundaries. The optional
 [`click-to-run pitch demo`](scripts/hookathon-pitch-demo.command) covers the same
 evidence without a user-supplied or stored private key and without a new
 broadcast; its timing notes are in the
