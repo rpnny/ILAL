@@ -113,7 +113,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>submitted gross <span class="ticker-item__val">170m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>matched gross <span class="ticker-item__val">140m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">fixed-set canonical</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">282</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">56</span></span>
@@ -125,7 +125,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>submitted gross <span class="ticker-item__val">170m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>matched gross <span class="ticker-item__val">140m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">fixed-set canonical</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">282</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">56</span></span>
@@ -147,7 +147,7 @@
           <h2>Offset first.<br/><em>Route only what remains.</em></h2>
         </div>
         <p class="section-lead">
-          The current Base Sepolia candidate checks real Chainlink USDC/USD and USDT/USD feeds before opening every batch, then nets verified orders and sends only the residual to Uniswap v4. All first-party contracts have Sourcify exact creation/runtime matches. Active v0.3.3 remains a separate unaudited testnet demo.
+          The current Base Sepolia candidate checks Chainlink USDC/USD and USDT/USD reference feeds before opening every batch, then nets verified orders and sends only the residual to Uniswap v4. The paired hUSDT is an ILAL test representation, so its USDT reference feed demonstrates fail-closed oracle plumbing rather than hUSDT market-price validation. All first-party contracts have Sourcify exact creation/runtime matches. Active v0.3.3 remains a separate unaudited testnet demo.
         </p>
       </div>
 
@@ -197,7 +197,7 @@
 
       <div class="proof-verdict">
         <span>Current candidate acceptance</span>
-        <strong>Real Chainlink feeds → atomic netting → only the 0.03 residual reached the AMM.</strong>
+        <strong>Chainlink reference feeds → atomic netting → only the 0.03 residual reached the AMM.</strong>
       </div>
     </div>
   </section>
@@ -238,7 +238,7 @@
           <p class="eyebrow">Partner integration · Chainlink</p>
           <h2>External peg truth.<br/><em>Pool-local price discipline.</em></h2>
         </div>
-        <p class="section-lead">Every batch must pass two independent opening boundaries: fresh Chainlink USDC/USD and USDT/USD data, then the Uniswap pool tick. Either failure reverts before nonce consumption or asset movement.</p>
+        <p class="section-lead">Every batch must pass two independent opening boundaries: fresh Chainlink USDC/USD and USDT/USD reference data, then the Uniswap pool tick. Either failure reverts before nonce consumption or asset movement. Production requires feeds corresponding to the actual supported assets.</p>
       </div>
       <div class="customer-grid">
         <div class="customer-card">
@@ -275,7 +275,7 @@
           <h2>Built for the desks<br/><em>that cannot trade naked.</em></h2>
         </div>
         <p class="section-lead">
-          ILAL removes redundancy at both institutional boundaries: Session turns verified eligibility into scoped reusable access, while SOEE nets offsetting verified flow before the market. Institutions sign locally, permissionless solvers submit canonical batches, and issuers retain their compliance perimeter.
+          ILAL removes redundancy at both institutional boundaries: Session reuses a short-lived eligibility grant while each scoped action token remains one-time, and SOEE nets offsetting verified flow before the market. Institutions sign locally, permissionless solvers submit canonical batches, and issuers retain their compliance perimeter.
         </p>
       </div>
 
@@ -289,8 +289,8 @@
         <div class="customer-card">
           <span class="customer-card__type">Market maker</span>
           <h3>Compete on discovery, not settlement discretion.</h3>
-          <p>Find offsetting orders and submit them in strict canonical order. Allocation is deterministic and solver-independent; execution is permissionless.</p>
-          <div class="customer-card__outcome">Outcome: open solving + deterministic fills</div>
+          <p>Find offsetting orders and submit them in strict canonical order. For a fixed signed set, allocation is deterministic and permutation-independent; execution is permissionless.</p>
+          <div class="customer-card__outcome">Outcome: open solving + canonical fixed-set fills</div>
         </div>
         <div class="customer-card">
           <span class="customer-card__type">RWA issuer</span>
@@ -319,8 +319,8 @@
           <p>Uniswap v4 hook for eligible stablecoin flow. It verifies exact-input orders, matches opposite directions at raw-unit 1:1, and permits only the net residual to reach the pool.</p>
           <ul>
             <li>2–16 orders · strict ascending order hash</li>
-            <li>solver-independent pro-rata allocation</li>
-            <li>batch-start ±100 tick residual guard</li>
+            <li>canonical sequential allocation for a fixed signed set</li>
+            <li>batch-opening ±100 tick guard</li>
           </ul>
         </div>
         <div class="product-card">
@@ -380,7 +380,7 @@
       <div class="problem-solution">
         <p class="eyebrow">ILAL's answer</p>
         <p class="solution-text">
-          <strong>Verify → match → net → route the residual.</strong> Every order is eligibility-gated and signed. Canonical allocation removes solver discretion, atomic settlement removes custody, and Uniswap v4 supplies liquidity only for the unmatched imbalance.
+          <strong>Verify → match → net → route the residual.</strong> Every order is eligibility-gated and signed. Canonical allocation removes permutation discretion within a fixed signed set, atomic settlement removes custody, and Uniswap v4 supplies liquidity only for the unmatched imbalance.
         </p>
       </div>
     </div>
@@ -428,7 +428,7 @@
               <h3>Canonicalize and match</h3>
               <span class="step__badge step__badge--on">PERMISSIONLESS</span>
             </div>
-            <p>Any solver can sort 2–16 orders by ascending hash and submit the batch. Deterministic pro-rata allocation produces the same fills regardless of the solver.</p>
+            <p>Any solver can sort 2–16 orders by ascending hash and submit the batch. Canonical sequential allocation produces the same fills for every permutation of a fixed signed set; it is not pro-rata or strategy-proof.</p>
             <div class="step__cmd"><span class="prompt">✓</span> 170m gross · 140m internally matched</div>
           </div>
         </div>

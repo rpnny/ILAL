@@ -4,6 +4,7 @@ This folder contains the materials to send with a formal audit request.
 
 For the current review scope, start with:
 
+- `UHI10_PRE_SUBMISSION_REVIEW_ZH.md`
 - `ILAL_CURRENT_AUDIT_SCOPE.md`
 - `../RELEASE.md`
 - `../docs/CODEBASE_GUIDE.md`
@@ -14,6 +15,7 @@ The older `v0.2.5` filenames are retained as supporting history and should not b
 
 | File | Purpose |
 |---|---|
+| `UHI10_PRE_SUBMISSION_REVIEW_ZH.md` | 2026-08-26 Chainlink candidate static review, mechanism findings, PoC logic, and submission decisions. |
 | `ILAL_CURRENT_AUDIT_SCOPE.md` | Current source, package, deployment, and mainnet-open-item scope. |
 | `ILAL_ENTERPRISE_CYBERSECURITY_TEST_PLAN.md` | Highest-realism customer and adversarial cybersecurity test matrix. |
 | `ILAL_v0.2.5_AUDIT_READINESS.md` | Security checklist with status, evidence, and open mainnet items. |

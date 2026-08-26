@@ -28,7 +28,7 @@ separate, unaudited Base Sepolia candidates.
 | | Session | SOEE |
 |---|---|---|
 | **Problem** | Compliance is repeatedly dragged into execution | Offsetting gross flow unnecessarily reaches the AMM |
-| **ILAL approach** | Verify eligibility, then use scoped reusable authorization | Net opposing verified orders before AMM execution |
+| **ILAL approach** | Reuse a short-lived eligibility grant; sign each scoped action once | Net opposing verified orders before AMM execution |
 | **Benefit** | Lower repeated verification overhead and less identity exposure | Lower AMM exposure and better execution when flow offsets |
 | **Role** | Institutional access | Institutional execution |
 
@@ -40,7 +40,7 @@ separate, unaudited Base Sepolia candidates.
       SESSION                   SOEE
   access / eligibility      execution / flow
          │                       │
- scoped reusable access      atomic netting
+ reusable eligibility grant  atomic netting
          │                       │
  less repeated identity      only residual
      disclosure              reaches Uniswap
@@ -246,16 +246,21 @@ policy change, non-canonical or duplicate order hash, opening peg violation,
 insufficient balance, partial AMM fill, or output slippage failure reverts the
 whole batch.
 
-The permissionless solver cannot choose match priority. The Router
-canonicalizes order/signature pairs by strict ascending `orderHash`; the Hook
-independently verifies that order before allocating matched input. Reordering
-the same signed set therefore produces the same `batchId`, per-user allocation,
-and pool result. Duplicate hashes are rejected rather than tie-broken.
+For a fixed signed order set, the permissionless solver cannot change match
+priority by permuting the submitted array. The Router canonicalizes
+order/signature pairs by strict ascending `orderHash`; the Hook independently
+verifies that order before allocating matched input. Reordering that same set
+therefore produces the same `batchId`, per-user allocation, and pool result.
+This is sequential canonical allocation, not pro-rata or strategy-proof
+ordering: a signer can influence its hash through the nonce, and a solver can
+choose batch membership. Duplicate hashes are rejected rather than tie-broken.
 
 This MVP supports one equal-decimal ERC-20 stablecoin pool, exact-input orders,
 raw-unit 1:1 matching, zero netting fee, 2–16 orders, and a ±100 tick opening
 guard. `minAmountOut` protects total matched-plus-AMM output;
-`maxAmmInput` caps each order's residual exposure.
+`maxAmmInput` caps each order's residual exposure. Raw-unit 1:1 is a signed
+candidate clearing rule, not an oracle-priced claim of economic parity across
+arbitrary stablecoins or RWAs.
 
 The immutable Chainlink guard and pool tick are checked exactly once in
 `openBatch`, before nonce consumption or asset movement. Each USD feed must be
@@ -479,6 +484,9 @@ identity data. Chainlink and the pool tick are batch-opening circuit breakers,
 not execution-price or continuous in-batch bounds.
 The Hook is immutable and a serious defect requires a new Hook and pool; see
 [`docs/INCIDENT_AND_MIGRATION_RUNBOOK.md`](docs/INCIDENT_AND_MIGRATION_RUNBOOK.md).
+The dated first-party
+[`UHI10 pre-submission review`](audit/UHI10_PRE_SUBMISSION_REVIEW_ZH.md)
+records mechanism and operational findings; it is not an independent audit.
 
 See [`SECURITY.md`](SECURITY.md), [`NOTICE`](NOTICE), and
 [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md). First-party code is
