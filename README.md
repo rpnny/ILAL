@@ -32,6 +32,19 @@ separate, unaudited Base Sepolia candidates.
 | **Benefit** | Lower repeated verification overhead and less identity exposure | Lower AMM exposure and better execution when flow offsets |
 | **Role** | Institutional access | Institutional execution |
 
+### Two authorization models, intentionally separate today
+
+| Public candidate | Authorization checked during execution | What it proves |
+|---|---|---|
+| **SOEE atomic netting** | Current v1 Policy + CNF credential, EIP-712/ERC-1271 signed order, deadline and one-time nonce | Eligible institutions can atomically net opposing flow and route only the residual |
+| **V2 direct LP / swap** | Groth16 policy proof cached as a short-lived Policy Grant, then a one-time scoped session | Private eligibility can be proven once and reused for bounded Uniswap actions |
+
+These are two independent Base Sepolia candidates. **SOEE netting does not use
+the V2 PolicyGrantManager or SessionTokenV2, and the V2 direct-flow candidate
+does not perform SOEE netting.** This boundary keeps the Hookathon mechanism
+auditable and prevents the demo from implying an integration that does not yet
+exist.
+
 ```text
                     ILAL
                      │
@@ -204,6 +217,9 @@ deployment remains unchanged.
 | Live reverse `0.06/0.09` | [`0x588a…5172`](https://sepolia.basescan.org/tx/0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172) |
 | Live 4 / 16 order | [`4-order`](https://sepolia.basescan.org/tx/0xf6d74bd973b6c26c63ec7317dff87ba8055d8946eb2b637791b5376e1d335954) · [`16-order`](https://sepolia.basescan.org/tx/0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7) |
 | Current evidence manifest | [`chainlink-candidate-manifest.json`](docs/hookathon/chainlink-candidate-manifest.json) |
+| Separate V2 grant/session manifest | [`v2-public-candidate-manifest.json`](docs/hookathon/v2-public-candidate-manifest.json) |
+| V2 BaseScan-verified contracts | [`Hook`](https://sepolia.basescan.org/address/0x9238103A1bd611461E1bDcB2084D166EB7AeCA80#code) · [`Router`](https://sepolia.basescan.org/address/0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472#code) · [`Registry`](https://sepolia.basescan.org/address/0x936afAca590957f446B1603DbA6eC3Af298a039a#code) · [`GrantManager`](https://sepolia.basescan.org/address/0xeF0e54C22361fE567157f6302Ae0363474f6d4E3#code) |
+| V2 grant / manual LP / manual swap | [`grant`](https://sepolia.basescan.org/tx/0x863f7d8c7c43ae1089258627ac30fd93ff4536cd67dd7b65a6bb84547862a5fc) · [`LP`](https://sepolia.basescan.org/tx/0x7eaebb8ff4ec1d69f89c259087fb9a150939cf851feec1a18f06908ced2b1961) · [`swap`](https://sepolia.basescan.org/tx/0xc828655de7a48fd8d10a324da81b1f532081729ed8349801b993dfe8329922f4) |
 | Previous pre-Chainlink Hook | [`0xb385…4088` — historical Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
 | Previous `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
 | Previous reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |

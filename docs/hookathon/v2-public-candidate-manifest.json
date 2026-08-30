@@ -1,0 +1,111 @@
+{
+  "schema": "ilal-v2-public-candidate-v1",
+  "candidate": "v0.4.0-v2-poc.7-public-demo",
+  "classification": "separate unaudited Base Sepolia V2 policy-grant candidate",
+  "sourceCommit": "8e241398b22e",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "deployedAt": "2026-08-30T04:11:18Z",
+  "securityNotice": {
+    "productionReady": false,
+    "ceremony": "unsafe development proving ceremony",
+    "admin": "test EOA",
+    "assets": "mock ERC-20s",
+    "architectureBoundary": "This candidate demonstrates V2 Groth16 policy grants and one-time sessions. It does not execute SOEE netting; the Hookathon netting candidate uses current v1 Policy + CNF checks and signed orders."
+  },
+  "roles": {
+    "deployer": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+    "admin": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+    "treasury": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+    "testTrader": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+    "sharedRoleCaveat": "The test trader and treasury are the same EOA. Fee events are observable, but this run is not evidence of revenue transferred between independent parties."
+  },
+  "contracts": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "policyRegistry": "0x936afAca590957f446B1603DbA6eC3Af298a039a",
+    "policyGrantManager": "0xeF0e54C22361fE567157f6302Ae0363474f6d4E3",
+    "router": "0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472",
+    "complianceHook": "0x9238103A1bd611461E1bDcB2084D166EB7AeCA80",
+    "policyVerifier": "0x7C2ef9A7eBb263F3Dd1007a2Eb4068fde11AF39e",
+    "verifierAdapter": "0x3144B398057642252622266E840dAc8a2CC6Ac6E",
+    "currency0": "0x4d55dd928dDF9cD79E128293a6FfD03197F0E4a2",
+    "currency1": "0x9388a5E1cF129015F86503D140B702C37801Ea85"
+  },
+  "pool": {
+    "poolId": "0xdcf7ee831d054402ff0550b7a627f337dc60d24513928d082af777b6dd1c4405",
+    "fee": 8388608,
+    "verifiedLpFeePips": 500,
+    "protocolFeePips": 50,
+    "tickSpacing": 60,
+    "policyHash": "18775350948550363407780205057611240140946272626898793889806331175085024939676",
+    "policyRevision": 1,
+    "minimumKycLevel": 2,
+    "maximumGrantTtlSeconds": 86400
+  },
+  "transactions": {
+    "grant": "0x863f7d8c7c43ae1089258627ac30fd93ff4536cd67dd7b65a6bb84547862a5fc",
+    "automatedLiquidity": "0x4417844945fb34d9ae2203332234d0d10f44081faf81682bdb85b5d1a9b8bd1d",
+    "automatedSwap": "0x7696d1eec1d31f517cfcefb84d5f37fc184ce11c2098a34908c28dda2c5422e2",
+    "manualLiquidity": "0x7eaebb8ff4ec1d69f89c259087fb9a150939cf851feec1a18f06908ced2b1961",
+    "manualSwap": "0xc828655de7a48fd8d10a324da81b1f532081729ed8349801b993dfe8329922f4"
+  },
+  "manualSwapObservation": {
+    "status": "success",
+    "input": "0.001 V2A",
+    "output": "0.000997007234157933 V2B",
+    "verifiedLpFeePips": 500,
+    "protocolFee": "0.00000005 V2A",
+    "gasUsed": 194724,
+    "events": [
+      "VerifiedPolicyFlowFeeApplied",
+      "ProtocolFeePaid",
+      "SwapRouted"
+    ]
+  },
+  "sourceVerification": {
+    "provider": "Sourcify",
+    "status": "exact_match",
+    "chainId": 84532,
+    "contracts": {
+      "router": "a1fb1114-468e-4085-ab4d-3aa4cb46a263",
+      "policyRegistry": "4c3cbc59-103e-494e-aca9-daf64584e09b",
+      "policyVerifier": "2122b53d-73ee-4e1f-a72c-aae9b9bf8d29",
+      "verifierAdapter": "c6f49817-4963-4314-a6de-3d16155c7ec4",
+      "policyGrantManager": "37713558-bf77-4d25-9ece-5af1b2843b91",
+      "complianceHook": "d0d50fc3-a855-475e-8cf4-4811cfb8e477",
+      "currency0": "already exact-matched",
+      "currency1": "already exact-matched"
+    },
+    "baseScanNativeVerification": {
+      "status": "verified",
+      "verifiedAt": "2026-08-30",
+      "provider": "BaseScan via Etherscan API v2",
+      "contracts": {
+        "router": {
+          "guid": "bk3gbr3tsy1spnwwdfqsxcfaphkkaftc5ffut7x38njgt1gniy",
+          "url": "https://sepolia.basescan.org/address/0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472#code"
+        },
+        "policyRegistry": {
+          "guid": "79cily6utjgijbeqni8bb68nk9tq8p2x2c8kqmuhprfdmpwyc3",
+          "url": "https://sepolia.basescan.org/address/0x936afAca590957f446B1603DbA6eC3Af298a039a#code"
+        },
+        "policyVerifier": {
+          "guid": "ymwi3djpkca7p3xjugsnsmuvascxee6qynpsr43zkta2ydlmku",
+          "url": "https://sepolia.basescan.org/address/0x7C2ef9A7eBb263F3Dd1007a2Eb4068fde11AF39e#code"
+        },
+        "verifierAdapter": {
+          "guid": "dnb8cbjzyc1dbh7a8sf5sres4zmspyggbbsinrbczivszygsvn",
+          "url": "https://sepolia.basescan.org/address/0x3144B398057642252622266E840dAc8a2CC6Ac6E#code"
+        },
+        "policyGrantManager": {
+          "guid": "wjgfcnai4cpsb1vj2zgnmhfuxaknjxjvv14mava4j6mzng7vvp",
+          "url": "https://sepolia.basescan.org/address/0xeF0e54C22361fE567157f6302Ae0363474f6d4E3#code"
+        },
+        "complianceHook": {
+          "guid": "jwzvfprr3kgnztacuux2ayc5hmvta8agkkxvgnrdbtmebwnixq",
+          "url": "https://sepolia.basescan.org/address/0x9238103A1bd611461E1bDcB2084D166EB7AeCA80#code"
+        }
+      }
+    }
+  }
+}
