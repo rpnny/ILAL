@@ -1,547 +1,212 @@
 # ILAL — Institutional Access and Execution for Uniswap v4
 
-[![verify](https://github.com/rpnny/ILAL/actions/workflows/ci.yml/badge.svg)](https://github.com/rpnny/ILAL/actions/workflows/ci.yml)
-[![network](https://img.shields.io/badge/network-Base%20Sepolia-0052ff)](deployments/base-sepolia/v0.3.3.json)
-[![license](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
+[![Verify](https://github.com/rpnny/ILAL/actions/workflows/ci.yml/badge.svg)](https://github.com/rpnny/ILAL/actions/workflows/ci.yml)
+[![Network](https://img.shields.io/badge/network-Base%20Sepolia-0052FF)](deployments/base-sepolia/v0.3.3.json)
+[![License](https://img.shields.io/badge/license-Apache--2.0-16a34a)](LICENSE)
 
-> **Prove eligibility once. Reuse scoped access. Net verified flow before it
-> reaches the AMM.**
+> Prove eligibility once. Net what cancels. Send only the residual to Uniswap v4.
 
 ## What is ILAL?
 
-ILAL (Institutional Liquidity Access Layer) is a compliance and settlement layer
-for Uniswap v4. It addresses two execution barriers that keep institutional flow
-from using public DeFi liquidity efficiently:
+ILAL (Institutional Liquidity Access Layer) is a compliance and settlement layer for Uniswap v4. It addresses two barriers to institutional onchain execution:
 
-1. **Compliance overhead** — eligibility should not require repeated identity
-   disclosure and full verification inside every transaction workflow.
-2. **Gross AMM exposure** — when eligible institutions have opposing orders,
-   sending both sides independently through the curve creates avoidable price
-   impact and public execution exposure.
+1. **Compliance overhead** — an institution should not repeat the same eligibility checks for every action.
+2. **Market exposure** — when eligible orders oppose each other, sending both gross legs through an AMM creates avoidable price impact and information leakage.
 
-ILAL separates **who may act** (Session) from **how signed orders settle**
-(SOEE). Session reuses a short-lived, scoped eligibility grant for bounded
-actions. SOEE atomically nets opposing verified orders and routes only the
-unmatched imbalance to Uniswap v4.
+ILAL separates **who may act** from **how signed orders settle**:
 
-In the deployed canonical `0.10 USDC / 0.07 hUSDT` case, `0.14` of `0.17`
-gross flow settled internally and only `0.03 USDC` reached the AMM: **82.35%
-less gross AMM exposure** than sending both orders independently through the
-curve.
+- **Session** grants short-lived, scoped access after an institution proves policy eligibility.
+- **SOEE** verifies and nets signed orders atomically, routing only the residual imbalance through Uniswap v4.
 
-> **Live Base Sepolia proof:** [`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98)
-> was signed through the local institution app and atomically settled through
-> `InstitutionalBatchRouter`, `InstitutionalNettingHook`, and the Uniswap v4
-> `PoolManager`. The PoolManager received only the `0.03 USDC` residual; both
-> orders settled in one successful transaction.
+Session and SOEE are independent Base Sepolia candidates today; their combined architecture is the intended system, not a claim that the two candidates are already integrated.
 
-Current npm preview: `npm install -g @ilalv3/cli@next`
-(`v0.4.0-v2-poc.7`, including Chainlink-aware institutional netting preflight).
-The public `latest` channel remains `v0.3.3`; the netting and V2 stacks are
-separate, unaudited Base Sepolia candidates.
+### Live result
 
-## Architecture: Session + SOEE
+In the latest public settlement, two institutions submitted **0.10 USDC** and **0.07 hUSDT** in opposite directions. ILAL matched **0.14 of 0.17 gross flow internally** and sent only **0.03 USDC** to the AMM: **82.35% less AMM exposure**.
 
-ILAL consists of two independent layers that target different boundaries.
+[View the successful Base Sepolia transaction](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98)
 
-### Session (Access Layer)
+> This is an equal-decimal, 6-decimal stablecoin proof of concept. hUSDT is an ILAL test representation, not official USDT.
 
-- **What:** determines who may perform a bounded Uniswap action.
-- **How:** the V2 candidate verifies a Groth16 policy proof once, caches a
-  short-lived Policy Grant, and uses one-time scoped sessions for LP or swap
-  actions.
-- **Why:** reduces repeated eligibility-verification overhead and supports a
-  privacy-preserving ZK path without making identity data part of every action.
+## Judge in 60 seconds
 
-### SOEE (Settlement & Execution Layer)
+| What to inspect | Evidence |
+| --- | --- |
+| Uniswap v4 Hook | [`InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
+| Atomic batch router | [`InstitutionalBatchRouter.sol`](contracts/src/netting/InstitutionalBatchRouter.sol) |
+| Chainlink integration | [`ChainlinkStablecoinOracleGuard.sol`](contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol) and the [Hook call site](contracts/src/netting/InstitutionalNettingHook.sol) |
+| Current deployment evidence | [`chainlink-candidate-manifest.json`](docs/hookathon/chainlink-candidate-manifest.json) |
+| Core tests | [`InstitutionalNetting.t.sol`](contracts/test/InstitutionalNetting.t.sol) and [`InstitutionalNettingInvariant.t.sol`](contracts/test/InstitutionalNettingInvariant.t.sol) |
+| Submission scope and findings | [`UHI10_PRE_SUBMISSION_REVIEW_ZH.md`](audit/UHI10_PRE_SUBMISSION_REVIEW_ZH.md) |
+| Demo materials | [`ilal-soee-demo-day-v6.html`](docs/hookathon/ilal-soee-demo-day-v6.html) and [`hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command) |
 
-- **What:** determines how a fixed set of signed institutional orders settles.
-- **How:** the current candidate verifies v1 Policy and CNF eligibility,
-  canonicalizes EIP-712/ERC-1271 signed orders, nets opposing directions inside
-  one `PoolManager.unlock`, and sends only the residual to Uniswap v4.
-- **Why:** reduces gross flow that touches the AMM curve. The canonical deployed
-  `100/70` case measured **82.35% less AMM exposure** and a smaller pool-level
-  price-impact and extraction surface.
-
-### Two authorization models, intentionally separate today
-
-| Public candidate | Authorization checked during execution | What it proves |
-|---|---|---|
-| **SOEE atomic netting** | Current v1 Policy + CNF credential, EIP-712/ERC-1271 signed order, deadline and one-time nonce | Eligible institutions can atomically net opposing flow and route only the residual |
-| **V2 direct LP / swap** | Groth16 policy proof cached as a short-lived Policy Grant, then a one-time scoped session | Private eligibility can be proven once and reused for bounded Uniswap actions |
-
-These are two independent Base Sepolia candidates. **SOEE netting does not use
-the V2 PolicyGrantManager or SessionTokenV2, and the V2 direct-flow candidate
-does not perform SOEE netting.** This boundary keeps the Hookathon mechanism
-auditable and prevents the demo from implying an integration that does not yet
-exist.
-
-```text
-                    ILAL
-                     │
-         ┌───────────┴───────────┐
-         │                       │
-      SESSION                   SOEE
-  access / eligibility      execution / flow
-         │                       │
- reusable eligibility grant  atomic netting
-         │                       │
- less repeated identity      only residual
-     disclosure              reaches Uniswap
-         │                       │
-         └───────────┬───────────┘
-                     │
-                 Uniswap v4
-```
-
-> **Session removes redundant identity verification. SOEE removes redundant
-> market execution.**
-
-## The execution problem in one example
-
-Two verified institutions want to trade in opposite directions:
-
-```text
-Institution A: 100 token0 → token1
-Institution B:  70 token1 → token0
-```
-
-### Without SOEE
-
-```text
-100 token0 ───────→ Uniswap
- 70 token1 ───────→ Uniswap
-
-170 gross flow reaches the AMM
-```
-
-### With SOEE
-
-```text
-100 ──┐
-      ├── 70 ↔ 70 matched internally
- 70 ──┘
-           │
-           ▼
-      30 residual
-           │
-           ▼
-      Uniswap v4
-```
-
-**Canonical 100/70 result**
-
-| Metric | Result |
-|---|---:|
-| Gross submitted flow | 170 |
-| Internally matched flow | 140 |
-| AMM residual | 30 |
-| AMM exposure reduction | **82.35%** |
-| Aggregate execution improvement | **+4.12 bps** |
-| Pool-state proof | **Identical to a vanilla 30-token residual swap** |
-
-> **Why make Uniswap process 170 of gross flow when the actual imbalance is
-> only 30?**
-
-ILAL makes public liquidity handle the imbalance instead of mechanically
-processing both sides of offsetting institutional flow.
-
-The economic claim is deliberately bounded. Session lowers repeated
-compliance-verification overhead. SOEE has higher execution gas, but can reduce
-AMM exposure and improve aggregate execution; under the tested conditions, that
-benefit outweighs the gas premium. See [Impact benchmark](#impact-benchmark) and
-[When is the gas premium worth paying?](#when-is-the-gas-premium-worth-paying)
-for the measured tradeoff and break-even assumptions.
-
-## Why ILAL is different
-
-Most execution-protection mechanisms intervene **after order flow reaches
-public liquidity**: they improve ordering, fees, auctions, routing, or MEV
-handling.
-
-ILAL moves the intervention point upstream.
-
-**Verified opposing flow is netted before it touches the AMM curve.**
-
-This does not claim to eliminate mempool MEV. It reduces the amount of gross
-flow that actually interacts with AMM state.
-
-> **Upstream prevention instead of only downstream mitigation.**
-
-## Why compliance does not have to sacrifice privacy
-
-Institutional DeFi often treats compliance and execution as the same problem:
-identity information is repeatedly carried into transaction workflows.
-
-ILAL separates them. A participant proves that it satisfies the required
-eligibility policy. Execution can then rely on scoped authorization rather than
-repeatedly exposing the participant's underlying identity information.
-
-> **Compliance becomes a prerequisite for execution, not a recurring identity
-> disclosure during execution.**
-
-This is what the Session layer is designed to provide.
-
-## Why UHI10
-
-### Fair Flow
-
-For a fixed signed order set, allocation is canonicalized by `orderHash` and
-independently enforced by the Hook. A permissionless executor cannot reorder the
-same batch to decide who receives internal matching and who bears residual AMM
-exposure.
-
-### Sustainable Liquidity
-
-Public AMM liquidity handles only the unmatched imbalance. In the canonical
-100/70 example, AMM gross-flow exposure falls by **82.35%**.
-
-The tradeoff is explicit: internally matched flow also does not generate the LP
-fees it would have generated by passing through the pool.
-
-### MEV surface reduction
-
-ILAL does not claim to hide the entire batch from a public mempool. Internally
-matched flow never touches the AMM curve; only the residual changes public pool
-state, reducing gross flow exposed to pool-level price impact and extraction.
-
-## Hookathon submission
-
-**ILAL existed before UHI10. The institutional netting execution path did not.**
-
-### Before the Hookathon
-
-[`v0.4.0-v2-poc.4`](releases/v0.4.0-v2-poc.4.json) / commit `0a9a749`:
-
-- Credential and policy infrastructure.
-- One-time and scoped sessions.
-- Bounded Router.
-- v1/v2 ZK research.
-- CLI and historical demos.
-
-### Built during the Hookathon
-
-- `InstitutionalNettingHook` and `InstitutionalBatchRouter`.
-- Signed institutional orders and canonical deterministic allocation.
-- Atomic stablecoin netting through `beforeSwap` return deltas.
-- Residual-only Uniswap v4 routing.
-- State-aware preflight and double simulation before broadcast.
-- Chainlink stablecoin safety gate.
-- Invariant, fuzz, capacity, economic and institutional study suites.
-- Live Base Sepolia candidate with 2/4/16-order evidence.
-
-> **The Hookathon submission is SOEE: verified flow → net → residual →
-> Uniswap.**
-
-The pre-Hookathon components remain supporting access infrastructure. They are
-not presented as competing Hookathon Hooks, and the active historical v0.3.3
-deployment remains unchanged.
-
-## Reviewer path
-
-| Reviewer path | Start here |
-|---|---|
-| Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
-| Chainlink-guarded Hook | [`0x8d1f…0088` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088) |
-| Oracle Guard | [`0x1dEc…199D3` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3) |
-| Live institution-app `0.10/0.07` | [`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98) — `0.17` gross, `0.14` internally matched, `0.03` AMM residual |
-| Live reverse `0.06/0.09` | [`0x588a…5172`](https://sepolia.basescan.org/tx/0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172) |
-| Live 4 / 16 order | [`4-order`](https://sepolia.basescan.org/tx/0xf6d74bd973b6c26c63ec7317dff87ba8055d8946eb2b637791b5376e1d335954) · [`16-order`](https://sepolia.basescan.org/tx/0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7) |
-| Current evidence manifest | [`chainlink-candidate-manifest.json`](docs/hookathon/chainlink-candidate-manifest.json) |
-| Separate V2 grant/session manifest | [`v2-public-candidate-manifest.json`](docs/hookathon/v2-public-candidate-manifest.json) |
-| V2 BaseScan-verified contracts | [`Hook`](https://sepolia.basescan.org/address/0x9238103A1bd611461E1bDcB2084D166EB7AeCA80#code) · [`Router`](https://sepolia.basescan.org/address/0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472#code) · [`Registry`](https://sepolia.basescan.org/address/0x936afAca590957f446B1603DbA6eC3Af298a039a#code) · [`GrantManager`](https://sepolia.basescan.org/address/0xeF0e54C22361fE567157f6302Ae0363474f6d4E3#code) |
-| V2 grant / manual LP / manual swap | [`grant`](https://sepolia.basescan.org/tx/0x863f7d8c7c43ae1089258627ac30fd93ff4536cd67dd7b65a6bb84547862a5fc) · [`LP`](https://sepolia.basescan.org/tx/0x7eaebb8ff4ec1d69f89c259087fb9a150939cf851feec1a18f06908ced2b1961) · [`swap`](https://sepolia.basescan.org/tx/0xc828655de7a48fd8d10a324da81b1f532081729ed8349801b993dfe8329922f4) |
-| Previous pre-Chainlink Hook | [`0xb385…4088` — historical Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
-| Previous `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
-| Previous reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |
-| Historical deployment evidence | [`candidate-manifest.json`](docs/hookathon/candidate-manifest.json) |
-| One-command test | `make verify` |
-| Before / built during | [Hookathon submission](#hookathon-submission) |
-| Atomic executor | [`contracts/src/netting/InstitutionalBatchRouter.sol`](contracts/src/netting/InstitutionalBatchRouter.sol) |
-| Integration tests | [`contracts/test/InstitutionalNetting.t.sol`](contracts/test/InstitutionalNetting.t.sol) |
-| Stateful invariants | [`contracts/test/InstitutionalNettingInvariant.t.sol`](contracts/test/InstitutionalNettingInvariant.t.sol) |
-| Demo | [`scripts/demo-netting.sh`](scripts/demo-netting.sh) |
-| Mechanism and runbook | [`docs/HOOKATHON_NETTING.md`](docs/HOOKATHON_NETTING.md) |
-
-## The mechanism
-
-```text
-signed + currently eligible orders
-                │
-                ▼
-      InstitutionalBatchRouter
-       ├─ sort orderHash ascending
-       └─ keep signatures paired
-                │ one PoolManager.unlock
-                ▼
-      InstitutionalNettingHook
-       ├─ require fresh Chainlink USD feeds
-       ├─ require pool opening tick within ±100
-       ├─ verify EIP-712 / ERC-1271
-       ├─ verify current v1 Policy + CNF
-       ├─ consume nonce
-       └─ match raw units 1:1
-                │
-                ▼
-      only residual → Uniswap v4 AMM
-```
-
-The Hook uses v4 `beforeSwap` return deltas (`0x88` flags). Opposing Hook
-deltas cancel inside one unlock; the Hook and Router finish with no Token
-inventory. Any bad signature, expired or reused nonce, invalid credential,
-policy change, non-canonical or duplicate order hash, opening peg violation,
-insufficient balance, partial AMM fill, or output slippage failure reverts the
-whole batch.
-
-For a fixed signed order set, the permissionless solver cannot change match
-priority by permuting the submitted array. The Router canonicalizes
-order/signature pairs by strict ascending `orderHash`; the Hook independently
-verifies that order before allocating matched input. Reordering that same set
-therefore produces the same `batchId`, per-user allocation, and pool result.
-This is sequential canonical allocation, not pro-rata or strategy-proof
-ordering: a signer can influence its hash through the nonce, and a solver can
-choose batch membership. Duplicate hashes are rejected rather than tie-broken.
-
-This MVP supports one equal-decimal ERC-20 stablecoin pool, exact-input orders,
-raw-unit 1:1 matching, zero netting fee, 2–16 orders, and a ±100 tick opening
-guard. `minAmountOut` protects total matched-plus-AMM output;
-`maxAmmInput` caps each order's residual exposure. Raw-unit 1:1 is a signed
-candidate clearing rule, not an oracle-priced claim of economic parity across
-arbitrary stablecoins or RWAs.
-
-The immutable Chainlink guard and pool tick are checked exactly once in
-`openBatch`, before nonce consumption or asset movement. Each USD feed must be
-within 100 bps of $1, no older than 90,000 seconds, and within 100 bps of the
-other feed. Chainlink is a **batch-opening circuit breaker**, not the execution
-price. Residual execution may move the pool outside the opening range; every
-user's continuing safety boundary is their signed `minAmountOut` and
-`maxAmmInput`.
-
-## Partner integrations
-
-### Chainlink
-
-ILAL uses [Chainlink Data Feeds](https://docs.chain.link/data-feeds/price-feeds)
-as an onchain hard safety boundary for stablecoin batches. The standalone
-[`ChainlinkStablecoinOracleGuard`](contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol)
-normalizes two USD feeds to 18 decimals and fails closed on bad contracts,
-failed calls, invalid rounds or answers, future/stale timestamps, single-asset
-depegs, and pair divergence. The
-[`openBatch` call site](contracts/src/netting/InstitutionalNettingHook.sol) runs
-this external boundary before the independent Uniswap pool-tick boundary.
-
-The Base Sepolia candidate configuration uses the official Chainlink
-[USDC/USD](https://data.chain.link/feeds/base/base-sepolia/usdc-usd) and
-[USDT/USD](https://data.chain.link/feeds/base/base-sepolia/usdt-usd) feeds.
-Unit, integration, adversarial, real-feed fork and CLI decoding coverage live in
-[`ChainlinkStablecoinOracleGuard.t.sol`](contracts/test/ChainlinkStablecoinOracleGuard.t.sol),
-[`ChainlinkStablecoinOracleGuardFork.t.sol`](contracts/test/ChainlinkStablecoinOracleGuardFork.t.sol),
-and [`InstitutionalNetting.t.sol`](contracts/test/InstitutionalNetting.t.sol).
-This maps to the Request for Hooks stable-focused, permissioned institutional
-execution track.
-
-Base Sepolia does not enable a sequencer uptime check because Chainlink does not
-currently list an official Base Sepolia uptime proxy. A Base mainnet deployment
-must use the official uptime feed with a 3600-second recovery grace period; its
-absence is a production blocker. Circle's official Base Sepolia USDC is an
-asset dependency, not a claimed Circle partner integration. The paired hUSDT
-is explicitly an ILAL test representation, not official USDT.
-
-## Demo
-
-The latest institution-app transaction is the canonical live proof:
-[`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98).
-Two eligible wallets signed `0.10 USDC` and `0.07 hUSDT` opposing orders. The
-atomic batch matched `0.14` gross units internally, sent only the `0.03 USDC`
-imbalance to the Uniswap v4 PoolManager, consumed both nonces, and left the Hook
-and Router with zero token inventory.
-
-For the reviewer-facing pitch, double-click
-[`scripts/hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command).
-It runs the real offline CLI preview, replays pinned candidate evidence and
-executes the local oracle rollback regression without a user-supplied or stored
-private key and without a new broadcast. The speaking cues are in the
-[`pitch demo runbook`](docs/hookathon/PITCH_DEMO_RUNBOOK.md).
-
-Each institution signs its own private-key-free order JSON:
-
-```bash
-ilal --keystore institution-a.json --password-file institution-a.password \
-  netting order sign --zero-for-one --amount-in 100000000 \
-  --min-amount-out 99000000 --max-amm-input 30000000 --output order-a.json
-
-ilal --keystore institution-b.json --password-file institution-b.password \
-  netting order sign --one-for-zero --amount-in 70000000 \
-  --min-amount-out 70000000 --max-amm-input 0 --output order-b.json
-```
-
-The solver previews and broadcasts without receiving user output:
-
-```bash
-./scripts/demo-netting.sh order-a.json order-b.json \
-  --keystore solver.json --password-file solver.password
-```
-
-The output prints submitted gross, internally matched gross, residuals, AMM
-exposure reduction, `batchId`, settlement events, and the transaction hash.
-
-Applications that only need session construction can install the SDK preview
-with `npm install @ilalv3/sdk@next viem`. It adds v1/v2 typed-data signing and
-hookData encoding; netting order helpers remain CLI-only in this release.
-
-## Verification
-
-Prerequisites: Foundry, Node.js, npm, Circom, and git.
+Run the full repository verification:
 
 ```bash
 make verify
 ```
 
-| Suite | Current result |
-|---|---:|
-| Foundry | 282 passed, 0 failed, 0 skipped |
-| Netting stateful invariants | 100,000 handler calls, 0 failures/reverts |
-| CLI | 56 passed |
-| SDK | 18 passed |
-| Circuit oracle | 8 passed |
-| Policy circuit v2 | 1 valid witness accepted; 4 adversarial witnesses rejected |
+## Architecture: Session + SOEE
 
-The integration suite proves that the final pool state and manager balance
-changes for the `100/70` batch exactly equal a vanilla 30-token0 residual swap
-from the same initialized state. The 16-order uniform study case uses about
-1.83M gas in the Foundry environment; the live Base Sepolia 16-order evidence
-used 1,896,404 gas. The isolated two-feed guard call adds
-36,360 gas over a constant-snapshot implementation of the same interface;
-transaction-level economics below use the full measured batch cost. `make verify` also checks release/
-deployment consistency, package contents, Git history, secrets, and dependency
-SBOMs.
+### Session — access layer
 
-## Impact benchmark
+- **What:** determines who may use a protected liquidity path.
+- **How:** an institution proves policy eligibility through the configured EAS or ZK path and receives a short-lived, scoped grant.
+- **Why:** eligibility can be reused during a bounded session without publishing private identity data on every trade.
 
-```bash
-make benchmark
+The V2 candidate supports Groth16 verification, short-lived policy grants, and one-time scoped session authorization.
+
+### SOEE — settlement and execution layer
+
+- **What:** determines how a group of eligible signed orders executes.
+- **How:** the router canonicalizes the order set, the Hook validates policy and orders, opposite flow is netted with before-swap deltas, and only the imbalance reaches the v4 pool.
+- **Why:** it reduces public AMM exposure while preserving atomic settlement and user-defined bounds.
+
+The current SOEE candidate uses the V1 policy/CNF path. An order contains its side, amount, minimum output, maximum AMM input, deadline, and nonce, and supports EIP-712 signatures from EOAs and ERC-1271 accounts.
+
+## The 100/70 result
+
+Suppose Institution A buys 100 units while Institution B sells 70:
+
+```text
+Without ILAL: 100 + 70 = 170 units touch the AMM
+With ILAL:     70 + 70 = 140 units settle internally
+               100 - 70 = 30 units touch the AMM
 ```
 
-The reproducible benchmark runs one ILAL batch and both orderings of two
-ordinary exact-input v4 swaps from identical pools. It compares ILAL against
-the higher-output vanilla ordering and uses the lower vanilla gas result, so
-the headline does not depend on a favorable ordering.
+| Metric | Result |
+| --- | ---: |
+| Gross submitted flow | 170 |
+| Gross internally matched flow | 140 |
+| Residual AMM flow | 30 |
+| Reduction in AMM exposure | **82.35%** |
+| Aggregate output improvement in the benchmark | **+4.12 bps** |
 
-| `100 token0` vs | AMM exposure reduction | User output advantage | LP fee reduction | Local execution gas: ILAL / vanilla |
-|---:|---:|---:|---:|---:|
-| `25 token1` | 40.00% | +0.025001 (2.00 bps) | 40.00% | 698,849 / 195,556 (3.57x) |
-| `50 token1` | 66.67% | +0.050000 (3.34 bps) | 66.67% | 698,850 / 195,557 (3.57x) |
-| `70 token1` | 82.35% | +0.070000 (4.12 bps) | 82.35% | 698,353 / 195,556 (3.57x) |
-| `90 token1` | 94.74% | +0.090001 (4.74 bps) | 94.74% | 698,849 / 195,556 (3.57x) |
-| `100 token1` | 100.00% | +0.100001 (5.00 bps) | 100.00% | 657,422 / 195,567 (3.36x) |
+The final pool state is identical to a vanilla swap of only the 30-unit residual. ILAL does not manufacture liquidity; it removes flow that cancels before using Uniswap's liquidity.
 
-For the public `100/70` configuration, aggregate ILAL output is 169.984100
-tokens versus 169.914100 for the better vanilla ordering. That is a 0.070000
-token, or 4.12 bps, improvement. The same run makes the tradeoff explicit:
-signature, eligibility, nonce, canonical-allocation and direct-settlement work
-costs more execution gas. LP fee reduction benefits these users but reduces
-fees on flow that would otherwise have reached the pool.
+## How SOEE works
 
-See the complete methodology, limitations and generated JSON in the
-[`impact benchmark`](docs/hookathon/BENCHMARK.md).
-
-### When is the gas premium worth paying?
-
-```bash
-make break-even-benchmark
+```text
+Eligible institutions sign bounded orders locally
+                    ↓
+Router sorts the fixed order set by order hash
+                    ↓
+One PoolManager.unlock call opens atomic settlement
+                    ↓
+Hook checks Chainlink/pool conditions, signatures,
+policy, CNF, deadlines, limits, and nonces
+                    ↓
+Opposite flow nets internally via beforeSwap deltas
+                    ↓
+Only the residual imbalance swaps through Uniswap v4
 ```
 
-The notional sweep fixes opposing flow at `N / 0.7N` and scales liquidity with
-notional to isolate gas amortization. User output improves by approximately
-**7.00 bps of anchor notional** while the conservative measured total-gas
-premium is **485,401 gas**, including the Chainlink gate. With ETH/USD fixed at
-a **$3,000 scenario input**:
+Important execution properties:
 
-| Gas-price scenario | Break-even anchor notional | Break-even gross notional |
-|---:|---:|---:|
-| 0.01 gwei | $20.80 | $35.37 |
-| 0.1 gwei | $208.03 | $353.65 |
-| 1 gwei | $2,080.31 | $3,536.52 |
+- For a fixed signed order set, permutation cannot change the batch ID, allocation, or pool result.
+- The solver still chooses batch membership and timing; a signer can influence its order hash through its nonce. Allocation is sequential, not pro-rata or strategy-proof.
+- `minAmountOut` and `maxAmmInput` bound each order. A failed check reverts the entire batch.
+- The MVP supports 2–16 exact-input orders for equal-decimal ERC-20 stablecoins, raw-unit 1:1 internal netting, zero netting fee, and an opening pool-tick band of ±100.
+- Chainlink is a batch-opening circuit breaker, not the execution price. Actual execution remains bounded by the signed order and v4 pool state.
 
-These are sensitivity scenarios, not live ETH or Base gas quotes. The fixed
-candidate-liquidity stress test also reports the `100k/70k` case as
-**capacity-limited**: neither ILAL nor vanilla fully executes at that depth, so
-the row is excluded from break-even interpolation. See the full assumptions,
-100/1k/10k/100k sweep and machine-readable output in the
-[`gas-cost break-even benchmark`](docs/hookathon/BREAK_EVEN.md).
+## What was built during the Hookathon
 
-## Institutional stress and value study
+ILAL existed before UHI10. This submission isolates the new SOEE work from prior infrastructure.
 
-The fail-closed research runner emits `institutional-study-v1` JSON/CSV, pins
-the Base fork block and official contract bytecode, measures Base L1 security
-fees, exercises the deployed Universal Router + Permit2 surface, runs the
-issuer workflow at scale, and generates bilingual reports plus the website
-summary.
+**Existing before the Hookathon:** credential and policy primitives, sessions, an earlier router, ZK research, and CLI foundations.
+
+**New Hookathon work:**
+
+- Uniswap v4 institutional netting Hook and atomic batch router.
+- EIP-712/ERC-1271 signed orders, canonical ordering, nonce consumption, and bounded allocation.
+- Before-swap delta accounting and residual-only AMM execution.
+- Preflight and double-simulation paths.
+- Chainlink stablecoin circuit breaker.
+- Unit, fuzz, fork, adversarial, invariant, CLI, and SDK tests.
+- Base Sepolia deployments and transaction-level evidence.
+
+See [`UHI10_PRE_SUBMISSION_REVIEW_ZH.md`](audit/UHI10_PRE_SUBMISSION_REVIEW_ZH.md) for the reviewed submission boundary and known limitations.
+
+## Partner integration: Chainlink
+
+ILAL uses [Chainlink Data Feeds](https://docs.chain.link/data-feeds/price-feeds) as a fail-closed guard before a batch opens. [`ChainlinkStablecoinOracleGuard.sol`](contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol) validates positive answers, round completeness, staleness, each asset's deviation from USD, and pair divergence. The Hook then combines that result with its pool-tick check before settlement.
+
+The Base Sepolia candidate references Chainlink's [USDC/USD](https://data.chain.link/feeds/base/base-sepolia/usdc-usd) and [USDT/USD](https://data.chain.link/feeds/base/base-sepolia/usdt-usd) feeds. Current limits are 100 bps per feed from $1, 100 bps pair divergence, 90,000-second staleness, and a ±100 opening tick.
+
+Tests are in [`ChainlinkStablecoinOracleGuard.t.sol`](contracts/test/ChainlinkStablecoinOracleGuard.t.sol) and [`ChainlinkStablecoinOracleGuardFork.t.sol`](contracts/test/ChainlinkStablecoinOracleGuardFork.t.sol).
+
+Official Circle Base Sepolia USDC is a deployment dependency, not a claimed partner integration. Base Sepolia has no sequencer-uptime check in this candidate; adding the correct L2 liveness control is a production blocker.
+
+## Demo and live evidence
+
+### Latest institution-app settlement
+
+- **Transaction:** [`0x1609…fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98)
+- **Hook:** [`0x8d1f…0088`](https://sepolia.basescan.org/address/0x8d1fA43F848701b2adB105D5c925A9247E600088)
+- **Router:** [`0x9645…2506`](https://sepolia.basescan.org/address/0x96456C68f25A1Fa6C2F2751183401ac26A732506)
+- **Orders:** A paid 0.10 USDC; B paid 0.07 hUSDT.
+- **Settlement:** 0.07 each side matched internally; only 0.03 USDC entered the AMM.
+- **Outputs:** A received 0.099796 hUSDT; B received 0.07 USDC.
+- **State:** both nonces consumed; Hook and Router ended with zero token inventory.
+- **Gas used:** 621,018.
+
+Other public settlements:
+
+- [Reverse-direction batch](https://sepolia.basescan.org/tx/0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172)
+- [Four-order batch](https://sepolia.basescan.org/tx/0xf6d74bd973b6c26c63ec7317dff87ba8055d8946eb2b637791b5376e1d335954)
+- [Sixteen-order batch](https://sepolia.basescan.org/tx/0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7)
+
+For the reviewer flow, open the deck and run the guided demo:
 
 ```bash
-make study-local   # 160-row economic grid + 12 multi-order scenarios
-make study-fork    # finalized Base fork, real token bytecode, production router
-make study-rwa     # 100/1k/10k/100k PII-free issuer datasets + 20 proofs
-make study-stress  # >=100k invariant handler calls + 10k fuzz/property
-make study-report  # JSON/CSV-derived reports, chart and website summary
-make study-full    # complete run plus normalized reproducibility check
+./scripts/hookathon-pitch-demo.command
 ```
 
-The strict verdict is `PASS / CONDITIONAL / FAIL`; a passing result means only
-**ready for institutional pilot**. Independent audit remains a production
-blocker. Start with the consolidated Chinese
-[`complete test data and evidence report`](docs/research/ILAL_COMPLETE_TEST_DATA_REPORT_ZH.md),
-or read the full [research directory](docs/research/).
+## Verification and economics
 
-## Deployment status
+The current verification suite covers:
 
-The Hookathon stack has a Base Sepolia-only deployment script at
-[`contracts/script/DeployHookathonNetting.s.sol`](contracts/script/DeployHookathonNetting.s.sol).
-It binds the official PoolManager, PositionManager and Permit2 addresses,
-uses Circle's official 6-decimal test USDC, deploys a 6-decimal hUSDT test
-representation, then deploys the Chainlink guard, MockEAS, CNFIssuer,
-PolicyRegistry, BatchRouter and a CREATE2-mined `0x88` Hook. It sorts token/feed
-pairs by address, validates both real feeds before continuing, onboards two
-distinct institutions, and seeds a wide `[-10000,10000]` position plus a
-`[-100,100]` stabilizer through the standard v4 PositionManager. The funder must
-provide at least 0.65 test USDC or deployment stops before allocation.
+| Suite | Result |
+| --- | ---: |
+| Foundry tests | 282 |
+| Invariant calls | 100,000 |
+| CLI tests | 56 |
+| SDK tests | 18 |
+| Circuit oracle checks | 8 |
+| V2 policy vectors | 1 valid + 4 adversarial |
 
-The current Chainlink-guarded Hook is
-[`0x8d1f…0088`](https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088).
-Forward, reverse, 4-order and 16-order transactions succeeded on Base Sepolia;
-the Hook and Router ended with zero token inventory. All seven first-party
-contracts are Sourcify creation/runtime `exact_match`. Addresses, feed rounds,
-pinned preflights, transactions and postconditions are recorded in the
-[`current candidate manifest`](docs/hookathon/chainlink-candidate-manifest.json).
+The canonical 100/70 benchmark measured aggregate output of **169.984100** with ILAL versus **169.914100** for gross vanilla execution: **+0.070000**, or **+4.12 bps**. It also measured **698,353 gas** versus **195,556 gas** (**3.57×**), leaving a break-even premium of **485,401 gas**.
 
-The pre-Chainlink Hook and its `100/70` and reverse `60/90` transactions remain
-separate historical evidence in
-[`candidate-manifest.json`](docs/hookathon/candidate-manifest.json). They do not
-prove the current bytecode and do not replace the active v0.3.3 testnet demo.
+At 1 gwei, illustrative break-even trade-value anchors are $1,386.87 at $2,000/ETH, $2,080.31 at $3,000/ETH, and $2,773.74 at $4,000/ETH. These are sensitivity scenarios, not a live ETH-price claim or a forecast.
 
-## Supporting infrastructure
+Methodology and reproducible artifacts:
 
-| Path | Purpose |
-|---|---|
-| [`contracts/src/CNFIssuer.sol`](contracts/src/CNFIssuer.sol) | Soulbound v1 compliance credential used by the netting Hook |
-| [`contracts/src/PolicyRegistry.sol`](contracts/src/PolicyRegistry.sol) | Current pool eligibility policy with delayed updates |
-| [`contracts/src/`](contracts/src) | Historical v1 execution and isolated v2 policy-grant infrastructure |
-| [`cli/src/`](cli/src) | Signing, netting, policy, credential and deployment commands |
-| [`circuits/`](circuits) | Legacy v1 and isolated v2 ZK research artifacts |
-| [`deployments/`](deployments) | Versioned public deployment evidence; v0.3.3 remains active |
-| [`audit/`](audit) | Current scope and dated historical review material |
+- [`BENCHMARK.md`](docs/hookathon/BENCHMARK.md)
+- [`BREAK_EVEN.md`](docs/hookathon/BREAK_EVEN.md)
+- [`ILAL_INSTITUTIONAL_STRESS_VALUE_REPORT_EN.md`](docs/research/ILAL_INSTITUTIONAL_STRESS_VALUE_REPORT_EN.md)
 
-## Security and scope
+## Deployment and security
 
-This is unaudited testnet software. Do not use it with production funds or
-identity data. Chainlink and the pool tick are batch-opening circuit breakers,
-not execution-price or continuous in-batch bounds.
-The Hook is immutable and a serious defect requires a new Hook and pool; see
-[`docs/INCIDENT_AND_MIGRATION_RUNBOOK.md`](docs/INCIDENT_AND_MIGRATION_RUNBOOK.md).
-The dated first-party
-[`UHI10 pre-submission review`](audit/UHI10_PRE_SUBMISSION_REVIEW_ZH.md)
-records mechanism and operational findings; it is not an independent audit.
+Current Chainlink-guarded Base Sepolia candidate (chain ID 84532):
 
-See [`SECURITY.md`](SECURITY.md), [`NOTICE`](NOTICE), and
-[`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md). First-party code is
-Apache-2.0.
+- [Verified Hook source](https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088)
+- [Verified oracle guard source](https://sourcify.dev/server/v2/contract/84532/0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3)
+- [`DeployHookathonNetting.s.sol`](contracts/script/DeployHookathonNetting.s.sol)
+
+This software is **unaudited and Base Sepolia only**. The Hook is immutable; a serious defect requires a new Hook and pool. Review [`SECURITY.md`](SECURITY.md), the [`INCIDENT_AND_MIGRATION_RUNBOOK.md`](docs/INCIDENT_AND_MIGRATION_RUNBOOK.md), and [`ILAL_CURRENT_AUDIT_SCOPE.md`](audit/ILAL_CURRENT_AUDIT_SCOPE.md) before evaluating any production use.
+
+## Repository map
+
+| Area | Path |
+| --- | --- |
+| Netting contracts | [`contracts/src/netting`](contracts/src/netting) |
+| Oracle integration | [`contracts/src/oracle`](contracts/src/oracle) |
+| CLI | [`cli`](cli) |
+| ZK circuits | [`circuits`](circuits) |
+| Hookathon evidence | [`docs/hookathon`](docs/hookathon) |
+| Security material | [`audit/ILAL_CURRENT_AUDIT_SCOPE.md`](audit/ILAL_CURRENT_AUDIT_SCOPE.md) |
+| Deployments | [`deployments`](deployments) |
+
+## License
+
+[Apache License 2.0](LICENSE)
