@@ -7,30 +7,61 @@
 > **Prove eligibility once. Reuse scoped access. Net verified flow before it
 > reaches the AMM.**
 
-ILAL is an institutional access and execution layer for Uniswap v4.
+## What is ILAL?
 
-It separates **eligibility verification** from repeated transaction execution,
-so institutions do not need to repeatedly expose identity data for every
-interaction. At the execution layer, ILAL's SOEE path atomically nets opposing
-verified orders and routes only the unmatched residual to Uniswap.
+ILAL (Institutional Liquidity Access Layer) is a compliance and settlement layer
+for Uniswap v4. It addresses two execution barriers that keep institutional flow
+from using public DeFi liquidity efficiently:
 
-**Less repeated identity disclosure.<br>
-Less repeated compliance overhead.<br>
-Less unnecessary gross flow hitting public liquidity.**
+1. **Compliance overhead** — eligibility should not require repeated identity
+   disclosure and full verification inside every transaction workflow.
+2. **Gross AMM exposure** — when eligible institutions have opposing orders,
+   sending both sides independently through the curve creates avoidable price
+   impact and public execution exposure.
+
+ILAL separates **who may act** (Session) from **how signed orders settle**
+(SOEE). Session reuses a short-lived, scoped eligibility grant for bounded
+actions. SOEE atomically nets opposing verified orders and routes only the
+unmatched imbalance to Uniswap v4.
+
+In the deployed canonical `0.10 USDC / 0.07 hUSDT` case, `0.14` of `0.17`
+gross flow settled internally and only `0.03 USDC` reached the AMM: **82.35%
+less gross AMM exposure** than sending both orders independently through the
+curve.
+
+> **Live Base Sepolia proof:** [`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98)
+> was signed through the local institution app and atomically settled through
+> `InstitutionalBatchRouter`, `InstitutionalNettingHook`, and the Uniswap v4
+> `PoolManager`. The PoolManager received only the `0.03 USDC` residual; both
+> orders settled in one successful transaction.
 
 Current npm preview: `npm install -g @ilalv3/cli@next`
 (`v0.4.0-v2-poc.7`, including Chainlink-aware institutional netting preflight).
 The public `latest` channel remains `v0.3.3`; the netting and V2 stacks are
 separate, unaudited Base Sepolia candidates.
 
-## Two layers, one goal
+## Architecture: Session + SOEE
 
-| | Session | SOEE |
-|---|---|---|
-| **Problem** | Compliance is repeatedly dragged into execution | Offsetting gross flow unnecessarily reaches the AMM |
-| **ILAL approach** | Reuse a short-lived eligibility grant; sign each scoped action once | Net opposing verified orders before AMM execution |
-| **Benefit** | Lower repeated verification overhead and less identity exposure | Lower AMM exposure and better execution when flow offsets |
-| **Role** | Institutional access | Institutional execution |
+ILAL consists of two independent layers that target different boundaries.
+
+### Session (Access Layer)
+
+- **What:** determines who may perform a bounded Uniswap action.
+- **How:** the V2 candidate verifies a Groth16 policy proof once, caches a
+  short-lived Policy Grant, and uses one-time scoped sessions for LP or swap
+  actions.
+- **Why:** reduces repeated eligibility-verification overhead and supports a
+  privacy-preserving ZK path without making identity data part of every action.
+
+### SOEE (Settlement & Execution Layer)
+
+- **What:** determines how a fixed set of signed institutional orders settles.
+- **How:** the current candidate verifies v1 Policy and CNF eligibility,
+  canonicalizes EIP-712/ERC-1271 signed orders, nets opposing directions inside
+  one `PoolManager.unlock`, and sends only the residual to Uniswap v4.
+- **Why:** reduces gross flow that touches the AMM curve. The canonical deployed
+  `100/70` case measured **82.35% less AMM exposure** and a smaller pool-level
+  price-impact and extraction surface.
 
 ### Two authorization models, intentionally separate today
 
@@ -213,7 +244,7 @@ deployment remains unchanged.
 | Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
 | Chainlink-guarded Hook | [`0x8d1f…0088` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088) |
 | Oracle Guard | [`0x1dEc…199D3` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3) |
-| Live forward `0.10/0.07` | [`0x9177…0998`](https://sepolia.basescan.org/tx/0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998) |
+| Live institution-app `0.10/0.07` | [`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98) — `0.17` gross, `0.14` internally matched, `0.03` AMM residual |
 | Live reverse `0.06/0.09` | [`0x588a…5172`](https://sepolia.basescan.org/tx/0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172) |
 | Live 4 / 16 order | [`4-order`](https://sepolia.basescan.org/tx/0xf6d74bd973b6c26c63ec7317dff87ba8055d8946eb2b637791b5376e1d335954) · [`16-order`](https://sepolia.basescan.org/tx/0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7) |
 | Current evidence manifest | [`chainlink-candidate-manifest.json`](docs/hookathon/chainlink-candidate-manifest.json) |
@@ -317,6 +348,13 @@ asset dependency, not a claimed Circle partner integration. The paired hUSDT
 is explicitly an ILAL test representation, not official USDT.
 
 ## Demo
+
+The latest institution-app transaction is the canonical live proof:
+[`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98).
+Two eligible wallets signed `0.10 USDC` and `0.07 hUSDT` opposing orders. The
+atomic batch matched `0.14` gross units internally, sent only the `0.03 USDC`
+imbalance to the Uniswap v4 PoolManager, consumed both nonces, and left the Hook
+and Router with zero token inventory.
 
 For the reviewer-facing pitch, double-click
 [`scripts/hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command).

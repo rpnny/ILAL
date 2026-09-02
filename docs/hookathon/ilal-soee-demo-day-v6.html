@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ILAL — Institutional Flow, Netted Before the Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* === THEME TOKENS: Pink Script / After Hours === */
+    :root {
+      --stage-bg:#020104; --slide-bg:#060507; --ink:#060507; --violet:#0f0d11;
+      --paper:#f5edf1; --pink:#ed3d8c; --pink-light:#ff66a8; --pink-deep:#b81d67;
+      --line-pink:rgba(237,61,140,.32); --mute:rgba(245,237,241,.55); --hair:rgba(245,237,241,.14);
+      --ease:cubic-bezier(.16,1,.3,1); --duration:.72s;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    /* === FIXED 16:9 STAGE: mandatory viewport base === */
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000)}
+    .deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000)}
+    .deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff)}
+    .slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff)}
+    .slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1}
+    img,video,canvas,svg{max-width:100%;max-height:100%}
+    .deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000}
+    @media print{html,body{width:1920px;height:auto;overflow:visible;background:#fff}.deck-viewport{position:static;overflow:visible;background:#fff}.deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none}.slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always}.slide:last-child{break-after:auto;page-break-after:auto}.deck-controls{display:none!important}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important}}
+
+    /* === UNIVERSAL EDITORIAL SURFACE === */
+    .slide{font-family:'Inter',sans-serif;color:var(--paper);background:radial-gradient(ellipse 90% 70% at 30% 30%,#1a1218 0%,#0a0709 55%,#050306 100%);transition:opacity .45s ease}
+    .slide::before{content:"";position:absolute;inset:0;opacity:.08;mix-blend-mode:screen;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E")}
+    .slide::after{content:"";position:absolute;inset:36px;border:1px solid var(--hair);pointer-events:none;z-index:20}
+    .runner,.footer{position:absolute;left:60px;right:60px;z-index:21;display:flex;align-items:center;justify-content:space-between;font:400 20px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+    .runner{top:59px}.footer{bottom:58px}.runner b{font-weight:400;color:var(--pink)}.footer em{font-style:normal;color:var(--pink)}
+    .content{position:absolute;inset:142px 82px 132px;z-index:2}
+    .kicker{font:400 20px/1.2 'JetBrains Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--pink)}
+    h1,h2,h3,.serif{font-family:'DM Serif Display',serif;font-weight:400}.headline{font-size:112px;line-height:1.02;letter-spacing:-.035em;padding-bottom:.1em}.headline em{font-style:normal;color:var(--pink)}
+    .slide h1 em,.slide h2 em,.slide h3 em{font-style:normal;color:var(--pink)}
+    .lead{font:300 26px/1.52 'Inter',sans-serif;color:var(--mute)}
+    .mono{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em}
+    .pink{color:var(--pink)}.paper{color:var(--paper)}.muted{color:var(--mute)}
+    .rule{height:1px;background:rgba(237,61,140,.45)}.hair{height:1px;background:var(--hair)}
+    .reveal,.reveal-left,.reveal-scale,.reveal-blur{opacity:0;transition:opacity var(--duration) var(--ease),transform var(--duration) var(--ease),filter var(--duration) var(--ease)}
+    .reveal{transform:translateY(34px)}.reveal-left{transform:translateX(-52px)}.reveal-scale{transform:scale(.92)}.reveal-blur{filter:blur(12px)}
+    .slide.visible .reveal,.slide.visible .reveal-left,.slide.visible .reveal-scale,.slide.visible .reveal-blur{opacity:1;transform:none;filter:none}
+    .d1{transition-delay:.08s}.d2{transition-delay:.18s}.d3{transition-delay:.3s}.d4{transition-delay:.42s}.d5{transition-delay:.54s}
+    a{color:inherit;text-decoration:none}
+
+    /* === SLIDE 01: COVER === */
+    .s1 .cover{position:absolute;left:108px;top:196px;width:1500px}
+    .s1 .pre{font:400 23px/1 'JetBrains Mono',monospace;letter-spacing:.34em;text-transform:uppercase}
+    .s1 h1{margin-top:42px;font-size:168px;line-height:.92;letter-spacing:-.05em;color:var(--paper);text-shadow:0 0 80px rgba(237,61,140,.12)}
+    .s1 h1 span{color:var(--pink)}
+    .s1 .equation{position:absolute;right:108px;bottom:132px;width:500px;border-left:1px solid var(--pink);padding-left:28px}
+    .s1 .equation strong{font:400 118px/.9 'DM Serif Display',serif;color:var(--pink)}
+    .s1 .equation p{margin-top:16px;font:300 22px/1.45 'Inter';color:var(--mute)}
+
+    /* === SLIDE 02: ONE-SLIDE WHY === */
+    .s2 .content{display:grid;grid-template-columns:1.12fr .88fr;gap:110px;align-items:center}
+    .s2 h2{font-size:116px;line-height:.96;letter-spacing:-.04em;padding-bottom:.12em}
+    .s2 .lead{max-width:890px;margin-top:22px}
+    .signal-rail{border-left:1px solid var(--pink);padding-left:38px;display:grid}
+    .signal{display:grid;grid-template-columns:205px 1fr;align-items:center;gap:22px;padding:30px 0;border-bottom:1px solid var(--hair)}
+    .signal:first-child{border-top:1px solid var(--hair)}
+    .signal strong{font:400 74px/.9 'DM Serif Display';color:var(--pink)}
+    .signal div b{font:400 15px/1.35 'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase}
+    .signal div p{margin-top:8px;font:300 17px/1.35 'Inter';color:var(--mute)}
+    .source-line{position:absolute;left:82px;bottom:92px;font:300 14px/1.5 'Inter';color:rgba(245,237,241,.42)}
+    .source-line a{border-bottom:1px solid rgba(237,61,140,.35)}
+
+    /* === SLIDE 03: TWO LAYERS === */
+    .s3 .content{display:grid;grid-template-rows:auto 1fr;gap:48px}
+    .s3 h2{font-size:104px;line-height:1}.layers{display:grid;grid-template-columns:1fr 1fr;gap:55px}
+    .layer{border-top:1px solid var(--pink);padding:30px 34px;position:relative}
+    .layer .num{font:400 112px/.9 'DM Serif Display';color:var(--pink)}
+    .layer h3{font-size:59px;margin-top:25px}.layer p{margin-top:18px;font:300 24px/1.5 'Inter';color:var(--mute);max-width:650px}
+    .layer .tag{position:absolute;right:30px;top:36px;border:1px solid var(--pink);padding:8px 12px;font:400 14px 'JetBrains Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--pink)}
+    .boundary{position:absolute;left:82px;bottom:92px;font:300 17px 'Inter';color:rgba(245,237,241,.48)}
+
+    /* === SLIDE 04: INSTITUTION WORKFLOW === */
+    .s4 .content{display:grid;grid-template-rows:auto 1fr;gap:58px}
+    .s4 h2{font-size:96px;line-height:1.02;max-width:1600px}
+    .institution-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:34px;align-items:start}
+    .institution-step{position:relative;border-top:1px solid var(--pink);padding:28px 25px 0;min-height:400px}
+    .institution-step:not(:last-child)::after{content:"→";position:absolute;right:-30px;top:74px;font:400 40px 'DM Serif Display';color:var(--pink)}
+    .institution-step .n{font:400 74px/.9 'DM Serif Display';color:var(--pink)}
+    .institution-step h3{margin-top:28px;font-size:39px}.institution-step p{margin-top:16px;font:300 21px/1.5 'Inter';color:var(--mute)}
+    .institution-step code{display:block;margin-top:24px;font:400 14px/1.5 'JetBrains Mono';letter-spacing:.06em;color:var(--pink)}
+    .authority{position:absolute;left:82px;right:82px;bottom:92px;border-left:1px solid var(--pink);padding-left:24px;font:400 32px 'DM Serif Display'}
+
+    /* === SLIDE 05: SIGNED ORDER ANATOMY === */
+    .s5 .content{display:grid;grid-template-columns:.9fr 1.1fr;gap:92px;align-items:center}
+    .s5 h2{font-size:96px;line-height:1.02}.s5 .lead{margin-top:25px;max-width:620px}
+    .order-anatomy{display:grid;grid-template-columns:1.05fr .95fr;gap:42px;align-items:stretch}
+    .order-code{border-top:1px solid var(--pink);padding:27px 28px;font:400 19px/1.78 'JetBrains Mono';color:var(--mute)}
+    .order-code b{color:var(--pink);font-weight:500}.order-code span{color:var(--paper)}
+    .control-rail{display:grid;align-content:start}
+    .control{padding:19px 0;border-bottom:1px solid var(--hair)}
+    .control b{display:block;font:400 14px 'JetBrains Mono';letter-spacing:.1em;color:var(--pink);text-transform:uppercase}
+    .control p{margin-top:7px;font:300 18px/1.38 'Inter';color:var(--paper)}
+    .control.solver b{color:var(--mute)}
+    .order-law{position:absolute;left:82px;bottom:92px;font:400 34px 'DM Serif Display';color:var(--paper)}
+    .order-law em{font-style:normal;color:var(--pink)}
+
+    /* === SLIDE 06: NETTING MATH === */
+    .s6 .content{display:grid;grid-template-rows:auto 1fr;gap:34px}.s6 h2{font-size:92px}
+    .flow{display:grid;grid-template-columns:1fr 120px 1fr 140px 1.15fr;align-items:center;gap:20px}
+    .flow .block{height:390px;border-top:1px solid var(--pink);padding:32px 28px;display:flex;flex-direction:column;justify-content:space-between}
+    .flow .block strong{font:400 150px/.9 'DM Serif Display';color:var(--paper)}.flow .block.residual strong{color:var(--pink);text-shadow:0 0 65px rgba(237,61,140,.22)}
+    .flow .block span{font:400 17px/1.5 'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+    .flow .op{font:400 70px 'DM Serif Display';text-align:center;color:var(--pink)}
+    .compression{position:absolute;left:110px;right:110px;bottom:110px;display:grid;grid-template-columns:1fr 210px;align-items:center;gap:38px}
+    .track{height:12px;background:rgba(245,237,241,.1)}.track i{display:block;width:82.35%;height:100%;background:var(--pink);transform:scaleX(0);transform-origin:left;transition:transform 1s var(--ease) .65s}.s6.visible .track i{transform:scaleX(1)}
+    .compression strong{font:400 80px/.9 'DM Serif Display';color:var(--pink)}
+
+    /* === SLIDE 07: TECHNICAL PATH === */
+    .s7 .content{display:grid;grid-template-rows:auto 1fr;gap:45px}.s7 h2{font-size:95px}
+    .process{display:grid;grid-template-columns:repeat(5,1fr);gap:26px;align-items:start}
+    .step{border-top:1px solid var(--pink);padding:26px 18px 0;min-height:390px;position:relative}
+    .step .n{font:400 82px/.9 'DM Serif Display';color:var(--pink)}.step h3{font-size:34px;margin-top:26px}.step p{margin-top:16px;font:300 20px/1.5 'Inter';color:var(--mute)}
+    .step code{position:absolute;bottom:12px;font:400 14px/1.5 'JetBrains Mono';color:rgba(245,237,241,.42)}
+    .atomic{position:absolute;left:82px;right:82px;bottom:95px;border-left:1px solid var(--pink);padding-left:24px;display:flex;justify-content:space-between;align-items:center}
+    .atomic strong{font:400 34px 'DM Serif Display'}.atomic span{font:400 15px 'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--pink)}
+
+    /* === SLIDE 08: ECONOMICS === */
+    .s8 .content{display:grid;grid-template-columns:.78fr 1.22fr;gap:90px}.s8 h2{font-size:96px;line-height:1.01}.s8 .lead{margin-top:22px;max-width:510px;font-size:21px}
+    .economics{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-content:center}
+    .econ{border-bottom:1px solid var(--hair);padding:28px 20px;min-height:220px}
+    .econ strong{font:400 94px/.9 'DM Serif Display';color:var(--pink)}.econ b{display:block;margin-top:22px;font:400 16px 'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase}.econ p{margin-top:12px;font:300 18px/1.4 'Inter';color:var(--mute)}
+    .tradeoff{position:absolute;left:82px;bottom:92px;font:300 16px/1.45 'Inter';color:rgba(245,237,241,.48)}
+
+    /* === SLIDE 09: LIVE DEMO BRIDGE === */
+    .s9 .content{display:grid;grid-template-columns:1fr 640px;gap:95px;align-items:center}
+    .s9 h2{font-size:142px;line-height:.95}.s9 .demo-steps{border-left:1px solid var(--pink);padding-left:34px;display:grid;gap:22px}
+    .demo-step{display:grid;grid-template-columns:48px 1fr;gap:18px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--hair)}
+    .demo-step b{font:400 40px 'DM Serif Display';color:var(--pink)}.demo-step span{font:300 24px 'Inter'}
+    .launch{display:inline-block;margin-top:36px;border:1px solid var(--pink);padding:17px 23px;font:400 17px 'JetBrains Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--pink)}
+    .s9 .ghost{position:absolute;right:50px;bottom:25px;font:400 360px/.7 'DM Serif Display';color:rgba(237,61,140,.06)}
+
+    /* === SLIDE 10: PUBLIC PROOF === */
+    .s10 .content{display:grid;grid-template-columns:1.05fr .95fr;gap:80px}.s10 h2{font-size:105px}.proof-card{margin-top:42px;border-left:1px solid var(--pink);padding-left:28px}
+    .proof-card .status{font:400 17px 'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--pink)}.proof-card code{display:block;margin-top:20px;font:400 18px/1.5 'JetBrains Mono';color:var(--paper);overflow-wrap:anywhere}.proof-card a{display:inline-block;margin-top:25px;border-bottom:1px solid var(--pink);font:400 16px 'JetBrains Mono';letter-spacing:.08em;color:var(--pink)}
+    .receipt{display:grid;gap:0;align-content:center}.receipt-row{display:grid;grid-template-columns:180px 1fr;gap:20px;padding:25px 0;border-bottom:1px solid var(--hair)}.receipt-row strong{font:400 64px/.9 'DM Serif Display';color:var(--pink)}.receipt-row div b{font:400 16px 'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase}.receipt-row div p{margin-top:9px;font:300 18px 'Inter';color:var(--mute)}
+
+    /* === SLIDE 11: CLOSE === */
+    .s11 .content{display:flex;flex-direction:column;justify-content:center;align-items:flex-start}.s11 h2{font-size:148px;line-height:.96;max-width:1510px}.s11 h2 em{font-style:normal;color:var(--pink)}
+    .s11 .close-line{margin-top:55px;width:1250px;height:1px;background:var(--pink)}.s11 .close-meta{margin-top:35px;display:flex;gap:18px}.pill{border:1px solid var(--pink);padding:9px 14px;font:400 14px 'JetBrains Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--pink)}
+    .s11 .mark{position:absolute;right:95px;bottom:90px;font:400 250px/.8 'DM Serif Display';color:rgba(237,61,140,.13)}
+
+    /* === PRESENTER CONTROLS === */
+    .deck-controls{display:flex;align-items:center;gap:14px;padding:8px 12px;border:1px solid rgba(245,237,241,.18);background:rgba(6,5,7,.78);backdrop-filter:blur(16px);font:400 12px 'JetBrains Mono';letter-spacing:.08em;color:var(--paper);opacity:.32;transition:opacity .25s}.deck-controls:hover{opacity:1}.deck-controls button{width:34px;height:28px;border:0;background:transparent;color:var(--paper);cursor:pointer}.progress{position:fixed;left:0;bottom:0;height:2px;background:var(--pink);z-index:1100;transition:width .4s var(--ease)}
+    .notes-panel{position:fixed;right:18px;top:18px;width:min(520px,42vw);max-height:calc(100vh - 36px);overflow:auto;padding:22px 24px;border:1px solid rgba(237,61,140,.42);background:rgba(6,5,7,.94);color:var(--paper);font:300 15px/1.55 'Inter';z-index:1200;display:none;white-space:pre-line}.notes-panel.show{display:block}.notes-panel b{display:block;margin-bottom:10px;font:400 13px 'JetBrains Mono';letter-spacing:.1em;color:var(--pink);text-transform:uppercase}
+    .speaker-notes{display:none}
+
+    /* === INLINE EDITING === */
+    .edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer}.edit-toggle{position:fixed;top:15px;left:15px;z-index:10001;opacity:0;pointer-events:none;padding:10px 13px;border:1px solid var(--line-pink);background:var(--slide-bg);color:var(--paper);font:400 12px 'JetBrains Mono';transition:opacity .3s}.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto}[contenteditable=true]{outline:1px dashed var(--pink);outline-offset:5px}
+  </style>
+</head>
+<body>
+  <div class="deck-viewport">
+    <main class="deck-stage" id="deckStage">
+
+      <!-- === 01 / COVER === -->
+      <section class="slide s1 active" aria-label="ILAL cover">
+        <div class="runner"><b>◆ ILAL</b><span>UHI10 · Demo Day</span></div>
+        <div class="cover">
+          <div class="pre reveal">Institutional execution for Uniswap v4</div>
+          <h1 class="reveal-blur d2">170 enters.<br><span>Only 30</span><br>moves the market.</h1>
+        </div>
+        <div class="equation reveal-left d4"><strong>82.35%</strong><p>less gross AMM exposure in the canonical 100 / 70 batch</p></div>
+        <div class="footer"><span>Verified flow · netted before the AMM</span><span><em>01</em> / 11</span></div>
+        <aside class="speaker-notes">0:00–0:15
+Why send 170 units into the market when the real imbalance is only 30? Two verified institutions want opposite trades. ILAL settles what cancels and sends only the imbalance to Uniswap v4.</aside>
+      </section>
+
+      <!-- === 02 / ONE-SLIDE WHY === -->
+      <section class="slide s2" aria-label="Why institutional execution needs a new boundary">
+        <div class="runner"><b>◆ ILAL</b><span>01 · Why — in one slide</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">Capital arrived. Execution did not.</div><h2 class="reveal d2">Institutions think in <em>net exposure.</em><br>The AMM sees gross flow.</h2><p class="lead reveal d3">Assets and liquidity are onchain. Issuer eligibility, bounded orders and exposure control still stop before final execution.</p></div>
+          <div class="signal-rail">
+            <div class="signal reveal-left d2"><strong>~$4T</strong><div><b>Uniswap protocol volume</b><p>Cumulative · Nov 2025 report</p></div></div>
+            <div class="signal reveal-left d3"><strong>$12.7T</strong><div><b>Adjusted stablecoin value</b><p>January–June 2025</p></div></div>
+            <div class="signal reveal-left d4"><strong>&gt;$10B</strong><div><b>Tokenized Treasuries</b><p>As of February 2026</p></div></div>
+          </div>
+        </div>
+        <div class="source-line">Adjacent market signals, not ILAL TAM. Sources: <a href="https://gov.uniswap.org/t/unification-proposal/25881" target="_blank">Uniswap governance</a> · <a href="https://www.chainalysis.com/blog/north-america-crypto-adoption-2025/" target="_blank">Chainalysis</a> · <a href="https://app.rwa.xyz/blog/allocation-vaults-primer-for-institutional-asset-managers" target="_blank">RWA.xyz</a></div>
+        <div class="footer"><span>That is the entire why · now the how</span><span><em>02</em> / 11</span></div>
+        <aside class="speaker-notes">0:15–0:42
+The rails are already large: roughly four trillion dollars of Uniswap volume, 12.7 trillion dollars of adjusted stablecoin value in the first half of 2025, and more than ten billion dollars in tokenized Treasuries. Yet institutional controls still sit around the trade, not inside final execution. That is the entire why. Now the how.</aside>
+      </section>
+
+      <!-- === 03 / ILAL TWO LAYERS === -->
+      <section class="slide s3" aria-label="ILAL Session and SOEE layers">
+        <div class="runner"><b>◆ ILAL</b><span>02 · What ILAL changes</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">One goal · two independent candidates</div><h2 class="headline reveal d2">Verify access. <em>Compress execution.</em></h2></div>
+          <div class="layers">
+            <div class="layer reveal-left d3"><span class="tag">existing access layer</span><div class="num">01</div><h3>Session</h3><p>Prove policy once. Reuse a short-lived grant for a scoped LP or swap action. One-time, expiring and revocable.</p></div>
+            <div class="layer reveal-left d4"><span class="tag">new in UHI10</span><div class="num">02</div><h3>SOEE</h3><p>Accept signed institutional orders. Net opposing eligible flow atomically. Route only the unmatched residual through v4.</p></div>
+          </div>
+        </div>
+        <div class="boundary">CURRENT BOUNDARY · Session and SOEE are separate Base Sepolia candidates today.</div>
+        <div class="footer"><span>Session solves access · SOEE solves execution</span><span><em>03</em> / 11</span></div>
+        <aside class="speaker-notes">0:42–1:05
+ILAL has two independent candidates today. Session answers who may act: prove policy once and reuse a short-lived scoped grant. SOEE answers how a group executes: verify signed orders, net opposite directions atomically and route only the imbalance to v4. Today I am demonstrating SOEE.</aside>
+      </section>
+
+      <!-- === 04 / INSTITUTION WORKFLOW === -->
+      <section class="slide s4" aria-label="How an institution uses SOEE">
+        <div class="runner"><b>◆ ILAL</b><span>03 · Institution workflow</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">No consumer DEX tab required</div><h2 class="reveal d2">The institution signs. <em>The solver assembles.</em> The Hook decides.</h2></div>
+          <div class="institution-flow">
+            <div class="institution-step reveal d2"><div class="n">01</div><h3>Define</h3><p>A treasury system, SDK or CLI defines side, amount and exposure limits.</p><code>UI · SDK · CLI</code></div>
+            <div class="institution-step reveal d3"><div class="n">02</div><h3>Sign</h3><p>The institution signs the bounded order locally. Its private key never leaves custody.</p><code>EIP-712 / ERC-1271</code></div>
+            <div class="institution-step reveal d4"><div class="n">03</div><h3>Assemble</h3><p>A solver discovers eligible opposite flow and submits a canonical batch.</p><code>MEMBERSHIP + TIMING</code></div>
+            <div class="institution-step reveal d5"><div class="n">04</div><h3>Settle</h3><p>Preflight checks pass, then the Router and Hook settle all legs atomically.</p><code>ONE UNLOCK · ALL OR NOTHING</code></div>
+          </div>
+        </div>
+        <div class="authority">The solver receives permission to submit—not permission to rewrite.</div>
+        <div class="footer"><span>This interface simulates the institution’s treasury front end</span><span><em>04</em> / 11</span></div>
+        <aside class="speaker-notes">1:05–1:30
+An institution does not need to trade in the Uniswap consumer interface. Its treasury system uses our SDK or CLI. It defines the order, signs locally, and keeps custody. A solver discovers eligible opposite flow and chooses when and which orders to submit. But settlement happens only if the Router and Hook can enforce every signed bound atomically.</aside>
+      </section>
+
+      <!-- === 05 / SIGNED ORDER === -->
+      <section class="slide s5" aria-label="What the institution signs">
+        <div class="runner"><b>◆ ILAL</b><span>04 · The control plane</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">What exactly is authorized?</div><h2 class="reveal d2">The order is the institution’s <em>control plane.</em></h2><p class="lead reveal d3">Every execution-critical choice is signed before the solver sees it.</p></div>
+          <div class="order-anatomy reveal-scale d3">
+            <div class="order-code"><b>InstitutionalOrder</b> {<br>&nbsp;&nbsp;<span>poolId</span><br>&nbsp;&nbsp;<span>zeroForOne</span><br>&nbsp;&nbsp;<span>amountIn</span><br>&nbsp;&nbsp;<span>minAmountOut</span><br>&nbsp;&nbsp;<span>maxAmmInput</span><br>&nbsp;&nbsp;<span>deadline</span><br>&nbsp;&nbsp;<span>nonce</span><br>}</div>
+            <div class="control-rail">
+              <div class="control"><b>Institution decides</b><p>Side, size and minimum output</p></div>
+              <div class="control"><b>Institution decides</b><p>Maximum AMM exposure and expiry</p></div>
+              <div class="control solver"><b>Solver decides</b><p>Batch membership and timing</p></div>
+              <div class="control"><b>Hook enforces</b><p>Signature, policy, limits and nonce</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="order-law">Authority to submit <em>≠</em> authority to decide.</div>
+        <div class="footer"><span>No hidden discretionary execution</span><span><em>05</em> / 11</span></div>
+        <aside class="speaker-notes">1:30–1:55
+This is the important boundary. The institution signs the pool, side, amount, minimum output, maximum AMM input, deadline and nonce. The solver may choose batch membership and timing, but cannot change those fields. The Hook verifies and enforces them. Authority to submit is not authority to decide.</aside>
+      </section>
+
+      <!-- === 06 / NETTING MECHANISM === -->
+      <section class="slide s6" aria-label="Canonical 100 and 70 netting example">
+        <div class="runner"><b>◆ ILAL</b><span>05 · The mechanism</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">The Hook knows the difference</div><h2 class="headline reveal d2">Settle what cancels. <em>Move only the imbalance.</em></h2></div>
+          <div class="flow">
+            <div class="block reveal d2"><strong>100</strong><span>Institution A<br>token0 → token1</span></div><div class="op reveal d3">+</div>
+            <div class="block reveal d3"><strong>70</strong><span>Institution B<br>token1 → token0</span></div><div class="op reveal d4">→</div>
+            <div class="block residual reveal-scale d4"><strong>30</strong><span>One residual leg<br>reaches the AMM</span></div>
+          </div>
+        </div>
+        <div class="compression"><div><div class="track"><i></i></div><span class="mono muted" style="display:block;margin-top:12px;font-size:14px">140 gross matched internally · 30 residual</span></div><strong>82.35%</strong></div>
+        <div class="footer"><span>Illustrative canonical batch · equal-decimal stablecoin PoC</span><span><em>06</em> / 11</span></div>
+        <aside class="speaker-notes">1:55–2:20
+Now the mechanism. Institution A signs one hundred units in one direction. Institution B signs seventy in the other. Seventy matches seventy, so one hundred forty gross units settle internally. Only the thirty-unit imbalance moves the Uniswap curve—an 82.35 percent reduction in gross AMM exposure.</aside>
+      </section>
+
+      <!-- === 07 / TECHNICAL PATH === -->
+      <section class="slide s7" aria-label="Technical execution path">
+        <div class="runner"><b>◆ ILAL</b><span>06 · Under the hood</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">Inside one Pool Manager unlock</div><h2 class="headline reveal d2">Five boundaries. <em>One atomic outcome.</em></h2></div>
+          <div class="process">
+            <div class="step reveal d2"><div class="n">01</div><h3>Bound order</h3><p>EIP-712 or ERC-1271 signature commits amount, side, limits, deadline and nonce.</p><code>SIGN LOCALLY</code></div>
+            <div class="step reveal d3"><div class="n">02</div><h3>Canonical set</h3><p>Sort order and signature pairs by ascending order hash.</p><code>PERMUTATION-INDEPENDENT</code></div>
+            <div class="step reveal d3"><div class="n">03</div><h3>Safety gate</h3><p>Policy, CNF and Chainlink reference checks fail closed before movement.</p><code>OPENBATCH()</code></div>
+            <div class="step reveal d4"><div class="n">04</div><h3>Hook netting</h3><p>beforeSwap return deltas settle opposing verified flow.</p><code>BEFORE-SWAP DELTA</code></div>
+            <div class="step reveal d5"><div class="n">05</div><h3>Residual v4</h3><p>One exact-input imbalance reaches pool liquidity under signed limits.</p><code>ZERO INVENTORY AFTER</code></div>
+          </div>
+        </div>
+        <div class="atomic"><strong>Any solver may submit. No solver may rewrite the institution’s order.</strong><span>2–16 orders · all or nothing</span></div>
+        <div class="footer"><span>InstitutionalNettingHook + InstitutionalBatchRouter</span><span><em>07</em> / 11</span></div>
+        <aside class="speaker-notes">2:20–2:45
+For the same fixed signed set, permutation cannot change the batch ID, allocation or pool result. Policy, CNF and the Chainlink batch-opening circuit breaker run before movement. The Hook nets opposing flow with before-swap deltas, and v4 handles one residual exact-input leg. The solver still chooses membership and timing; it never rewrites a signed order.</aside>
+      </section>
+
+      <!-- === 08 / ECONOMICS AND COST === -->
+      <section class="slide s8" aria-label="Economics and tradeoffs">
+        <div class="runner"><b>◆ ILAL</b><span>07 · Economics</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">The value is conditional</div><h2 class="reveal d2">Less market exposure. <em>More execution gas.</em></h2><p class="lead reveal d3">Netting wins when opposing institutional flow is large enough to pay for verification and batching.</p></div>
+          <div class="economics">
+            <div class="econ reveal d2"><strong>−82.35%</strong><b>AMM exposure</b><p>170 gross → 30 residual</p></div>
+            <div class="econ reveal d3"><strong>+4.12 bps</strong><b>Aggregate output</b><p>Controlled 100 / 70 benchmark</p></div>
+            <div class="econ reveal d4"><strong>3.57×</strong><b>Local execution gas</b><p>698,353 vs 195,556</p></div>
+            <div class="econ reveal d5"><strong>485,401</strong><b>Modeled total-gas premium</b><p>Break-even moves with ETH and gas</p></div>
+          </div>
+        </div>
+        <div class="tradeoff">1 gwei sensitivity: ETH $2k → $1,386.87 anchor · $3k → $2,080.31 · $4k → $2,773.74. Controlled Foundry benchmark; excludes L1 data, production routers, MEV and solver costs. Source: BENCHMARK.md + BREAK_EVEN.md.</div>
+        <div class="footer"><span>Explicit tradeoff · not a savings forecast</span><span><em>08</em> / 11</span></div>
+        <aside class="speaker-notes">2:45–3:10
+The tradeoff is explicit. The canonical case cuts AMM exposure by 82.35 percent and improves aggregate output by 4.12 basis points, but local execution gas is 3.57 times higher. The premium is 485,401 gas. So we show a sensitivity range instead of pretending ETH has one permanent price. At one gwei, the modeled break-even anchor ranges from about 1,387 dollars at a two-thousand-dollar ETH to 2,774 dollars at four thousand. This is a benchmark, not a forecast.</aside>
+      </section>
+
+      <!-- === 09 / LIVE OPERATION BRIDGE === -->
+      <section class="slide s9" aria-label="Switch to the institution application">
+        <div class="runner"><b>◆ ILAL</b><span>08 · Live operation</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">Now operate as the institution</div><h2 class="reveal-blur d2">Leave the deck.<br><span class="pink">Enter the treasury.</span></h2><a class="launch reveal d4" href="http://127.0.0.1:4173/app.html" target="_blank">Open institution app ↗</a></div>
+          <div class="demo-steps">
+            <div class="demo-step reveal-left d2"><b>01</b><span>Choose Netting mode</span></div>
+            <div class="demo-step reveal-left d3"><b>02</b><span>Review internal match and AMM limit</span></div>
+            <div class="demo-step reveal-left d3"><b>03</b><span>Sign the bounded order locally</span></div>
+            <div class="demo-step reveal-left d4"><b>04</b><span>Preflight the canonical batch</span></div>
+            <div class="demo-step reveal-left d5"><b>05</b><span>Show the confirmed BaseScan settlement</span></div>
+          </div>
+        </div><div class="ghost">live</div>
+        <div class="footer"><span>Press the link · return here on slide 10</span><span><em>09</em> / 11</span></div>
+        <aside class="speaker-notes">3:10–4:00 including operation
+This is a local simulation of the treasury interface an institution would build on the ILAL CLI or SDK—not a consumer DEX. Show Netting, the signed limits, policy and CNF checks, then the match or settlement review. Do not wait for a new counterparty or testnet block in the recording; switch to the confirmed transaction.</aside>
+      </section>
+
+      <!-- === 10 / PUBLIC PROOF === -->
+      <section class="slide s10" aria-label="Public Base Sepolia proof">
+        <div class="runner"><b>◆ ILAL</b><span>09 · Public evidence</span></div>
+        <div class="content">
+          <div><div class="kicker reveal">Not a simulation</div><h2 class="reveal d2">One transaction.<br><em>Every bound held.</em></h2><div class="proof-card reveal d3"><span class="status">Success · Base Sepolia · chain 84532</span><code>0x6c2dbee372a3a88e0e8fe4e5cd15bf64389a9a4e6ebc6f03cce15ba0e620c72a</code><a href="https://sepolia.basescan.org/tx/0x6c2dbee372a3a88e0e8fe4e5cd15bf64389a9a4e6ebc6f03cce15ba0e620c72a" target="_blank">OPEN BASESCAN ↗</a></div></div>
+          <div class="receipt">
+            <div class="receipt-row reveal-left d2"><strong>0.17</strong><div><b>gross submitted</b><p>Two independently signed institutional orders</p></div></div>
+            <div class="receipt-row reveal-left d3"><strong>0.14</strong><div><b>internally settled</b><p>Opposing verified flow did not move the curve</p></div></div>
+            <div class="receipt-row reveal-left d4"><strong>0.03</strong><div><b>AMM residual</b><p>Only the imbalance reached Uniswap v4</p></div></div>
+            <div class="receipt-row reveal-left d5"><strong>0</strong><div><b>protocol inventory</b><p>Hook and Router empty after settlement</p></div></div>
+          </div>
+        </div>
+        <div class="footer"><span>282 Solidity · 56 CLI · 18 SDK · 100k invariant calls</span><span><em>10</em> / 11</span></div>
+        <aside class="speaker-notes">4:00–4:18
+The successful Base Sepolia transaction settles two signed orders atomically. In this equal-decimal test-token PoC, 0.17 raw-unit flow is submitted, 0.14 is internally matched and only 0.03 reaches the AMM. Both nonces are consumed, user limits hold, and protocol inventory returns to zero.</aside>
+      </section>
+
+      <!-- === 11 / CLOSE === -->
+      <section class="slide s11" aria-label="Closing statement">
+        <div class="runner"><b>◆ ILAL</b><span>10 · Close</span></div>
+        <div class="content">
+          <div class="kicker reveal">The institution-ready liquidity layer</div>
+          <h2 class="reveal d2">Verify access.<br><em>Net what cancels.</em><br>Send only the residual.</h2>
+          <div class="close-line reveal-scale d3"></div>
+          <div class="close-meta reveal d4"><span class="pill">Uniswap v4 Hook</span><span class="pill">Base Sepolia</span><span class="pill">Chainlink guarded</span><span class="pill">Unaudited candidate</span></div>
+        </div><div class="mark">◆</div>
+        <div class="footer"><span>ilal.tech · github.com/rpnny/ILAL</span><span><em>11</em> / 11</span></div>
+        <aside class="speaker-notes">4:18–4:30
+ILAL does not create another liquidity venue. It provides a working path toward institution-ready execution on existing Uniswap liquidity. Verify access. Net what cancels. Send only the residual. This is an unaudited Base Sepolia candidate.</aside>
+      </section>
+    </main>
+  </div>
+
+  <!-- === OUTSIDE-STAGE PRESENTER UI === -->
+  <nav class="deck-controls" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">←</button><span id="counter">01 / 11</span><button id="next" aria-label="Next slide">→</button></nav>
+  <div class="progress" id="progress"></div>
+  <div class="notes-panel" id="notesPanel"><b>Speaker notes · N</b><span id="notesText"></span></div>
+  <div class="edit-hotzone" title="Edit mode"></div><button class="edit-toggle" id="editToggle" title="Edit mode (E)">EDIT</button>
+
+  <script>
+    /* === SLIDE PRESENTATION CONTROLLER === */
+    class SlidePresentation {
+      constructor(){this.slides=[...document.querySelectorAll('.slide')];this.currentSlide=0;this.stage=document.getElementById('deckStage');this.lock=false;this.touchX=null;this.setupScale();this.setupNav();this.showSlide(this.hashIndex())}
+      hashIndex(){const m=location.hash.match(/slide-(\d+)/);return m?Math.max(0,Math.min(Number(m[1])-1,this.slides.length-1)):0}
+      setupScale(){const scale=()=>{const f=Math.min(innerWidth/1920,innerHeight/1080),x=(innerWidth-1920*f)/2,y=(innerHeight-1080*f)/2;this.stage.style.transform=`translate(${x}px,${y}px) scale(${f})`};scale();addEventListener('resize',scale)}
+      showSlide(i){this.currentSlide=Math.max(0,Math.min(i,this.slides.length-1));this.slides.forEach((s,n)=>{s.classList.toggle('active',n===this.currentSlide);s.classList.toggle('visible',n===this.currentSlide)});counter.textContent=`${String(this.currentSlide+1).padStart(2,'0')} / ${String(this.slides.length).padStart(2,'0')}`;progress.style.width=`${(this.currentSlide+1)/this.slides.length*100}%`;history.replaceState(null,'',`#slide-${this.currentSlide+1}`);this.updateNotes()}
+      next(){this.showSlide(this.currentSlide+1)} prev(){this.showSlide(this.currentSlide-1)}
+      updateNotes(){const note=this.slides[this.currentSlide].querySelector('.speaker-notes');notesText.textContent=note?note.textContent.trim():'No notes.'}
+      setupNav(){prev.onclick=()=>this.prev();next.onclick=()=>this.next();document.addEventListener('keydown',e=>{if(e.target.getAttribute('contenteditable'))return;if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();this.next()}if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev()}if(e.key==='Home')this.showSlide(0);if(e.key==='End')this.showSlide(this.slides.length-1);if(e.key==='n'||e.key==='N')notesPanel.classList.toggle('show');if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}});document.addEventListener('touchstart',e=>this.touchX=e.changedTouches[0].clientX,{passive:true});document.addEventListener('touchend',e=>{if(this.touchX===null)return;const dx=e.changedTouches[0].clientX-this.touchX;if(Math.abs(dx)>50)dx<0?this.next():this.prev();this.touchX=null},{passive:true});document.addEventListener('wheel',e=>{if(this.lock||Math.abs(e.deltaY)<24)return;this.lock=true;e.deltaY>0?this.next():this.prev();setTimeout(()=>this.lock=false,520)},{passive:true});addEventListener('hashchange',()=>this.showSlide(this.hashIndex()))}
+    }
+
+    /* === INLINE EDITOR: localStorage + downloadable HTML === */
+    class InlineEditor {
+      constructor(){this.isActive=false;this.key='ilal-demo-v6-demo-first-edits';this.restore()}
+      editable(){return [...document.querySelectorAll('h1,h2,h3,p,b,strong,span,code')].filter(el=>!el.closest('.deck-controls,.notes-panel,.speaker-notes'))}
+      toggle(){this.isActive=!this.isActive;editToggle.classList.toggle('active',this.isActive);editToggle.textContent=this.isActive?'SAVE':'EDIT';this.editable().forEach(el=>el.contentEditable=this.isActive?'true':'false');if(!this.isActive)this.save()}
+      save(){const data=this.editable().map(el=>el.innerHTML);localStorage.setItem(this.key,JSON.stringify(data))}
+      restore(){try{const data=JSON.parse(localStorage.getItem(this.key)||'null');if(data)this.editable().forEach((el,i)=>{if(data[i]!==undefined)el.innerHTML=data[i]})}catch{}}
+    }
+    const presentation=new SlidePresentation(),editor=new InlineEditor();let hideTimer=null;const hot=document.querySelector('.edit-hotzone');hot.addEventListener('mouseenter',()=>{clearTimeout(hideTimer);editToggle.classList.add('show')});hot.addEventListener('mouseleave',()=>hideTimer=setTimeout(()=>{if(!editor.isActive)editToggle.classList.remove('show')},400));editToggle.addEventListener('mouseenter',()=>clearTimeout(hideTimer));editToggle.addEventListener('mouseleave',()=>hideTimer=setTimeout(()=>{if(!editor.isActive)editToggle.classList.remove('show')},400));hot.onclick=()=>editor.toggle();editToggle.onclick=()=>editor.toggle();document.addEventListener('keydown',e=>{if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable'))editor.toggle();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();editor.save()}});
+  </script>
+</body>
+</html>
