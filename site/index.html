@@ -113,7 +113,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>submitted gross <span class="ticker-item__val">170m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>matched gross <span class="ticker-item__val">140m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">fixed-set canonical</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">282</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">56</span></span>
@@ -125,7 +125,7 @@
       <span class="ticker-item"><span class="ticker-item__dot"></span>submitted gross <span class="ticker-item__val">170m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>matched gross <span class="ticker-item__val">140m</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>AMM residual <span class="ticker-item__val">30m</span></span>
-      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">solver-independent</span></span>
+      <span class="ticker-item"><span class="ticker-item__dot"></span>allocation <span class="ticker-item__val">fixed-set canonical</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>settlement <span class="ticker-item__val">atomic</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>Solidity tests <span class="ticker-item__val">282</span></span>
       <span class="ticker-item"><span class="ticker-item__dot"></span>CLI tests <span class="ticker-item__val">56</span></span>
@@ -147,7 +147,7 @@
           <h2>Offset first.<br/><em>Route only what remains.</em></h2>
         </div>
         <p class="section-lead">
-          The current Base Sepolia candidate checks real Chainlink USDC/USD and USDT/USD feeds before opening every batch, then nets verified orders and sends only the residual to Uniswap v4. All first-party contracts have Sourcify exact creation/runtime matches. Active v0.3.3 remains a separate unaudited testnet demo.
+          The current Base Sepolia candidate checks Chainlink USDC/USD and USDT/USD reference feeds before opening every batch, then nets verified orders and sends only the residual to Uniswap v4. The paired hUSDT is an ILAL test representation, so its USDT reference feed demonstrates fail-closed oracle plumbing rather than hUSDT market-price validation. All first-party contracts have Sourcify exact creation/runtime matches. Active v0.3.3 remains a separate unaudited testnet demo.
         </p>
       </div>
 
@@ -197,7 +197,7 @@
 
       <div class="proof-verdict">
         <span>Current candidate acceptance</span>
-        <strong>Real Chainlink feeds → atomic netting → only the 0.03 residual reached the AMM.</strong>
+        <strong>Chainlink reference feeds → atomic netting → only the 0.03 residual reached the AMM.</strong>
       </div>
     </div>
   </section>
@@ -238,7 +238,7 @@
           <p class="eyebrow">Partner integration · Chainlink</p>
           <h2>External peg truth.<br/><em>Pool-local price discipline.</em></h2>
         </div>
-        <p class="section-lead">Every batch must pass two independent opening boundaries: fresh Chainlink USDC/USD and USDT/USD data, then the Uniswap pool tick. Either failure reverts before nonce consumption or asset movement.</p>
+        <p class="section-lead">Every batch must pass two independent opening boundaries: fresh Chainlink USDC/USD and USDT/USD reference data, then the Uniswap pool tick. Either failure reverts before nonce consumption or asset movement. Production requires feeds corresponding to the actual supported assets.</p>
       </div>
       <div class="customer-grid">
         <div class="customer-card">
@@ -275,7 +275,7 @@
           <h2>Built for the desks<br/><em>that cannot trade naked.</em></h2>
         </div>
         <p class="section-lead">
-          ILAL removes redundancy at both institutional boundaries: Session turns verified eligibility into scoped reusable access, while SOEE nets offsetting verified flow before the market. Institutions sign locally, permissionless solvers submit canonical batches, and issuers retain their compliance perimeter.
+          ILAL removes redundancy at both institutional boundaries: Session reuses a short-lived eligibility grant while each scoped action token remains one-time, and SOEE nets offsetting verified flow before the market. Institutions sign locally, permissionless solvers submit canonical batches, and issuers retain their compliance perimeter.
         </p>
       </div>
 
@@ -289,8 +289,8 @@
         <div class="customer-card">
           <span class="customer-card__type">Market maker</span>
           <h3>Compete on discovery, not settlement discretion.</h3>
-          <p>Find offsetting orders and submit them in strict canonical order. Allocation is deterministic and solver-independent; execution is permissionless.</p>
-          <div class="customer-card__outcome">Outcome: open solving + deterministic fills</div>
+          <p>Find offsetting orders and submit them in strict canonical order. For a fixed signed set, allocation is deterministic and permutation-independent; execution is permissionless.</p>
+          <div class="customer-card__outcome">Outcome: open solving + canonical fixed-set fills</div>
         </div>
         <div class="customer-card">
           <span class="customer-card__type">RWA issuer</span>
@@ -319,8 +319,8 @@
           <p>Uniswap v4 hook for eligible stablecoin flow. It verifies exact-input orders, matches opposite directions at raw-unit 1:1, and permits only the net residual to reach the pool.</p>
           <ul>
             <li>2–16 orders · strict ascending order hash</li>
-            <li>solver-independent pro-rata allocation</li>
-            <li>batch-start ±100 tick residual guard</li>
+            <li>canonical sequential allocation for a fixed signed set</li>
+            <li>batch-opening ±100 tick guard</li>
           </ul>
         </div>
         <div class="product-card">
@@ -380,7 +380,7 @@
       <div class="problem-solution">
         <p class="eyebrow">ILAL's answer</p>
         <p class="solution-text">
-          <strong>Verify → match → net → route the residual.</strong> Every order is eligibility-gated and signed. Canonical allocation removes solver discretion, atomic settlement removes custody, and Uniswap v4 supplies liquidity only for the unmatched imbalance.
+          <strong>Verify → match → net → route the residual.</strong> Every order is eligibility-gated and signed. Canonical allocation removes permutation discretion within a fixed signed set, atomic settlement removes custody, and Uniswap v4 supplies liquidity only for the unmatched imbalance.
         </p>
       </div>
     </div>
@@ -428,7 +428,7 @@
               <h3>Canonicalize and match</h3>
               <span class="step__badge step__badge--on">PERMISSIONLESS</span>
             </div>
-            <p>Any solver can sort 2–16 orders by ascending hash and submit the batch. Deterministic pro-rata allocation produces the same fills regardless of the solver.</p>
+            <p>Any solver can sort 2–16 orders by ascending hash and submit the batch. Canonical sequential allocation produces the same fills for every permutation of a fixed signed set; it is not pro-rata or strategy-proof.</p>
             <div class="step__cmd"><span class="prompt">✓</span> 170m gross · 140m internally matched</div>
           </div>
         </div>
@@ -950,54 +950,54 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.7</span>
       <div class="section-head section-head--compact">
         <p class="eyebrow">Public candidate · V2 ZK policy grants</p>
         <h2>Prove private eligibility once.<br/><em>Trade on a cached grant.</em></h2>
-        <p class="section-lead">Base Sepolia PoC only. The proving key uses a development ceremony and the testnet admin remains an EOA. The issuer integration kit is available as <code>@ilalv3/cli@next</code>; npm <code>latest</code> remains the isolated v0.3.3 stable demo.</p>
+        <p class="section-lead">Base Sepolia PoC only. This separate V2 candidate demonstrates Groth16 policy grants and one-time sessions for direct LP / swap; it does not perform SOEE netting. The Hookathon netting candidate checks current v1 Policy + CNF credentials on signed orders. The proving key uses a development ceremony and the testnet admin remains an EOA.</p>
       </div>
 
       <div class="proof-verdict">
-        <span>V2 issuer acceptance · 2026-08-09</span>
-        <strong>Import → policy → proof → grant → LP / swap → revoke passed</strong>
-        <span>Distinct admin, institution, market-maker and funded control wallets · separate Base Sepolia sandbox · unaudited</span>
+        <span>Fresh public V2 flow · 2026-08-30</span>
+        <strong>Deploy → proof → grant → LP → swap passed on Base Sepolia</strong>
+        <span>BaseScan source + ABI verified · reproducible CLI flow · development ceremony · shared test admin/trader/treasury EOA · unaudited</span>
       </div>
 
       <div class="deploy-grid">
-        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xD7E3280bf895C43BC74baA1FB190e775C5864A80" target="_blank" rel="noreferrer">
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x9238103A1bd611461E1bDcB2084D166EB7AeCA80" target="_blank" rel="noreferrer">
           <span class="deploy-card__name">ComplianceHookV2</span>
           <span class="deploy-card__desc">Current policy grant, session and dynamic fee enforcement</span>
-          <code class="deploy-card__addr">0xD7E328…5864A80 ↗</code>
+          <code class="deploy-card__addr">0x923810…AeCA80 ↗</code>
         </a>
-        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xb19121e6CE972A1d1f23910e3d22924D47e43C11" target="_blank" rel="noreferrer">
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xeF0e54C22361fE567157f6302Ae0363474f6d4E3" target="_blank" rel="noreferrer">
           <span class="deploy-card__name">PolicyGrantManagerV2</span>
           <span class="deploy-card__desc">Groth16 verification and short-lived grant cache</span>
-          <code class="deploy-card__addr">0xb19121…47e43C11 ↗</code>
+          <code class="deploy-card__addr">0xeF0e54…f6d4E3 ↗</code>
         </a>
-        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x48eB31FB6496058FEd112053EE07fAF557565325" target="_blank" rel="noreferrer">
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x936afAca590957f446B1603DbA6eC3Af298a039a" target="_blank" rel="noreferrer">
           <span class="deploy-card__name">PolicyRegistryV2</span>
           <span class="deploy-card__desc">Issuer, KYC tier, jurisdiction and revision commitment</span>
-          <code class="deploy-card__addr">0x48eB31…7565325 ↗</code>
+          <code class="deploy-card__addr">0x936afA…8a039a ↗</code>
         </a>
-        <a class="deploy-card" href="https://sepolia.basescan.org/address/0xcADfb9d8a468832A6B24b088c214178B00A3fD47" target="_blank" rel="noreferrer">
+        <a class="deploy-card" href="https://sepolia.basescan.org/address/0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472" target="_blank" rel="noreferrer">
           <span class="deploy-card__name">ILALRouter V2</span>
           <span class="deploy-card__desc">Bound execution with slippage and LP amount limits</span>
-          <code class="deploy-card__addr">0xcADfb9…00A3fD47 ↗</code>
+          <code class="deploy-card__addr">0x0F948d…3D1472 ↗</code>
         </a>
       </div>
 
       <div class="tx-list">
         <p class="eyebrow">V2 public execution evidence</p>
-        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x1a0096ddf0518cc9e0dde92ecdfdf663c5f4e2466ce495714cfaaa9b88fd76d8" target="_blank" rel="noreferrer">
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x863f7d8c7c43ae1089258627ac30fd93ff4536cd67dd7b65a6bb84547862a5fc" target="_blank" rel="noreferrer">
           <span class="tx-row__dot"></span>
           <span class="tx-row__name">Groth16 policy grant activated</span>
           <span class="tx-row__hash">revision 1 · verified on-chain ↗</span>
         </a>
-        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x3023ea73bb88b53011e4ab8c7e499e1c75c37431dfd893e772cfe7edce14cc38" target="_blank" rel="noreferrer">
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x7eaebb8ff4ec1d69f89c259087fb9a150939cf851feec1a18f06908ced2b1961" target="_blank" rel="noreferrer">
           <span class="tx-row__dot"></span>
           <span class="tx-row__name">V2 hook-gated liquidity added</span>
-          <span class="tx-row__hash">362,275 gas ↗</span>
+          <span class="tx-row__hash">manual · 233,971 gas ↗</span>
         </a>
-        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x531b0381d21e4e56e39aaf15d2c02cdffc3437e0b8a0378be3453d175efb1b60" target="_blank" rel="noreferrer">
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0xc828655de7a48fd8d10a324da81b1f532081729ed8349801b993dfe8329922f4" target="_blank" rel="noreferrer">
           <span class="tx-row__dot"></span>
           <span class="tx-row__name">V2 verified-flow swap</span>
-          <span class="tx-row__hash">0.05% LP fee · 211,147 gas ↗</span>
+          <span class="tx-row__hash">0.05% LP fee · 194,724 gas ↗</span>
         </a>
       </div>
 
@@ -1005,7 +1005,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.7</span>
         <p class="eyebrow">V2 candidate pool</p>
         <div class="pool-info__row">
           <span>Pool ID</span>
-          <code>0x524f78…a104a4</code>
+          <code>0xdcf7ee…1c4405</code>
         </div>
         <div class="pool-info__row">
           <span>Deployment classification</span>

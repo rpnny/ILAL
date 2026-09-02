@@ -7,30 +7,74 @@
 > **Prove eligibility once. Reuse scoped access. Net verified flow before it
 > reaches the AMM.**
 
-ILAL is an institutional access and execution layer for Uniswap v4.
+## What is ILAL?
 
-It separates **eligibility verification** from repeated transaction execution,
-so institutions do not need to repeatedly expose identity data for every
-interaction. At the execution layer, ILAL's SOEE path atomically nets opposing
-verified orders and routes only the unmatched residual to Uniswap.
+ILAL (Institutional Liquidity Access Layer) is a compliance and settlement layer
+for Uniswap v4. It addresses two execution barriers that keep institutional flow
+from using public DeFi liquidity efficiently:
 
-**Less repeated identity disclosure.<br>
-Less repeated compliance overhead.<br>
-Less unnecessary gross flow hitting public liquidity.**
+1. **Compliance overhead** — eligibility should not require repeated identity
+   disclosure and full verification inside every transaction workflow.
+2. **Gross AMM exposure** — when eligible institutions have opposing orders,
+   sending both sides independently through the curve creates avoidable price
+   impact and public execution exposure.
+
+ILAL separates **who may act** (Session) from **how signed orders settle**
+(SOEE). Session reuses a short-lived, scoped eligibility grant for bounded
+actions. SOEE atomically nets opposing verified orders and routes only the
+unmatched imbalance to Uniswap v4.
+
+In the deployed canonical `0.10 USDC / 0.07 hUSDT` case, `0.14` of `0.17`
+gross flow settled internally and only `0.03 USDC` reached the AMM: **82.35%
+less gross AMM exposure** than sending both orders independently through the
+curve.
+
+> **Live Base Sepolia proof:** [`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98)
+> was signed through the local institution app and atomically settled through
+> `InstitutionalBatchRouter`, `InstitutionalNettingHook`, and the Uniswap v4
+> `PoolManager`. The PoolManager received only the `0.03 USDC` residual; both
+> orders settled in one successful transaction.
 
 Current npm preview: `npm install -g @ilalv3/cli@next`
 (`v0.4.0-v2-poc.7`, including Chainlink-aware institutional netting preflight).
 The public `latest` channel remains `v0.3.3`; the netting and V2 stacks are
 separate, unaudited Base Sepolia candidates.
 
-## Two layers, one goal
+## Architecture: Session + SOEE
 
-| | Session | SOEE |
+ILAL consists of two independent layers that target different boundaries.
+
+### Session (Access Layer)
+
+- **What:** determines who may perform a bounded Uniswap action.
+- **How:** the V2 candidate verifies a Groth16 policy proof once, caches a
+  short-lived Policy Grant, and uses one-time scoped sessions for LP or swap
+  actions.
+- **Why:** reduces repeated eligibility-verification overhead and supports a
+  privacy-preserving ZK path without making identity data part of every action.
+
+### SOEE (Settlement & Execution Layer)
+
+- **What:** determines how a fixed set of signed institutional orders settles.
+- **How:** the current candidate verifies v1 Policy and CNF eligibility,
+  canonicalizes EIP-712/ERC-1271 signed orders, nets opposing directions inside
+  one `PoolManager.unlock`, and sends only the residual to Uniswap v4.
+- **Why:** reduces gross flow that touches the AMM curve. The canonical deployed
+  `100/70` case measured **82.35% less AMM exposure** and a smaller pool-level
+  price-impact and extraction surface.
+
+### Two authorization models, intentionally separate today
+
+| Public candidate | Authorization checked during execution | What it proves |
 |---|---|---|
-| **Problem** | Compliance is repeatedly dragged into execution | Offsetting gross flow unnecessarily reaches the AMM |
-| **ILAL approach** | Verify eligibility, then use scoped reusable authorization | Net opposing verified orders before AMM execution |
-| **Benefit** | Lower repeated verification overhead and less identity exposure | Lower AMM exposure and better execution when flow offsets |
-| **Role** | Institutional access | Institutional execution |
+| **SOEE atomic netting** | Current v1 Policy + CNF credential, EIP-712/ERC-1271 signed order, deadline and one-time nonce | Eligible institutions can atomically net opposing flow and route only the residual |
+| **V2 direct LP / swap** | Groth16 policy proof cached as a short-lived Policy Grant, then a one-time scoped session | Private eligibility can be proven once and reused for bounded Uniswap actions |
+
+These are two independent Base Sepolia candidates. **SOEE netting does not use
+the V2 PolicyGrantManager or SessionTokenV2, and the V2 direct-flow candidate
+does not perform SOEE netting.** This boundary keeps the Hookathon mechanism
+auditable and prevents the demo from implying an integration that does not yet
+exist.
 
 ```text
                     ILAL
@@ -40,7 +84,7 @@ separate, unaudited Base Sepolia candidates.
       SESSION                   SOEE
   access / eligibility      execution / flow
          │                       │
- scoped reusable access      atomic netting
+ reusable eligibility grant  atomic netting
          │                       │
  less repeated identity      only residual
      disclosure              reaches Uniswap
@@ -200,10 +244,13 @@ deployment remains unchanged.
 | Core Hook | [`contracts/src/netting/InstitutionalNettingHook.sol`](contracts/src/netting/InstitutionalNettingHook.sol) |
 | Chainlink-guarded Hook | [`0x8d1f…0088` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x8d1fA43F848701b2adB105D5c925A9247E600088) |
 | Oracle Guard | [`0x1dEc…199D3` — Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3) |
-| Live forward `0.10/0.07` | [`0x9177…0998`](https://sepolia.basescan.org/tx/0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998) |
+| Live institution-app `0.10/0.07` | [`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98) — `0.17` gross, `0.14` internally matched, `0.03` AMM residual |
 | Live reverse `0.06/0.09` | [`0x588a…5172`](https://sepolia.basescan.org/tx/0x588ac879d9287435e04af158acf4b491f77baa2cdfe6e6729eab16ecf46f5172) |
 | Live 4 / 16 order | [`4-order`](https://sepolia.basescan.org/tx/0xf6d74bd973b6c26c63ec7317dff87ba8055d8946eb2b637791b5376e1d335954) · [`16-order`](https://sepolia.basescan.org/tx/0x883560276318337104db9020513ec685bb8ae672a3678f77d682f885093f40b7) |
 | Current evidence manifest | [`chainlink-candidate-manifest.json`](docs/hookathon/chainlink-candidate-manifest.json) |
+| Separate V2 grant/session manifest | [`v2-public-candidate-manifest.json`](docs/hookathon/v2-public-candidate-manifest.json) |
+| V2 BaseScan-verified contracts | [`Hook`](https://sepolia.basescan.org/address/0x9238103A1bd611461E1bDcB2084D166EB7AeCA80#code) · [`Router`](https://sepolia.basescan.org/address/0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472#code) · [`Registry`](https://sepolia.basescan.org/address/0x936afAca590957f446B1603DbA6eC3Af298a039a#code) · [`GrantManager`](https://sepolia.basescan.org/address/0xeF0e54C22361fE567157f6302Ae0363474f6d4E3#code) |
+| V2 grant / manual LP / manual swap | [`grant`](https://sepolia.basescan.org/tx/0x863f7d8c7c43ae1089258627ac30fd93ff4536cd67dd7b65a6bb84547862a5fc) · [`LP`](https://sepolia.basescan.org/tx/0x7eaebb8ff4ec1d69f89c259087fb9a150939cf851feec1a18f06908ced2b1961) · [`swap`](https://sepolia.basescan.org/tx/0xc828655de7a48fd8d10a324da81b1f532081729ed8349801b993dfe8329922f4) |
 | Previous pre-Chainlink Hook | [`0xb385…4088` — historical Sourcify exact match](https://sourcify.dev/server/v2/contract/84532/0xb385043E7489E2683473a0158710e3F9932F4088) |
 | Previous `100/70` demo | [`0x4dc0…dfa9`](https://sepolia.basescan.org/tx/0x4dc0493ea84caeef1dc4f4e8ce4ed3598cd23985ba64f58fbde0ee0c67d6dfa9) |
 | Previous reverse `60/90` demo | [`0x4e4e…2fd8`](https://sepolia.basescan.org/tx/0x4e4e2d6a45c76596a032d7fd09244420f00d56a033fb75f1137bba5f02f82fd8) |
@@ -246,16 +293,21 @@ policy change, non-canonical or duplicate order hash, opening peg violation,
 insufficient balance, partial AMM fill, or output slippage failure reverts the
 whole batch.
 
-The permissionless solver cannot choose match priority. The Router
-canonicalizes order/signature pairs by strict ascending `orderHash`; the Hook
-independently verifies that order before allocating matched input. Reordering
-the same signed set therefore produces the same `batchId`, per-user allocation,
-and pool result. Duplicate hashes are rejected rather than tie-broken.
+For a fixed signed order set, the permissionless solver cannot change match
+priority by permuting the submitted array. The Router canonicalizes
+order/signature pairs by strict ascending `orderHash`; the Hook independently
+verifies that order before allocating matched input. Reordering that same set
+therefore produces the same `batchId`, per-user allocation, and pool result.
+This is sequential canonical allocation, not pro-rata or strategy-proof
+ordering: a signer can influence its hash through the nonce, and a solver can
+choose batch membership. Duplicate hashes are rejected rather than tie-broken.
 
 This MVP supports one equal-decimal ERC-20 stablecoin pool, exact-input orders,
 raw-unit 1:1 matching, zero netting fee, 2–16 orders, and a ±100 tick opening
 guard. `minAmountOut` protects total matched-plus-AMM output;
-`maxAmmInput` caps each order's residual exposure.
+`maxAmmInput` caps each order's residual exposure. Raw-unit 1:1 is a signed
+candidate clearing rule, not an oracle-priced claim of economic parity across
+arbitrary stablecoins or RWAs.
 
 The immutable Chainlink guard and pool tick are checked exactly once in
 `openBatch`, before nonce consumption or asset movement. Each USD feed must be
@@ -296,6 +348,13 @@ asset dependency, not a claimed Circle partner integration. The paired hUSDT
 is explicitly an ILAL test representation, not official USDT.
 
 ## Demo
+
+The latest institution-app transaction is the canonical live proof:
+[`0x160955…6fc98`](https://sepolia.basescan.org/tx/0x160955bcf29e8e11399be0d3db68d1996e19a9ac76361eadbec6904f00a6fc98).
+Two eligible wallets signed `0.10 USDC` and `0.07 hUSDT` opposing orders. The
+atomic batch matched `0.14` gross units internally, sent only the `0.03 USDC`
+imbalance to the Uniswap v4 PoolManager, consumed both nonces, and left the Hook
+and Router with zero token inventory.
 
 For the reviewer-facing pitch, double-click
 [`scripts/hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command).
@@ -479,6 +538,9 @@ identity data. Chainlink and the pool tick are batch-opening circuit breakers,
 not execution-price or continuous in-batch bounds.
 The Hook is immutable and a serious defect requires a new Hook and pool; see
 [`docs/INCIDENT_AND_MIGRATION_RUNBOOK.md`](docs/INCIDENT_AND_MIGRATION_RUNBOOK.md).
+The dated first-party
+[`UHI10 pre-submission review`](audit/UHI10_PRE_SUBMISSION_REVIEW_ZH.md)
+records mechanism and operational findings; it is not an independent audit.
 
 See [`SECURITY.md`](SECURITY.md), [`NOTICE`](NOTICE), and
 [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md). First-party code is

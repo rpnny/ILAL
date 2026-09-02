@@ -5,9 +5,53 @@ evidence. The checked-in v2 verifier uses an unsafe development ceremony and
 is suitable only for Base Sepolia. It must never secure mainnet or customer
 assets.
 
-## Public Base Sepolia candidate
+## Latest reproducible public Base Sepolia flow
 
-The `v0.4.0-v2-poc.1` candidate was deployed on 2026-08-07 from source commit
+The `v0.4.0-v2-poc.7` CLI deployed and exercised a fresh isolated V2 stack on
+2026-08-30 from commit `8e241398b22e`. It is separate from the SOEE netting
+candidate: this flow demonstrates **Groth16 proof → cached Policy Grant →
+one-time session → Hook-gated LP / swap** and does not perform atomic netting.
+
+| Component | Address |
+|---|---|
+| ComplianceHookV2 | `0x9238103A1bd611461E1bDcB2084D166EB7AeCA80` |
+| ILALRouter | `0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472` |
+| EligibilityPolicyRegistryV2 | `0x936afAca590957f446B1603DbA6eC3Af298a039a` |
+| PolicyGrantManagerV2 | `0xeF0e54C22361fE567157f6302Ae0363474f6d4E3` |
+| Groth16VerifierAdapterV2 | `0x3144B398057642252622266E840dAc8a2CC6Ac6E` |
+| ILALPolicyVerifierV2 | `0x7C2ef9A7eBb263F3Dd1007a2Eb4068fde11AF39e` |
+| V2B / currency0 | `0x4d55dd928dDF9cD79E128293a6FfD03197F0E4a2` |
+| V2A / currency1 | `0x9388a5E1cF129015F86503D140B702C37801Ea85` |
+| Pool ID | `0xdcf7ee831d054402ff0550b7a627f337dc60d24513928d082af777b6dd1c4405` |
+
+Fresh public evidence:
+
+- [Groth16 Policy Grant activation](https://sepolia.basescan.org/tx/0x863f7d8c7c43ae1089258627ac30fd93ff4536cd67dd7b65a6bb84547862a5fc)
+- [automated Hook-gated liquidity add](https://sepolia.basescan.org/tx/0x4417844945fb34d9ae2203332234d0d10f44081faf81682bdb85b5d1a9b8bd1d)
+- [automated Hook-gated swap](https://sepolia.basescan.org/tx/0x7696d1eec1d31f517cfcefb84d5f37fc184ce11c2098a34908c28dda2c5422e2)
+- [manual Hook-gated liquidity add](https://sepolia.basescan.org/tx/0x7eaebb8ff4ec1d69f89c259087fb9a150939cf851feec1a18f06908ced2b1961)
+- [manual V2 verified-flow swap](https://sepolia.basescan.org/tx/0xc828655de7a48fd8d10a324da81b1f532081729ed8349801b993dfe8329922f4)
+
+The manual swap spent `0.001 V2A`, received
+`0.000997007234157933 V2B`, emitted the 0.05% verified LP-fee decision plus
+`ProtocolFeePaid` and `SwapRouted`, and used 194,724 gas. In this test deployment
+the trader and protocol treasury are the same EOA, so the protocol-fee event is
+evidence of code-path execution, not independent revenue transfer.
+
+All six protocol contracts are Sourcify `exact_match` and BaseScan-native
+verified, so BaseScan exposes their source, ABI, read/write surfaces and decoded
+events. See the
+[`public candidate manifest`](hookathon/v2-public-candidate-manifest.json) or
+inspect the verified [`Hook`](https://sepolia.basescan.org/address/0x9238103A1bd611461E1bDcB2084D166EB7AeCA80#code),
+[`Router`](https://sepolia.basescan.org/address/0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472#code),
+[`Registry`](https://sepolia.basescan.org/address/0x936afAca590957f446B1603DbA6eC3Af298a039a#code), and
+[`GrantManager`](https://sepolia.basescan.org/address/0xeF0e54C22361fE567157f6302Ae0363474f6d4E3#code).
+The reproducible verification command remains
+`scripts/verify-v2-public-candidate.sh`.
+
+## Historical public Base Sepolia candidate
+
+The earlier `v0.4.0-v2-poc.1` candidate was deployed on 2026-08-07 from source commit
 `a4f658db84aad3f16998380dbf212b3bff30b5b3`. It is public testnet evidence,
 not the active v1 CLI preset and not a production deployment.
 
@@ -128,14 +172,14 @@ Use the addresses and Pool ID printed by the deployment:
 ilal init --force \
   --protocol-version 2 \
   --chain 84532 \
-  --hook 0xD7E3280bf895C43BC74baA1FB190e775C5864A80 \
-  --registry 0x48eB31FB6496058FEd112053EE07fAF557565325 \
-  --grant-manager 0xb19121e6CE972A1d1f23910e3d22924D47e43C11 \
-  --router 0xcADfb9d8a468832A6B24b088c214178B00A3fD47 \
+  --hook 0x9238103A1bd611461E1bDcB2084D166EB7AeCA80 \
+  --registry 0x936afAca590957f446B1603DbA6eC3Af298a039a \
+  --grant-manager 0xeF0e54C22361fE567157f6302Ae0363474f6d4E3 \
+  --router 0x0F948da2f54D9d0Ab31169D854dc655eEB3D1472 \
   --treasury 0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58 \
-  --token-a 0x67b341da917749f97432aeEFe888CF7Fd229FD77 \
-  --token-b 0xF494949d51a7285Eb082c1D8bFAFD56BfC471C37 \
-  --pool-id 0x524f781c2c66c8617f3b38c12ca2bf70e4639c3923fc0f63bdb315dda0a104a4 \
+  --token-a 0x4d55dd928dDF9cD79E128293a6FfD03197F0E4a2 \
+  --token-b 0x9388a5E1cF129015F86503D140B702C37801Ea85 \
+  --pool-id 0xdcf7ee831d054402ff0550b7a627f337dc60d24513928d082af777b6dd1c4405 \
   --fee 8388608 \
   --tick-spacing 60
 ```
