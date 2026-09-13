@@ -4,7 +4,8 @@
 
 | Field | Value |
 |---|---|
-| CLI | `@ilalv3/cli@0.4.0-v2-poc.7` prepared for npm `next` |
+| CLI | `@ilalv3/cli@0.5.0-institutional.1` prepared for npm `next` |
+| Protocol | `@ilalv3/protocol@0.1.0-institutional.1` prepared for npm `next` |
 | SDK | `@ilalv3/sdk@0.3.0-next.1` on npm `next` |
 | Netting | Base Sepolia Hookathon candidate with exact-match source verification |
 | V2 | Base Sepolia policy-grant candidate `v0.4.0-v2-poc.1` |
@@ -12,9 +13,9 @@
 | Production | Not production-ready |
 | Audit | Unaudited |
 
-The CLI preview adds atomic signed-order netting, residual-only Uniswap v4
-routing, nonce cancellation, canonical batch previews, and pinned-block
-Chainlink guard reporting alongside the V2 issuer kit. The Hook calls an
+The CLI preview adds the local-first Order, Batch, preflight, execution, and
+deterministic Settlement Receipt workflow. The protocol package exposes the
+same flow for OMS and custody integrations without an ILAL backend. The Hook calls an
 immutable two-feed Chainlink circuit breaker before its independent pool-tick
 guard. The SDK preview adds v2 policy-bound session signing and encoding.
 Neither preview replaces npm `latest` or the active v0.3.3 demo preset.
@@ -54,8 +55,9 @@ make verify
 
 Required baselines:
 
-- Foundry: 281 executed and passed, 0 failed, 0 skipped, fuzz runs at least 256.
-- CLI: 55 executed and passed.
+- Foundry: 282 executed and passed, 0 failed, 0 skipped, fuzz runs at least 256.
+- Protocol: 12 executed and passed.
+- CLI: 58 executed and passed.
 - Netting invariants: 100,000 stress handler calls in the full institutional study, 0 failures/reverts.
 - SDK and circuit constraint suites pass.
 - deployment-derived CLI/site data is synchronized.
@@ -64,16 +66,19 @@ Required baselines:
 ## Release separation
 
 `release-rc.yml` creates GitHub prerelease assets and has no npm OIDC
-permission. `publish-npm-stable.yml` publishes CLI and SDK stable tags to
+permission. `publish-npm-stable.yml` publishes protocol, CLI, and SDK stable tags to
 `latest` and prerelease tags to `next`; it uses the protected `npm-production`
 environment and receives only `contents: read` and `id-token: write`. npm
 Trusted Publishing must be bound to `rpnny/ilal`, that workflow, the protected
 environment, and the npm publish action.
 
-Ordinary RC publication does not publish npm. A V2 PoC tag may publish only to
-`next` when it references the recorded V2 candidate and, when bundled, the
-exact-match netting candidate. SDK tags are independently versioned with the
-`sdk-v` prefix.
+Ordinary RC publication does not publish npm. Institutional publication must
+push `protocol-v0.1.0-institutional.1` before `v0.5.0-institutional.1`; the CLI
+publish job verifies that its exact protocol dependency already exists on npm.
+A V2 PoC tag may publish only to `next` when it references the recorded V2
+candidate and, when bundled, the exact-match netting candidate. Protocol and
+SDK tags are independently versioned with the `protocol-v` and `sdk-v`
+prefixes.
 
 ## Remaining production blockers
 

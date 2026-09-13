@@ -2,7 +2,7 @@ name: release candidate
 
 on:
   push:
-    tags: ["v*-rc.*", "v*-v2-poc.*"]
+    tags: ["v*-rc.*", "v*-v2-poc.*", "v*-institutional.*"]
   workflow_dispatch:
     inputs:
       tag:
@@ -31,7 +31,7 @@ jobs:
         run: |
           tag="${REQUESTED_TAG:-$GITHUB_REF_NAME}"
           case "$tag" in
-            v*-rc.*|v*-v2-poc.*) ;;
+            v*-rc.*|v*-v2-poc.*|v*-institutional.*) ;;
             *) echo "Not a prerelease tag: $tag" >&2; exit 1 ;;
           esac
           tag_commit="$(git rev-parse "refs/tags/$tag^{commit}")"
@@ -43,7 +43,7 @@ jobs:
         env:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
-          node -e 'const fs=require("fs"); const tag=process.env.TAG; const pkg=require("./cli/package.json"); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); const npm=tag.includes("-v2-poc.") ? "next" : "not published"; if (tag !== `v${pkg.version}` || release.npmPublication !== npm || release.releaseCommit !== null || !/^[0-9a-f]{40}$/.test(release.sourceCommit)) process.exit(1)'
+          node -e 'const fs=require("fs"); const tag=process.env.TAG; const pkg=require("./cli/package.json"); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); const npm=tag.includes("-v2-poc.") || tag.includes("-institutional.") ? "next" : "not published"; if (tag !== `v${pkg.version}` || release.npmPublication !== npm || release.releaseCommit !== null || !/^[0-9a-f]{40}$/.test(release.sourceCommit)) process.exit(1)'
       - name: Build prerelease assets
         env:
           TAG: ${{ steps.release.outputs.tag }}
@@ -53,12 +53,13 @@ jobs:
           node -e 'const fs=require("fs"); const tag=process.env.TAG; const path=`releases/${tag}.json`; const value=JSON.parse(fs.readFileSync(path)); value.releaseCommit=process.env.RELEASE_COMMIT; fs.writeFileSync(`artifacts/${tag}.json`, JSON.stringify(value,null,2)+"\n")'
           cp proving-artifacts/PROVENANCE.json artifacts/
           cp THIRD_PARTY_LICENSES.md artifacts/
-          npm ci --prefix cli
-          npm run build --prefix cli
-          cd cli
-          npm sbom --sbom-format cyclonedx > ../artifacts/cli.cdx.json
-          npm pack --pack-destination ../artifacts
-          cd ..
+          npm ci
+          npm run build --workspace @ilalv3/protocol
+          npm run build --workspace @ilalv3/cli
+          npm sbom --workspace @ilalv3/protocol --sbom-format cyclonedx > artifacts/protocol.cdx.json
+          npm sbom --workspace @ilalv3/cli --sbom-format cyclonedx > artifacts/cli.cdx.json
+          npm pack --workspace @ilalv3/protocol --pack-destination artifacts
+          npm pack --workspace @ilalv3/cli --pack-destination artifacts
           cd artifacts && sha256sum * > SHA256SUMS
       - name: Create GitHub prerelease
         env:

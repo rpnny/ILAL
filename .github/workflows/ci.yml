@@ -22,16 +22,14 @@ jobs:
           node-version: "24.13.0"
           cache: npm
           cache-dependency-path: |
-            cli/package-lock.json
-            sdk/package-lock.json
+            package-lock.json
             circuits/package-lock.json
       - uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
         with:
           version: v1.5.1
       - name: Install JavaScript dependencies
         run: |
-          npm ci --prefix cli
-          npm ci --prefix sdk
+          npm ci
           npm ci --prefix circuits
       - name: Install pinned contract dependencies
         run: contracts/scripts/install-deps.sh
@@ -55,9 +53,10 @@ jobs:
           test "$(node -p 'require("./docs/research/results/local-study.json").scenarios.length')" = "160"
       - name: Generate SBOMs
         run: |
-          cd cli && npm sbom --sbom-format cyclonedx > ../artifacts/cli.cdx.json
-          cd ../sdk && npm sbom --sbom-format cyclonedx > ../artifacts/sdk.cdx.json
-          cd ../circuits && npm sbom --sbom-format cyclonedx > ../artifacts/circuits.cdx.json
+          npm sbom --workspace @ilalv3/protocol --sbom-format cyclonedx > artifacts/protocol.cdx.json
+          npm sbom --workspace @ilalv3/cli --sbom-format cyclonedx > artifacts/cli.cdx.json
+          npm sbom --workspace @ilalv3/sdk --sbom-format cyclonedx > artifacts/sdk.cdx.json
+          cd circuits && npm sbom --sbom-format cyclonedx > ../artifacts/circuits.cdx.json
       - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
         with:
           name: verification-evidence

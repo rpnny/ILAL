@@ -26,12 +26,13 @@ jobs:
           node -e 'const fs=require("fs"); const tag=process.env.GITHUB_REF_NAME; const version=tag.slice(1); const release=JSON.parse(fs.readFileSync(`releases/${tag}.json`)); release.releaseCommit=process.env.GITHUB_SHA; fs.writeFileSync(`artifacts/${tag}.json`, JSON.stringify(release,null,2)+"\n"); const index=JSON.parse(fs.readFileSync("deployments/index.json")); const item=Object.values(index.active).map(path=>JSON.parse(fs.readFileSync(`deployments/${path}`))).find(x=>x.version===version); if(!item) process.exit(1); item.releaseCommit=process.env.GITHUB_SHA; fs.writeFileSync(`artifacts/deployment-${version}.json`, JSON.stringify(item,null,2)+"\n")'
           cp proving-artifacts/PROVENANCE.json artifacts/
           cp THIRD_PARTY_LICENSES.md artifacts/
-          npm ci --prefix cli
-          npm run build --prefix cli
-          cd cli
-          npm sbom --sbom-format cyclonedx > ../artifacts/cli.cdx.json
-          npm pack --pack-destination ../artifacts
-          cd ..
+          npm ci
+          npm run build --workspace @ilalv3/protocol
+          npm run build --workspace @ilalv3/cli
+          npm sbom --workspace @ilalv3/protocol --sbom-format cyclonedx > artifacts/protocol.cdx.json
+          npm sbom --workspace @ilalv3/cli --sbom-format cyclonedx > artifacts/cli.cdx.json
+          npm pack --workspace @ilalv3/protocol --pack-destination artifacts
+          npm pack --workspace @ilalv3/cli --pack-destination artifacts
           cd artifacts && sha256sum * > SHA256SUMS
       - name: Create stable GitHub Release
         env:

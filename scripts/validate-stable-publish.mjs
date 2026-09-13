@@ -11,9 +11,17 @@ if (!tag || !/^v\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.test(tag)
 const version = tag.slice(1);
 const json = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const cli = json("cli/package.json");
+const protocol = json("protocol/package.json");
 const release = json(`releases/${tag}.json`);
 const index = json("deployments/index.json");
 if (cli.version !== version || release.version !== version || release.tag !== tag) throw new Error("tag, CLI, and release manifest versions differ");
+if (version.includes("-institutional.") && (release.protocolPackage?.name !== protocol.name
+  || release.protocolPackage?.version !== protocol.version
+  || release.protocolPackage?.tag !== `protocol-v${protocol.version}`
+  || release.protocolPackage?.npmPublication !== "next"
+  || cli.dependencies?.[protocol.name] !== protocol.version)) {
+  throw new Error("institutional CLI does not reference the exact protocol prerelease identity");
+}
 const isPrerelease = version.includes("-");
 if (isPrerelease) {
   if (release.softwareStatus !== "prerelease" || release.npmPublication !== "next") {

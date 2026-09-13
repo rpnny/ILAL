@@ -1,0 +1,47 @@
+{
+  "version": "0.5.0-institutional.1",
+  "tag": "v0.5.0-institutional.1",
+  "sourceCommit": "a512e6996735ab83d088a80723d30e4f7bb897a9",
+  "releaseCommit": null,
+  "softwareStatus": "prerelease",
+  "npmPublication": "next",
+  "productionReadiness": "not production-ready",
+  "auditStatus": "unaudited",
+  "deploymentManifest": "base-sepolia/v0.4.0-v2-poc.1.json",
+  "nettingCandidateManifest": "docs/hookathon/chainlink-candidate-manifest.json",
+  "settlementBaseline": "baseline/institutional-execution-v0.1.json",
+  "protocolPackage": {
+    "name": "@ilalv3/protocol",
+    "version": "0.1.0-institutional.1",
+    "tag": "protocol-v0.1.0-institutional.1",
+    "npmPublication": "next"
+  },
+  "baselineTests": {
+    "foundry": 282,
+    "cli": 58,
+    "fuzzRuns": 256
+  },
+  "lastLocalVerification": {
+    "date": "2026-09-13",
+    "foundry": { "passed": 282, "failed": 0, "skipped": 0 },
+    "cli": { "passed": 58, "failed": 0, "skipped": 0 },
+    "protocol": { "passed": 12, "failed": 0 },
+    "sdk": { "passed": 18, "failed": 0 },
+    "circuitOracle": { "passed": 8, "failed": 0 },
+    "circuitV1": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 3 },
+    "circuitV2": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 4 },
+    "nettingInvariants": { "properties": 6, "stressRuns": 100000, "reverts": 0 },
+    "minimumFuzzRuns": 256,
+    "chainlinkGuard": { "unitAndIntegration": "passed", "realBaseSepoliaFeedsPinnedFork": "passed", "incrementalLocalGas": 36360 },
+    "publicReceiptFixture": "0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998"
+  },
+  "releaseNotes": [
+    "Adds the local-first ILAL Order, ILAL Batch, and Settlement Receipt workflow.",
+    "Extracts the reference implementation into @ilalv3/protocol.",
+    "Preserves the frozen Hookathon settlement contracts and legacy netting CLI aliases."
+  ],
+  "releaseBlockers": [
+    "Unaudited institutional preview; Base Sepolia only.",
+    "Production use requires an independent audit and production deployment evidence."
+  ]
+}

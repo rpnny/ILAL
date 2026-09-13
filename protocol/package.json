@@ -1,0 +1,62 @@
+{
+  "name": "@ilalv3/protocol",
+  "version": "0.1.0-institutional.1",
+  "description": "ILAL institutional execution protocol objects, preflight, settlement, and receipts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./order": {
+      "import": "./dist/order.js",
+      "types": "./dist/order.d.ts"
+    },
+    "./batch": {
+      "import": "./dist/batch.js",
+      "types": "./dist/batch.d.ts"
+    },
+    "./preflight": {
+      "import": "./dist/preflight.js",
+      "types": "./dist/preflight.d.ts"
+    },
+    "./settlement": {
+      "import": "./dist/settlement.js",
+      "types": "./dist/settlement.d.ts"
+    },
+    "./receipt": {
+      "import": "./dist/receipt.js",
+      "types": "./dist/receipt.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rpnny/ilal",
+    "directory": "protocol"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc",
+    "test": "vitest run src"
+  },
+  "dependencies": {
+    "viem": "^2.52.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

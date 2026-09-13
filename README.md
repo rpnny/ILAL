@@ -46,6 +46,21 @@ Run the full repository verification:
 make verify
 ```
 
+## Institutional Execution Interface v0.1
+
+The local-first reference interface packages the frozen settlement candidate as:
+
+```text
+ILAL Order -> ILAL Batch -> Settlement Receipt
+```
+
+`@ilalv3/protocol@0.1.0-institutional.1` exposes browser-safe `order`, `batch`,
+`preflight`, `settlement`, and `receipt` modules. The matching
+`@ilalv3/cli@0.5.0-institutional.1` provides `ilal order ...`, `ilal batch ...`,
+and `ilal settlement inspect ...`; offline operations use local files and
+signers, while chain operations use only a caller-selected JSON-RPC endpoint.
+See [`docs/INSTITUTIONAL_EXECUTION_INTERFACE.md`](docs/INSTITUTIONAL_EXECUTION_INTERFACE.md).
+
 ## Architecture: Session + SOEE
 
 ### Session — access layer
@@ -170,7 +185,8 @@ The current verification suite covers:
 | --- | ---: |
 | Foundry tests | 282 |
 | Invariant calls | 100,000 |
-| CLI tests | 56 |
+| Protocol tests | 12 |
+| CLI tests | 58 |
 | SDK tests | 18 |
 | Circuit oracle checks | 8 |
 | V2 policy vectors | 1 valid + 4 adversarial |

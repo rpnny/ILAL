@@ -42,14 +42,18 @@ import { COINBASE_SCHEMA_UID } from "./constants.js";
 import { configureSignerOptions, type GlobalSignerOptions } from "./signer.js";
 import { safePropose } from "./safe.js";
 import { nettingBatchExecute, nettingBatchPreflight, nettingBatchPreview, nettingNonceCancel, nettingOrderSign } from "./commands/netting.js";
+import { batchBuild, batchExecute, batchPreflight, batchPreview, orderCreate, orderSign, settlementInspect } from "./commands/institutional.js";
 import { base, baseSepolia } from "viem/chains";
+import { ProtocolValidationError, SettlementRejectedError } from "@ilalv3/protocol";
 
 const program = new Command();
 
 program
   .name("ilal")
   .description("ILAL Protocol CLI — Uniswap v4 compliance hook toolkit")
-  .version("0.4.0-v2-poc.7")
+  .version("0.5.0-institutional.1")
+  .option("--json", "Emit machine-readable JSON on stdout", false)
+  .option("--force", "Replace an existing artifact output", false)
   .option("--keystore <path>", "Encrypted Web3 Secret Storage v3 keystore")
   .option("--password-file <path>", "Keystore password file (must be mode 600)")
   .option("--rpc-account <address>", "Account managed by the configured JSON-RPC node")
@@ -149,10 +153,93 @@ demoCommand
 
 const err = (e: unknown) => {
   console.error(fmt.red(`\nError: ${e instanceof Error ? e.message : String(e)}\n`));
-  process.exit(1);
+  const exitCode = e instanceof ProtocolValidationError
+    || e instanceof SettlementRejectedError && e.report.status === "rejected"
+    ? 2
+    : 1;
+  process.exit(exitCode);
 };
 
-// ─── atomic netting ──────────────────────────────────────────────────────────
+const deprecatedNetting = (replacement: string) => {
+  process.stderr.write(`Deprecated: use ${replacement}. The netting alias will be removed after the institutional preview.\n`);
+};
+
+// ─── institutional execution interface ─────────────────────────────────────
+
+const orderCommand = program.command("order").description("Create and sign institutional execution intents");
+
+orderCommand
+  .command("create")
+  .description("Create an unsigned, reviewable ILAL Order intent offline")
+  .requiredOption("-u, --user <address>", "Institution signing the order")
+  .requiredOption("--amount-in <raw>", "Exact input in raw token units")
+  .requiredOption("--min-amount-out <raw>", "Minimum total output in raw token units")
+  .requiredOption("--max-amm-input <raw>", "Maximum input permitted to reach the AMM")
+  .option("--zero-for-one", "Sell currency0 for currency1", false)
+  .option("--one-for-zero", "Sell currency1 for currency0", false)
+  .option("-p, --pool <bytes32>", "Pool ID (defaults to .ilal.json)")
+  .option("-H, --hook <address>", "InstitutionalNettingHook address")
+  .option("--deadline <unix>", "Absolute Unix deadline")
+  .option("--ttl <seconds>", "Lifetime when --deadline is omitted", "600")
+  .option("--nonce <bytes32>", "Order nonce (random by default)")
+  .requiredOption("-o, --output <path>", "Unsigned order intent JSON output")
+  .option("-c, --chain <chainId>", "Chain ID")
+  .action(async (opts) => { await orderCreate({ ...opts, ...program.opts() }).catch(err); });
+
+orderCommand
+  .command("sign <intent>")
+  .description("Sign an ILAL Order intent using the selected local signer")
+  .requiredOption("-o, --output <path>", "Signed order JSON output")
+  .option("-r, --rpc <url>", "Custom RPC URL for an RPC-managed signer")
+  .action(async (intent: string, opts) => { await orderSign(intent, { ...opts, ...program.opts() }).catch(err); });
+
+const batchCommand = program.command("batch").description("Build, inspect, preflight, and execute deterministic ILAL Batches");
+
+batchCommand
+  .command("build")
+  .description("Build a deterministic ILAL Batch offline")
+  .requiredOption("--orders <files...>", "Two to sixteen signed order JSON files")
+  .requiredOption("-o, --output <path>", "Batch JSON output")
+  .option("--router <address>", "InstitutionalBatchRouter address")
+  .option("-H, --hook <address>", "InstitutionalNettingHook address")
+  .option("--token-a <address>", "currency0 address")
+  .option("--token-b <address>", "currency1 address")
+  .option("--fee <uint24>", "Static pool fee", "500")
+  .option("--tick-spacing <int24>", "Pool tick spacing", "10")
+  .option("-c, --chain <chainId>", "Chain ID")
+  .action(async (opts) => { await batchBuild({ ...opts, ...program.opts() }).catch(err); });
+
+batchCommand
+  .command("preview <batch>")
+  .description("Preview a deterministic ILAL Batch offline")
+  .action(async (batch: string, opts) => { await batchPreview(batch, { ...opts, ...program.opts() }).catch(err); });
+
+batchCommand
+  .command("preflight <batch>")
+  .description("Validate a batch against one pinned chain snapshot")
+  .requiredOption("-o, --output <path>", "Preflight report JSON output")
+  .option("--from <address>", "Executor address used for simulation")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (batch: string, opts) => { await batchPreflight(batch, { ...opts, ...program.opts() }).catch(err); });
+
+batchCommand
+  .command("execute <batch>")
+  .description("Preflight, execute, and write a Settlement Receipt")
+  .option("--receipt <path>", "Settlement Receipt output (defaults to receipt-<txHash>.json)")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (batch: string, opts) => { await batchExecute(batch, { ...opts, ...program.opts() }).catch(err); });
+
+program
+  .command("settlement")
+  .description("Inspect ILAL settlements")
+  .command("inspect <tx>")
+  .description("Reconstruct and verify a Settlement Receipt from chain evidence")
+  .option("-o, --output <path>", "Settlement Receipt JSON output")
+  .option("-c, --chain <chainId>", "Chain ID", "84532")
+  .option("-r, --rpc <url>", "Custom RPC URL")
+  .action(async (tx: string, opts) => { await settlementInspect(tx, { ...opts, ...program.opts() }).catch(err); });
+
+// ─── legacy atomic netting aliases ──────────────────────────────────────────
 
 const netting = program.command("netting").description("Atomic stablecoin order netting through the Hookathon pool");
 const nettingOrder = netting.command("order").description("Create signed institutional netting orders");
@@ -176,13 +263,13 @@ nettingOrder
   .requiredOption("-o, --output <path>", "Signed order JSON output")
   .option("-c, --chain <chainId>", "Chain ID")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .action(async (opts) => { await nettingOrderSign(opts).catch(err); });
+  .action(async (opts) => { deprecatedNetting("ilal order create + ilal order sign"); await nettingOrderSign(opts).catch(err); });
 
 nettingBatch
   .command("preview")
   .description("Compute matched gross, residuals and ordered batch commitment offline")
   .requiredOption("--orders <files...>", "Two to sixteen signed order JSON files")
-  .action(async (opts: { orders: string[] }) => { await nettingBatchPreview(opts).catch(err); });
+  .action(async (opts: { orders: string[] }) => { deprecatedNetting("ilal batch build + ilal batch preview"); await nettingBatchPreview(opts).catch(err); });
 
 nettingBatch
   .command("preflight")
@@ -198,7 +285,7 @@ nettingBatch
   .option("--from <address>", "Executor address used for eth_call and gas estimation")
   .option("-c, --chain <chainId>", "Chain ID")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .action(async (opts) => { await nettingBatchPreflight(opts).catch(err); });
+  .action(async (opts) => { deprecatedNetting("ilal batch preflight"); await nettingBatchPreflight(opts).catch(err); });
 
 nettingBatch
   .command("execute")
@@ -213,7 +300,7 @@ nettingBatch
   .option("--from <address>", "Executor address used for the first signer-free preflight")
   .option("-c, --chain <chainId>", "Chain ID")
   .option("-r, --rpc <url>", "Custom RPC URL")
-  .action(async (opts) => { await nettingBatchExecute(opts).catch(err); });
+  .action(async (opts) => { deprecatedNetting("ilal batch execute"); await nettingBatchExecute(opts).catch(err); });
 
 nettingNonce
   .command("cancel")

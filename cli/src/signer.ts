@@ -272,7 +272,7 @@ export async function createExecutionClients(params: {
       die("PRIVATE_KEY is disabled by default. Add --unsafe-private-key for an explicit testnet-only compatibility run.");
     }
     requireTestnet(params.chain);
-    log.warn("Using testnet-only PRIVATE_KEY compatibility mode; prefer --keystore.");
+    process.stderr.write("Warning: using testnet-only PRIVATE_KEY compatibility mode; prefer --keystore.\n");
     const account = privateKeyToAccount(parsePrivateKey(rawKey));
     const walletClient = createWalletClient({ account, chain: params.chain, transport });
     return {

@@ -1,0 +1,49 @@
+{
+  "format": "ilal-settlement-baseline-v1",
+  "softwareBaseline": {
+    "tag": "v0.4.0-v2-poc.7",
+    "commit": "d89abd47102b1d9221cebf13c8d2f0c6d19ed875"
+  },
+  "deploymentBaseline": {
+    "network": "base-sepolia",
+    "chainId": 84532,
+    "sourceCommit": "a512e6996735ab83d088a80723d30e4f7bb897a9",
+    "sourceTreeHash": "854775537f58aa1d4312f19c09daa99b3c39b74b652d5e97a76e4cc0b494062b",
+    "manifest": "docs/hookathon/chainlink-candidate-manifest.json",
+    "contracts": {
+      "batchRouter": {
+        "address": "0x96456C68f25A1Fa6C2F2751183401ac26A732506",
+        "creationBytecodeHash": "0x65858e72053b218b62596d34dae49ac08e0c1df5aaa155af76c9a608c18963a8",
+        "runtimeBytecodeHash": "0x63394e1b2768488e81a37abd0e1a234475110266797a4db9a302c2271519c5f6",
+        "abiHash": "0x72f73479edf5280e82d1545ab4e37ad0eb0d7a0322d1eb9418f5a9c25520b439"
+      },
+      "nettingHook": {
+        "address": "0x8d1fA43F848701b2adB105D5c925A9247E600088",
+        "creationBytecodeHash": "0x24a4cf25c18f58b1459f6929ecab0668ab61196fb6f8e980b19fab9baf07b165",
+        "runtimeBytecodeHash": "0x3d05f57fe9248dc41599891aba653420089db028a7cac42c96d67062a8b0af0f",
+        "abiHash": "0xabaa8be74e0c13e7aa079f56845f2f210f1310eca874c6684689c8028bff3f6e"
+      },
+      "oracleGuard": {
+        "address": "0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3",
+        "creationBytecodeHash": "0xb26f8caba0c4197cfb45e1ef8cf579cd34019b00e8d26c8e58f7a97d3af9f592",
+        "runtimeBytecodeHash": "0x66463d8bbac0670b6755863d1e73e4461d6fe3b3232d2a7d37ec62cd8596ead4",
+        "abiHash": "0x45659cb8a6369339f344aa67b178a967c9c53f4c18760b91119128a456ce247f"
+      }
+    },
+    "goldenSettlement": {
+      "transactionHash": "0x91770caae1cd596f5974e88997cff364c925b78924cda781026144595c130998",
+      "batchId": "0x6f066658caa8a4631db43789ef361f03f322d8ce0c992e6387d7166bfe86f872",
+      "total0": "100000",
+      "total1": "70000",
+      "matchedEachSide": "70000",
+      "residual0": "30000",
+      "residual1": "0"
+    }
+  },
+  "protectedPaths": [
+    "contracts/src/netting",
+    "contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol",
+    "contracts/script/DeployHookathonNetting.s.sol"
+  ],
+  "changePolicy": "A future change requires a breaking-change rationale, a new deployment manifest, and complete replacement verification evidence."
+}

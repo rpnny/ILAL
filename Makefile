@@ -1,6 +1,6 @@
-.PHONY: verify benchmark break-even-benchmark study-local study-fork study-rwa study-stress study-report study-full deployments-check contracts-test cli-test sdk-test circuits-test package-check release-check secret-check sbom-check history-check
+.PHONY: verify benchmark break-even-benchmark study-local study-fork study-rwa study-stress study-report study-full baseline-check deployments-check contracts-test protocol-test cli-test sdk-test circuits-test package-check release-check secret-check sbom-check history-check
 
-verify: history-check deployments-check release-check contracts-test cli-test sdk-test circuits-test package-check secret-check sbom-check
+verify: history-check baseline-check deployments-check release-check contracts-test protocol-test cli-test sdk-test circuits-test package-check secret-check sbom-check
 
 benchmark:
 	node scripts/run-netting-benchmark.mjs
@@ -30,6 +30,9 @@ study-full:
 history-check:
 	./scripts/verify-cli-history.sh
 
+baseline-check:
+	node scripts/verify-settlement-baseline.mjs
+
 deployments-check:
 	node scripts/sync-deployments.mjs --check
 
@@ -42,21 +45,28 @@ contracts-test:
 	cd contracts && forge build && forge test
 
 cli-test:
-	cd cli && npm run build && npm test
+	npm run build --workspace @ilalv3/cli
+	npm run test --workspace @ilalv3/cli
+
+protocol-test:
+	npm run build --workspace @ilalv3/protocol
+	npm run test --workspace @ilalv3/protocol
 
 sdk-test:
-	cd sdk && npm run build && npm test
+	npm run build --workspace @ilalv3/sdk
+	npm run test --workspace @ilalv3/sdk
 
 circuits-test:
 	cd circuits && npm run test:oracle && npm run test:v1 && npm run test:v2
 
 package-check:
-	cd cli && npm pack --dry-run
+	npm run package-check
 
 secret-check:
 	node scripts/secret-scan.mjs
 
 sbom-check:
-	cd cli && npm sbom --sbom-format cyclonedx >/dev/null
-	cd sdk && npm sbom --sbom-format cyclonedx >/dev/null
+	npm sbom --workspace @ilalv3/protocol --sbom-format cyclonedx >/dev/null
+	npm sbom --workspace @ilalv3/cli --sbom-format cyclonedx >/dev/null
+	npm sbom --workspace @ilalv3/sdk --sbom-format cyclonedx >/dev/null
 	cd circuits && npm sbom --sbom-format cyclonedx >/dev/null

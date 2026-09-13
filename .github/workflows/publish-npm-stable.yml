@@ -2,7 +2,7 @@ name: publish npm
 
 on:
   push:
-    tags: ["v*.*.*", "sdk-v*.*.*"]
+    tags: ["v*.*.*", "sdk-v*.*.*", "protocol-v*.*.*"]
 
 permissions:
   contents: read
@@ -22,19 +22,55 @@ jobs:
           node-version: "24.13.0"
           registry-url: https://registry.npmjs.org
           cache: npm
-          cache-dependency-path: cli/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Install and build exact release
         run: |
-          npm ci --prefix cli
-          npm run build --prefix cli
+          npm ci
+          npm run build --workspace @ilalv3/protocol
+          npm run build --workspace @ilalv3/cli
           node scripts/validate-stable-publish.mjs "$GITHUB_REF_NAME"
           node scripts/secret-scan.mjs
+      - name: Require the institutional protocol package to be published first
+        if: ${{ contains(github.ref_name, '-institutional.') }}
+        run: |
+          expected="$(node -p 'require("./protocol/package.json").version')"
+          published="$(npm view "@ilalv3/protocol@$expected" version)"
+          test "$published" = "$expected"
       - name: Publish with npm Trusted Publishing provenance
-        working-directory: cli
         run: |
           case "$GITHUB_REF_NAME" in
-            *-*) npm publish --tag next --access public --provenance ;;
-            *) npm publish --access public --provenance ;;
+            *-*) npm publish --workspace @ilalv3/cli --tag next --access public --provenance ;;
+            *) npm publish --workspace @ilalv3/cli --access public --provenance ;;
+          esac
+
+  publish-protocol:
+    if: ${{ startsWith(github.ref_name, 'protocol-v') }}
+    runs-on: ubuntu-latest
+    environment: npm-production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24.13.0"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Validate and build exact protocol release
+        run: |
+          test "$GITHUB_REF_NAME" = "protocol-v$(node -p 'require("./protocol/package.json").version')"
+          npm ci
+          npm run build --workspace @ilalv3/protocol
+          npm run test --workspace @ilalv3/protocol
+          npm pack --dry-run --workspace @ilalv3/protocol
+          node scripts/verify-settlement-baseline.mjs
+          node scripts/secret-scan.mjs
+      - name: Publish protocol with npm Trusted Publishing provenance
+        run: |
+          case "$GITHUB_REF_NAME" in
+            *-*) npm publish --workspace @ilalv3/protocol --tag next --access public --provenance ;;
+            *) npm publish --workspace @ilalv3/protocol --access public --provenance ;;
           esac
 
   publish-sdk:
@@ -50,18 +86,17 @@ jobs:
           node-version: "24.13.0"
           registry-url: https://registry.npmjs.org
           cache: npm
-          cache-dependency-path: sdk/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Validate and build exact SDK release
         run: |
           test "$GITHUB_REF_NAME" = "sdk-v$(node -p 'require("./sdk/package.json").version')"
-          npm ci --prefix sdk
-          npm run build --prefix sdk
-          npm test --prefix sdk
+          npm ci
+          npm run build --workspace @ilalv3/sdk
+          npm run test --workspace @ilalv3/sdk
           node scripts/secret-scan.mjs
       - name: Publish SDK with npm Trusted Publishing provenance
-        working-directory: sdk
         run: |
           case "$GITHUB_REF_NAME" in
-            *-*) npm publish --tag next --access public --provenance ;;
-            *) npm publish --access public --provenance ;;
+            *-*) npm publish --workspace @ilalv3/sdk --tag next --access public --provenance ;;
+            *) npm publish --workspace @ilalv3/sdk --access public --provenance ;;
           esac

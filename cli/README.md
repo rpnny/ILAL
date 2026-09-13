@@ -6,25 +6,43 @@ Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity,
 
 | Version | Distribution | Status |
 |---|---|---|
+| `0.5.0-institutional.1` | npm `next` preview | Local-first Order, Batch, preflight, execution, and deterministic Settlement Receipt |
 | `0.4.0-v2-poc.7` | npm `next` preview | Atomic netting, Chainlink-aware state preflight, and V2 issuer integration; Base Sepolia candidates only, unaudited |
 | `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
 | `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
 | `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
 
-The preview keeps the stable v0.3.3 deployment preset isolated while adding
-institutional netting and issuer-operated V2 policy tooling for their recorded candidates. Install it with
+The preview keeps the stable v0.3.3 deployment preset isolated while adding a
+reference institutional execution client and issuer-operated V2 policy tooling. Install it with
 `npm install -g @ilalv3/cli@next`. Published `0.2.21` remains a separate legacy
 line; copying its commands or addresses into current releases will fail.
 
 ```bash
-cd cli
 npm ci
-npm run build
-node dist/index.js --version  # 0.4.0-v2-poc.7
-npm test
+npm run build --workspace @ilalv3/cli
+node cli/dist/index.js --version  # 0.5.0-institutional.1
+npm run test --workspace @ilalv3/cli
 ```
 
 `ilal init` selects only the active v0.3.3 manifest on Base Sepolia. Deprecated presets are never selected automatically.
+
+## Institutional execution interface
+
+The reference flow is now `ILAL Order -> ILAL Batch -> Settlement Receipt`:
+
+```bash
+ilal order create ... --output order.intent.json
+ilal --keystore institution.json order sign order.intent.json --output order.json
+ilal batch build --orders order-a.json order-b.json --output batch.json
+ilal batch preview batch.json
+ilal batch preflight batch.json --output preflight.json
+ilal --keystore solver.json batch execute batch.json --receipt receipt.json
+ilal settlement inspect <tx> --output inspected-receipt.json
+```
+
+Intent creation, local signing, batch building, and preview are offline. The
+remaining commands use only the configured JSON-RPC. See
+[`../docs/INSTITUTIONAL_EXECUTION_INTERFACE.md`](../docs/INSTITUTIONAL_EXECUTION_INTERFACE.md).
 
 ## Atomic netting (Hookathon candidate)
 

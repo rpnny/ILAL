@@ -7,6 +7,7 @@ const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const fail = message => { throw new Error(message); };
 
 const cli = readJson("cli/package.json");
+const protocol = readJson("protocol/package.json");
 const sdk = readJson("sdk/package.json");
 const circuits = readJson("circuits/package.json");
 const proving = readJson("proving-artifacts/package.json");
@@ -14,9 +15,16 @@ const release = readJson(`releases/v${cli.version}.json`);
 const deployments = readJson("deployments/index.json");
 
 if (cli.version !== release.version || release.tag !== `v${cli.version}`) fail("CLI and release versions differ.");
+if (release.protocolPackage?.name !== protocol.name
+  || release.protocolPackage?.version !== protocol.version
+  || release.protocolPackage?.tag !== `protocol-v${protocol.version}`
+  || release.protocolPackage?.npmPublication !== "next"
+  || cli.dependencies?.[protocol.name] !== protocol.version) {
+  fail("Institutional protocol package identity or exact CLI dependency is inconsistent.");
+}
 if (!/^[0-9a-f]{40}$/.test(release.sourceCommit)) fail("sourceCommit must be a full Git commit SHA.");
 if (release.releaseCommit !== null) fail("Tracked releaseCommit must remain null until the tag workflow resolves it.");
-for (const pkg of [cli, sdk, circuits, proving]) {
+for (const pkg of [cli, protocol, sdk, circuits, proving]) {
   if (pkg.license !== "Apache-2.0") fail(`${pkg.name} is not Apache-2.0.`);
   if (!pkg.repository || pkg.repository.url !== "https://github.com/rpnny/ilal" && pkg.repository.url !== "git+https://github.com/rpnny/ilal.git") {
     fail(`${pkg.name} repository metadata does not point to rpnny/ilal.`);
