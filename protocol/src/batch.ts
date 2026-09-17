@@ -157,7 +157,9 @@ export function parseBatch(value: unknown): ILALBatch {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Batch must be an object.");
   const raw = value as Record<string, unknown>;
   if (raw["format"] !== BATCH_FORMAT) throw new Error(`Expected ${BATCH_FORMAT}.`);
-  const poolKeyValue = raw["poolKey"] as PoolKey;
+  const suppliedPoolKey = raw["poolKey"] as PoolKey;
+  if (!suppliedPoolKey || typeof suppliedPoolKey !== "object") throw new Error("PoolKey must be an object.");
+  const poolKeyValue = { ...suppliedPoolKey, fee: Number(suppliedPoolKey.fee), tickSpacing: Number(suppliedPoolKey.tickSpacing) };
   if (!Array.isArray(raw["orders"])) throw new Error("Batch orders must be an array.");
   const rebuilt = buildBatch({
     chainId: Number(raw["chainId"]),
@@ -170,7 +172,7 @@ export function parseBatch(value: unknown): ILALBatch {
   if (!suppliedSummary || typeof suppliedSummary !== "object" || Array.isArray(suppliedSummary)) throw new Error("Batch summary must be an object.");
   const supplied = suppliedSummary as Record<string, unknown>;
   const summaryKeys = Object.keys(rebuilt.summary) as Array<keyof SerializedBatchPreview>;
-  if (Object.keys(supplied).length !== summaryKeys.length || summaryKeys.some(key => supplied[key] !== rebuilt.summary[key])) {
+  if (Object.keys(supplied).length !== summaryKeys.length || summaryKeys.some(key => String(supplied[key]) !== String(rebuilt.summary[key]))) {
     throw new ProtocolValidationError("Batch summary does not match its orders.");
   }
   return rebuilt;

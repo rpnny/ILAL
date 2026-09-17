@@ -4,6 +4,7 @@ import { encodeAbiParameters, encodeEventTopics, parseAbiParameters } from "viem
 import { NETTING_ROUTER_ABI } from "./abis.js";
 import { buildBatch, encodeBatchExecution } from "./batch.js";
 import { buildReceipt, parseReceipt, type ReceiptEvidence, type TransactionEvidence } from "./receipt.js";
+import { stringifyProtocolJson } from "./json.js";
 import { hashOrder, orderDigest, parseNettingOrder, SIGNED_ORDER_FORMAT, type SignedOrderFile } from "./order.js";
 
 const router = "0x96456C68f25A1Fa6C2F2751183401ac26A732506" as const;
@@ -74,6 +75,9 @@ describe("Settlement Receipt", () => {
     expect(first.batch.summary.residual0).toBe("30000");
     expect(JSON.stringify(first)).toBe(JSON.stringify(second));
     expect(parseReceipt(JSON.parse(JSON.stringify(first)))).toEqual(first);
+    const wire = stringifyProtocolJson(first);
+    expect(parseReceipt(JSON.parse(wire))).toEqual(first);
+    expect(wire).not.toMatch(/:\s*-?\d/);
   });
 
   it("rejects missing events, reverted transactions, and mismatched settlement data", () => {

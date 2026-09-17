@@ -63,7 +63,9 @@ describe("preflight", () => {
       getChainId: async () => 84532,
       getBlock: async () => block,
       readContract: async (request: { functionName: string }) => readContract(request),
-      call: async () => { throw Object.assign(new Error("execution reverted"), { data: selector }); },
+      call: async () => { throw Object.assign(new Error("RPC request failed"), {
+        name: "RpcRequestError", cause: Object.assign(new Error("execution reverted"), { data: selector, code: 3 }),
+      }); },
     };
     const report = await preflightBatch(client, batch);
     expect(report.status).toBe("rejected");

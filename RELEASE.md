@@ -58,6 +58,9 @@ Required baselines:
 - Foundry: 282 executed and passed, 0 failed, 0 skipped, fuzz runs at least 256.
 - Protocol: 12 executed and passed.
 - CLI: 58 executed and passed.
+- Isolated Anvil: full institutional CLI flow, execute/inspect byte equality,
+  consumed nonces, rejected replay, zero inventory, and closed batch context.
+- Compiled Router/Hook/guard ABIs and creation bytecodes match the baseline.
 - Netting invariants: 100,000 stress handler calls in the full institutional study, 0 failures/reverts.
 - SDK and circuit constraint suites pass.
 - deployment-derived CLI/site data is synchronized.

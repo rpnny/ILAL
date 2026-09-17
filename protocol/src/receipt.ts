@@ -196,7 +196,15 @@ export function buildReceipt(input: { chainId: number; transaction: TransactionE
 
 export function parseReceipt(value: unknown): SettlementReceipt {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Receipt must be an object.");
-  const receipt = value as SettlementReceipt;
+  const supplied = value as SettlementReceipt;
+  const receipt = {
+    ...supplied,
+    chainId: Number(supplied.chainId),
+    batch: parseBatch(supplied.batch),
+    execution: { ...supplied.execution, poolKey: { ...supplied.execution?.poolKey,
+      fee: Number(supplied.execution?.poolKey?.fee), tickSpacing: Number(supplied.execution?.poolKey?.tickSpacing) } },
+    orders: Array.isArray(supplied.orders) ? supplied.orders.map(item => ({ ...item, orderIndex: Number(item.orderIndex), signedOrder: parseSignedOrder(item.signedOrder) })) : supplied.orders,
+  } as SettlementReceipt;
   if (receipt.format !== SETTLEMENT_RECEIPT_FORMAT) throw new Error(`Expected ${SETTLEMENT_RECEIPT_FORMAT}.`);
   if (!receipt.verification || Object.values(receipt.verification).some(result => result !== true)) throw new ProtocolValidationError("Receipt verification is incomplete.");
   if (!Number.isSafeInteger(receipt.chainId) || receipt.chainId <= 0) throw new Error("Receipt chainId is invalid.");

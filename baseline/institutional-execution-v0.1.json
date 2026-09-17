@@ -2,6 +2,7 @@
   "format": "ilal-settlement-baseline-v1",
   "softwareBaseline": {
     "tag": "v0.4.0-v2-poc.7",
+    "tagObject": "e3bec5a8c5d02193e561c2f59d147af17458ab52",
     "commit": "d89abd47102b1d9221cebf13c8d2f0c6d19ed875"
   },
   "deploymentBaseline": {
@@ -41,8 +42,9 @@
     }
   },
   "protectedPaths": [
-    "contracts/src/netting",
-    "contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol",
+    "contracts/src",
+    "contracts/foundry.toml",
+    "contracts/scripts/install-deps.sh",
     "contracts/script/DeployHookathonNetting.s.sol"
   ],
   "changePolicy": "A future change requires a breaking-change rationale, a new deployment manifest, and complete replacement verification evidence."

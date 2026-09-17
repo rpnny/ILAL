@@ -1,9 +1,10 @@
 import { closeSync, existsSync, linkSync, openSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { randomBytes } from "node:crypto";
+import { stringifyProtocolJson } from "@ilalv3/protocol";
 
 export function artifactJson(value: unknown): string {
-  return `${JSON.stringify(value, (_, item) => typeof item === "bigint" ? item.toString() : item, 2)}\n`;
+  return stringifyProtocolJson(value);
 }
 
 export function ensureWritable(path: string, force = false): string {

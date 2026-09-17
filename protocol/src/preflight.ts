@@ -60,6 +60,9 @@ export interface PreflightReport {
 type Client = PublicClient | any;
 
 function isRpcFailure(error: unknown): boolean {
+  // A JSON-RPC request can succeed at transport level and report an EVM
+  // revert. Inspect that evidence before considering RpcRequestError wrappers.
+  if (decodeProtocolRevert(error).selector !== null) return false;
   const seen = new Set<object>();
   let current: unknown = error;
   while (current && typeof current === "object" && !seen.has(current)) {
@@ -67,6 +70,7 @@ function isRpcFailure(error: unknown): boolean {
     const value = current as Record<string, unknown>;
     const name = String(value["name"] ?? "");
     const message = String(value["shortMessage"] ?? value["message"] ?? "");
+    if (value["code"] === 3 || /execution reverted|ContractFunctionReverted/i.test(`${name} ${message}`)) return false;
     if (/HttpRequest|RpcRequest|Timeout|Network|Socket|WebSocket|Transport|Fetch/i.test(name)
       || /\bRPC\b|network|fetch failed|timed? out|ECONN|socket|HTTP request/i.test(message)) return true;
     current = value["cause"];

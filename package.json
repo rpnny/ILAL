@@ -1,5 +1,6 @@
 {
   "name": "ilal-monorepo",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -8,12 +9,17 @@
     "sdk"
   ],
   "scripts": {
+    "test:institutional-e2e": "node scripts/institutional-e2e.mjs",
     "build": "npm run build --workspace @ilalv3/protocol && npm run build --workspace @ilalv3/sdk && npm run build --workspace @ilalv3/cli",
     "test": "npm run build --workspace @ilalv3/protocol && npm run test --workspace @ilalv3/protocol && npm run test --workspace @ilalv3/sdk && npm run test --workspace @ilalv3/cli",
     "package-check": "npm pack --dry-run --workspace @ilalv3/protocol && npm pack --dry-run --workspace @ilalv3/cli && node scripts/package-smoke-test.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "viem": "^2.52.2",
+    "snarkjs": "^0.7.6"
   },
   "overrides": {
     "brace-expansion": "^2.1.4",

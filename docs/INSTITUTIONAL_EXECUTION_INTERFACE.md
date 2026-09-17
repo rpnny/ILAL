@@ -22,6 +22,7 @@ contract hashes, addresses, and golden settlement evidence. Run:
 
 ```bash
 make baseline-check
+node scripts/verify-settlement-baseline.mjs --artifacts # after forge/protocol builds
 ```
 
 Any change to the protected Router, Hook, guard, or deployment script fails the
@@ -92,6 +93,23 @@ Use `--json` for JSON-only stdout. Human status goes to stderr. Artifact files
 are atomically written with mode `0600`; existing files are protected unless
 `--force` is explicit. Exit status `2` means protocol/preflight rejection and
 `1` means an input, RPC, or tool failure.
+
+New-interface JSON uses decimal strings for every integer, including chainId,
+fee, tickSpacing, and orderIndex. Library consumers should use the root export
+`stringifyProtocolJson`; parsers also accept the existing numeric legacy metadata.
+
+## Local end-to-end verification
+
+After `npm ci`, `npm run build`, and `cd contracts && forge build`, run
+`npm run test:institutional-e2e` from the repository root with Anvil on PATH.
+The harness starts its own non-forked Anvil, deploys the frozen contracts with
+local mock assets/credentials/feeds, and runs all seven CLI stages through real
+transactions. It verifies 70000/70000 matching, 30000/0 residuals, identical
+execute/inspect receipts, zero Router/Hook inventory, closed context, consumed
+nonces, rejected replay, and legacy preview compatibility. It uses ephemeral
+Anvil-managed accounts and does not inherit workstation signing credentials.
+
+This local test does not substitute for the final funded Base Sepolia run.
 
 ## Compatibility and boundaries
 

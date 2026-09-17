@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ["v*", "protocol-v*"]
 
 permissions:
   contents: read
@@ -35,13 +35,13 @@ jobs:
         run: contracts/scripts/install-deps.sh
       - name: Install circom 2.2.3
         run: cargo install --locked --git https://github.com/iden3/circom --tag v2.2.3 --root "$RUNNER_TEMP/circom" circom
+      - name: Prepare V2 testnet proving artifacts
+        run: PATH="$RUNNER_TEMP/circom/bin:$PATH" circuits/scripts/prepare_v2_test_artifacts.sh
       - name: Verify repository
         run: |
           mkdir -p artifacts
           PATH="$RUNNER_TEMP/circom/bin:$PATH" make verify 2>&1 | tee artifacts/verify.log
           node scripts/summarize-tests.mjs artifacts/verify.log artifacts/test-summary.json
-      - name: Prepare V2 testnet proving artifacts
-        run: PATH="$RUNNER_TEMP/circom/bin:$PATH" circuits/scripts/prepare_v2_test_artifacts.sh
       - name: Institutional study PR gate
         env:
           ILAL_STUDY_RWA_SIZES: "100"
@@ -51,6 +51,10 @@ jobs:
           make study-rwa
           make study-report
           test "$(node -p 'require("./docs/research/results/local-study.json").scenarios.length')" = "160"
+      - name: Institutional CLI Anvil end-to-end gate
+        run: |
+          node scripts/verify-settlement-baseline.mjs --artifacts
+          npm run test:institutional-e2e
       - name: Generate SBOMs
         run: |
           npm sbom --workspace @ilalv3/protocol --sbom-format cyclonedx > artifacts/protocol.cdx.json

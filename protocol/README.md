@@ -15,5 +15,10 @@ signing with a local signer, and batch preview are offline. Preflight,
 execution, and settlement inspection accept caller-supplied standard JSON-RPC
 clients.
 
+Use `stringifyProtocolJson` from the root export for wire artifacts. It sorts
+object keys and writes every integer as a decimal string, including chain IDs,
+pool fees, and order indices. In-memory objects retain numeric fields needed
+by viem; parsers accept the wire representation and existing legacy files.
+
 The institutional preview is unaudited, Base Sepolia only, and not production
 ready.

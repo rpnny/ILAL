@@ -1,4 +1,5 @@
 export * from "./abis.js";
+export * from "./json.js";
 export * from "./batch.js";
 export * from "./errors.js";
 export * from "./order.js";

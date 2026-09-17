@@ -40,6 +40,17 @@
     "Extracts the reference implementation into @ilalv3/protocol.",
     "Preserves the frozen Hookathon settlement contracts and legacy netting CLI aliases."
   ],
+  "institutionalInterfaceVerification": {
+    "date": "2026-09-17",
+    "protocol": { "passed": 12, "failed": 0 },
+    "cli": { "passed": 58, "failed": 0 },
+    "sdk": { "passed": 18, "failed": 0 },
+    "anvilEndToEnd": "passed",
+    "executeInspectByteEquality": "passed on Anvil",
+    "compiledBaselineHashes": "passed",
+    "freshBaseSepoliaAcceptance": "pending funded institutional signers",
+    "npmPublication": "not yet published"
+  },
   "releaseBlockers": [
     "Unaudited institutional preview; Base Sepolia only.",
     "Production use requires an independent audit and production deployment evidence."

@@ -36,7 +36,7 @@ export const NETTING_ROUTER_ABI = [
   {
     name: "previewBatch", type: "function", stateMutability: "pure",
     inputs: [{ name: "orders", type: "tuple[]", components: NETTING_ORDER_COMPONENTS }],
-    outputs: [{ name: "header", type: "tuple", components: HEADER_COMPONENTS }],
+    outputs: [{ name: "", type: "tuple", components: HEADER_COMPONENTS }],
   },
   {
     name: "executeBatch", type: "function", stateMutability: "nonpayable",
