@@ -1,0 +1,38 @@
+{
+  "format": "ilal-base-sepolia-acceptance-result-v1",
+  "networkPolicy": {
+    "allowedOrigins": [
+      "https://sepolia.base.org"
+    ],
+    "ilalOperatedEndpointsUsedByHarness": false
+  },
+  "transactionHash": "0xcec4be62969b74bf4a330c79da69f6060b45838bd6926c5e1bad0426ae41a674",
+  "batchId": "0x68b6028ef8dba3b9a129407a7ad85291b0f33b15b68c75453c931246babb8626",
+  "summary": {
+    "exposureReduction": "140000",
+    "matchedEachSide": "70000",
+    "orderCount": "2",
+    "residual0": "30000",
+    "residual1": "0",
+    "total0": "100000",
+    "total1": "70000"
+  },
+  "postconditions": {
+    "receiptByteIdentical": true,
+    "batchContextClosed": true,
+    "routerInventoryZero": true,
+    "hookInventoryZero": true,
+    "allNoncesConsumed": true
+  },
+  "artifacts": [
+    "order-a.intent.json",
+    "order-a.signed.json",
+    "order-b.intent.json",
+    "order-b.signed.json",
+    "batch.json",
+    "preflight.json",
+    "receipt.json",
+    "inspected-receipt.json"
+  ],
+  "status": "accepted"
+}

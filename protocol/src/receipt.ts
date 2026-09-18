@@ -15,6 +15,7 @@ import { ProtocolValidationError } from "./errors.js";
 import { hashOrder, parseNettingOrder, parseSignedOrder, SIGNED_ORDER_FORMAT, type SignedOrderFile } from "./order.js";
 
 export const SETTLEMENT_RECEIPT_FORMAT = "ilal-settlement-receipt-v1" as const;
+const ZERO_HASH = `0x${"00".repeat(32)}`;
 
 export interface SettlementReceiptOrder {
   orderIndex: number;
@@ -61,6 +62,7 @@ function equal(a: unknown, b: unknown): boolean {
 
 export function buildReceipt(input: { chainId: number; transaction: TransactionEvidence; receipt: ReceiptEvidence }): SettlementReceipt {
   if (input.receipt.status !== "success") throw new ProtocolValidationError("Cannot create a successful Settlement Receipt for a reverted transaction.");
+  if (input.receipt.blockHash.toLowerCase() === ZERO_HASH) throw new ProtocolValidationError("Settlement Receipt requires a canonical non-zero block hash.");
   if (!input.transaction.to) throw new ProtocolValidationError("Settlement transaction has no target contract.");
   const calldata = input.transaction.input ?? input.transaction.data;
   if (!calldata) throw new Error("Settlement transaction calldata is unavailable.");
@@ -212,6 +214,7 @@ export function parseReceipt(value: unknown): SettlementReceipt {
   if (batch.chainId !== receipt.chainId) throw new ProtocolValidationError("Receipt and Batch chain IDs differ.");
   if (!/^0x[0-9a-fA-F]{64}$/.test(receipt.transaction?.hash ?? "")
     || !/^0x[0-9a-fA-F]{64}$/.test(receipt.transaction?.blockHash ?? "")
+    || receipt.transaction.blockHash.toLowerCase() === ZERO_HASH
     || !/^\d+$/.test(receipt.transaction?.blockNumber ?? "")
     || receipt.transaction?.status !== "success") throw new Error("Receipt transaction evidence is malformed.");
   if (!equal(receipt.transaction.to, batch.router)

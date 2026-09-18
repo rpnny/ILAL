@@ -1,0 +1,134 @@
+{
+  "batch": {
+    "batchId": "0x68b6028ef8dba3b9a129407a7ad85291b0f33b15b68c75453c931246babb8626",
+    "exposureReduction": "140000",
+    "matchedEachSide": "70000",
+    "orderCount": "2",
+    "residual0": "30000",
+    "residual1": "0",
+    "total0": "100000",
+    "total1": "70000"
+  },
+  "chainId": "84532",
+  "checks": [
+    {
+      "detail": "total0=100000; total1=70000",
+      "name": "opposite-directions",
+      "ok": true
+    },
+    {
+      "detail": "0x8d1fA43F848701b2adB105D5c925A9247E600088",
+      "name": "hook-domain",
+      "ok": true
+    },
+    {
+      "detail": "price0Wad=999848000000000000; price1Wad=999137990000000000; updatedAt0=1789652050; updatedAt1=1789661878",
+      "name": "chainlink-oracle-guard",
+      "ok": true
+    },
+    {
+      "detail": "deadline=1789726589; blockTimestamp=1789724790",
+      "name": "deadline",
+      "ok": true,
+      "orderIndex": "0"
+    },
+    {
+      "detail": "nonce=0x1f0fb69f54062da65a05d5352bfb4a5634e57e3441707a48e2c71a12db4e738a",
+      "name": "nonce-unused",
+      "ok": true,
+      "orderIndex": "0"
+    },
+    {
+      "detail": "balance=999969599; required=70000",
+      "name": "balance",
+      "ok": true,
+      "orderIndex": "0"
+    },
+    {
+      "detail": "allowance=115792089237316195423570985008687907853269984665640564039457584007913129639935; required=70000",
+      "name": "allowance",
+      "ok": true,
+      "orderIndex": "0"
+    },
+    {
+      "detail": "deadline=1789726589; blockTimestamp=1789724790",
+      "name": "deadline",
+      "ok": true,
+      "orderIndex": "1"
+    },
+    {
+      "detail": "nonce=0x81ed5a1b2df15f52132d6a072e0c145ee6740a8db4b32d172eb36f2cb4d6ca0d",
+      "name": "nonce-unused",
+      "ok": true,
+      "orderIndex": "1"
+    },
+    {
+      "detail": "balance=20080000; required=100000",
+      "name": "balance",
+      "ok": true,
+      "orderIndex": "1"
+    },
+    {
+      "detail": "allowance=115792089237316195423570985008687907853269984665640564039457584007913129349935; required=100000",
+      "name": "allowance",
+      "ok": true,
+      "orderIndex": "1"
+    },
+    {
+      "detail": "executeBatch completed against the pinned state snapshot; signatures and policy were validated on-chain",
+      "name": "full-execution-eth-call",
+      "ok": true
+    }
+  ],
+  "decodedRevert": null,
+  "fees": {
+    "estimatedExecutionGas": "862187",
+    "estimatedTotalFeeWei": "5202456395611",
+    "gasPriceWei": "6000000",
+    "l1SecurityFeeWei": "29334395611",
+    "l2ExecutionFeeWei": "5173122000000",
+    "model": "Base L2 execution plus GasPriceOracle.getL1Fee(serialized transaction)"
+  },
+  "format": "ilal-netting-preflight-v1",
+  "generatedAt": "2026-09-18T09:46:30.348Z",
+  "oracle": {
+    "enforcement": "hook-hard-gate",
+    "feed0": "0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165",
+    "feed1": "0x3ec8593F930EA45ea58c968260e6e9FF53FC934f",
+    "guard": "0x1dEc06Bd8d43E37c855767326864BEe0Ae6199D3",
+    "maxAge0": "90000",
+    "maxAge1": "90000",
+    "maxPairDeviationBps": "100",
+    "maxUsdDeviationBps": "100",
+    "price0Wad": "999848000000000000",
+    "price1Wad": "999137990000000000",
+    "provider": "chainlink-data-feeds",
+    "sequencerCheckEnabled": false,
+    "sequencerGracePeriod": "0",
+    "sequencerUptimeFeed": null,
+    "status": "valid",
+    "updatedAt0": "1789652050",
+    "updatedAt1": "1789661878"
+  },
+  "pool": {
+    "currency0": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "currency1": "0xC4946fEC334f4B9350dF08E311261e4361B7c72C",
+    "fee": "500",
+    "hook": "0x8d1fA43F848701b2adB105D5c925A9247E600088",
+    "poolId": "0xeab91a1421cb5c170df74c1eaf676a8836eda1fc5a833f62ab9c2d516acfbc87",
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "poolManagerBalances": {
+      "currency0": "277214367795",
+      "currency1": "393826"
+    },
+    "router": "0x96456C68f25A1Fa6C2F2751183401ac26A732506",
+    "tickSpacing": "10"
+  },
+  "snapshot": {
+    "blockHash": "0x7bc85f4b7e01db26f5e29c406967f21b07d03454253fe42b37629f0c684f283e",
+    "blockNumber": "46978251",
+    "timestamp": "1789724790"
+  },
+  "status": "executable",
+  "warning": "Preflight is a state snapshot. Signed limits and atomic rollback remain the final safety controls."
+}

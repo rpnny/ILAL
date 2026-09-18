@@ -1,0 +1,19 @@
+{
+  "domain": {
+    "chainId": "84532",
+    "name": "ILAL Institutional Netting",
+    "verifyingContract": "0x8d1fA43F848701b2adB105D5c925A9247E600088",
+    "version": "1"
+  },
+  "format": "ilal-order-intent-v1",
+  "order": {
+    "amountIn": "70000",
+    "deadline": "1789726589",
+    "maxAmmInput": "0",
+    "minAmountOut": "70000",
+    "nonce": "0x1f0fb69f54062da65a05d5352bfb4a5634e57e3441707a48e2c71a12db4e738a",
+    "poolId": "0xeab91a1421cb5c170df74c1eaf676a8836eda1fc5a833f62ab9c2d516acfbc87",
+    "user": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+    "zeroForOne": false
+  }
+}

@@ -8,6 +8,22 @@ import { buildReceipt, type SettlementReceipt } from "./receipt.js";
 
 type Client = PublicClient | any;
 type Writer = WalletClient | any;
+const ZERO_HASH = `0x${"00".repeat(32)}`;
+
+async function canonicalReceiptEvidence(publicClient: Client, transaction: any, receipt: any): Promise<any> {
+  const block = await publicClient.getBlock({ blockNumber: receipt.blockNumber });
+  if (!block.hash || block.hash.toLowerCase() === ZERO_HASH) throw new Error("Settlement block hash is unavailable.");
+  if (receipt.blockHash && receipt.blockHash.toLowerCase() !== ZERO_HASH && receipt.blockHash.toLowerCase() !== block.hash.toLowerCase()) {
+    throw new ProtocolValidationError("Transaction receipt block hash does not match the canonical block.");
+  }
+  if (transaction.blockNumber !== null && transaction.blockNumber !== undefined && transaction.blockNumber !== receipt.blockNumber) {
+    throw new ProtocolValidationError("Transaction and receipt block numbers differ.");
+  }
+  if (transaction.blockHash && transaction.blockHash.toLowerCase() !== ZERO_HASH && transaction.blockHash.toLowerCase() !== block.hash.toLowerCase()) {
+    throw new ProtocolValidationError("Transaction block hash does not match the canonical block.");
+  }
+  return { ...receipt, blockHash: block.hash };
+}
 
 export class SettlementRejectedError extends Error {
   readonly report: PreflightReport;
@@ -24,7 +40,8 @@ export async function inspectSettlement(publicClient: Client, transactionHash: H
     publicClient.getTransaction({ hash: transactionHash }),
     publicClient.getTransactionReceipt({ hash: transactionHash }),
   ]);
-  return buildReceipt({ chainId, transaction: { hash: transaction.hash, from: transaction.from, to: transaction.to, input: transaction.input }, receipt });
+  const canonicalReceipt = await canonicalReceiptEvidence(publicClient, transaction, receipt);
+  return buildReceipt({ chainId, transaction: { hash: transaction.hash, from: transaction.from, to: transaction.to, input: transaction.input }, receipt: canonicalReceipt });
 }
 
 export async function executeBatch(input: {
@@ -51,6 +68,7 @@ export async function executeBatch(input: {
   const transactionReceipt = await input.publicClient.waitForTransactionReceipt({ hash });
   if (transactionReceipt.status !== "success") throw new Error(`Batch transaction reverted: ${hash}`);
   const transaction = await input.publicClient.getTransaction({ hash });
-  const receipt = buildReceipt({ chainId: batch.chainId, transaction: { hash, from: transaction.from, to: transaction.to, input: transaction.input }, receipt: transactionReceipt });
+  const canonicalReceipt = await canonicalReceiptEvidence(input.publicClient, transaction, transactionReceipt);
+  const receipt = buildReceipt({ chainId: batch.chainId, transaction: { hash, from: transaction.from, to: transaction.to, input: transaction.input }, receipt: canonicalReceipt });
   return { hash, preflight: report, receipt };
 }

@@ -89,6 +89,10 @@ describe("Settlement Receipt", () => {
     reverted.receipt.status = "reverted";
     expect(() => buildReceipt({ chainId: 84532, transaction: reverted.transaction, receipt: reverted.receipt })).toThrow(/reverted transaction/);
 
+    const missingBlockIdentity = fixture();
+    missingBlockIdentity.receipt.blockHash = `0x${"00".repeat(32)}`;
+    expect(() => buildReceipt({ chainId: 84532, transaction: missingBlockIdentity.transaction, receipt: missingBlockIdentity.receipt })).toThrow(/non-zero block hash/);
+
     const tampered = fixture();
     tampered.receipt.logs[0]!.data = encodeAbiParameters(parseAbiParameters("bool,uint256,uint256,uint256,uint256"), [true, 99999n, 99903n, 70000n, 29903n]);
     expect(() => buildReceipt({ chainId: 84532, transaction: tampered.transaction, receipt: tampered.receipt })).toThrow(/does not match its signed order/);
