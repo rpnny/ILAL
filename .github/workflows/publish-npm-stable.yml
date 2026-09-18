@@ -66,9 +66,7 @@ jobs:
           npm pack --dry-run --workspace @ilalv3/protocol
           node scripts/verify-settlement-baseline.mjs
           node scripts/secret-scan.mjs
-      - name: Publish protocol bootstrap with npm provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
+      - name: Publish protocol with npm Trusted Publishing provenance
         run: |
           case "$GITHUB_REF_NAME" in
             *-*) npm publish --workspace @ilalv3/protocol --tag next --access public --provenance ;;
