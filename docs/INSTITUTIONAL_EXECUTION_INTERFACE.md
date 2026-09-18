@@ -111,6 +111,47 @@ Anvil-managed accounts and does not inherit workstation signing credentials.
 
 This local test does not substitute for the final funded Base Sepolia run.
 
+## Base Sepolia acceptance harness
+
+The final candidate run is guarded by a read-only readiness check. It pins all
+reads to one block and verifies the frozen Router, Hook, and oracle-guard runtime
+hashes; oracle freshness; credentials; balances; allowances; solver gas;
+inventory; batch context; and configured keystore addresses. It sends requests
+only to the explicitly configured JSON-RPC endpoint and never contacts an ILAL
+service:
+
+```bash
+ILAL_ACCEPTANCE_RPC=https://sepolia.base.org \
+  npm run acceptance:base-sepolia:check
+```
+
+The check prints `ilal-base-sepolia-acceptance-readiness-v1` JSON and exits `2`
+while a protocol prerequisite is missing. It does not load passwords, sign, or
+broadcast. `--output readiness.json` writes the report atomically with mode
+`0600`.
+
+Execution requires encrypted Web3 Secret Storage v3 keystores and password
+files with mode `0600`. Supply paths, never secret contents:
+
+```bash
+export ILAL_INSTITUTION_A_KEYSTORE=/secure/institution-a.json
+export ILAL_INSTITUTION_A_PASSWORD_FILE=/secure/institution-a.password
+export ILAL_INSTITUTION_B_KEYSTORE=/secure/institution-b.json
+export ILAL_INSTITUTION_B_PASSWORD_FILE=/secure/institution-b.password
+export ILAL_EXECUTOR_KEYSTORE=/secure/executor.json
+export ILAL_EXECUTOR_PASSWORD_FILE=/secure/executor.password
+
+node scripts/base-sepolia-institutional-acceptance.mjs \
+  --execute --output-dir ./base-sepolia-acceptance
+```
+
+Before creating any order, the harness requires every chain prerequisite and
+keystore identity to match, then decrypts all three keystores to confirm their
+addresses. It runs create, sign, build, preview, preflight, execute, and inspect;
+requires byte-identical receipts; and verifies zero Router/Hook inventory, a
+closed batch context, and consumed nonces. Existing output directories and
+reports are refused unless `--force` is explicit.
+
 ## Compatibility and boundaries
 
 The prior `ilal netting ...` commands remain available as deprecated aliases.

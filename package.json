@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "test:institutional-e2e": "node scripts/institutional-e2e.mjs",
+    "acceptance:base-sepolia:check": "node scripts/base-sepolia-institutional-acceptance.mjs --check",
     "build": "npm run build --workspace @ilalv3/protocol && npm run build --workspace @ilalv3/sdk && npm run build --workspace @ilalv3/cli",
     "test": "npm run build --workspace @ilalv3/protocol && npm run test --workspace @ilalv3/protocol && npm run test --workspace @ilalv3/sdk && npm run test --workspace @ilalv3/cli",
     "package-check": "npm pack --dry-run --workspace @ilalv3/protocol && npm pack --dry-run --workspace @ilalv3/cli && node scripts/package-smoke-test.mjs"
