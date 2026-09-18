@@ -22,10 +22,10 @@
     "fuzzRuns": 256
   },
   "lastLocalVerification": {
-    "date": "2026-09-13",
+    "date": "2026-09-18",
     "foundry": { "passed": 282, "failed": 0, "skipped": 0 },
     "cli": { "passed": 58, "failed": 0, "skipped": 0 },
-    "protocol": { "passed": 12, "failed": 0 },
+    "protocol": { "passed": 15, "failed": 0 },
     "sdk": { "passed": 18, "failed": 0 },
     "circuitOracle": { "passed": 8, "failed": 0 },
     "circuitV1": { "validWitnessAccepted": 1, "adversarialWitnessesRejected": 3 },
@@ -38,17 +38,25 @@
   "releaseNotes": [
     "Adds the local-first ILAL Order, ILAL Batch, and Settlement Receipt workflow.",
     "Extracts the reference implementation into @ilalv3/protocol.",
-    "Preserves the frozen Hookathon settlement contracts and legacy netting CLI aliases."
+    "Preserves the frozen Hookathon settlement contracts and legacy netting CLI aliases.",
+    "Binds Settlement Receipts to the canonical non-zero block identity returned by the configured JSON-RPC."
   ],
   "institutionalInterfaceVerification": {
-    "date": "2026-09-17",
-    "protocol": { "passed": 12, "failed": 0 },
+    "date": "2026-09-18",
+    "protocol": { "passed": 15, "failed": 0 },
     "cli": { "passed": 58, "failed": 0 },
     "sdk": { "passed": 18, "failed": 0 },
     "anvilEndToEnd": "passed",
-    "executeInspectByteEquality": "passed on Anvil",
+    "executeInspectByteEquality": "passed on Anvil and Base Sepolia",
     "compiledBaselineHashes": "passed",
-    "freshBaseSepoliaAcceptance": "pending funded institutional signers",
+    "freshBaseSepoliaAcceptance": {
+      "status": "passed",
+      "transactionHash": "0xcec4be62969b74bf4a330c79da69f6060b45838bd6926c5e1bad0426ae41a674",
+      "blockNumber": "46978263",
+      "blockHash": "0x9681559939af8963ac12318af3e39f8132f5665574d39cccf2cad7ce51482ff0",
+      "batchId": "0x68b6028ef8dba3b9a129407a7ad85291b0f33b15b68c75453c931246babb8626",
+      "evidence": "docs/evidence/base-sepolia-institutional-acceptance-2026-09-18/README.md"
+    },
     "npmPublication": "not yet published"
   },
   "releaseBlockers": [
