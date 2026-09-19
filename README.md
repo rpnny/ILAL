@@ -10,6 +10,8 @@
 
 ILAL (Institutional Liquidity Access Layer) is a compliance and settlement layer for Uniswap v4. It addresses two barriers to institutional onchain execution:
 
+The repository also contains the new **Mixed v1 local implementation candidate**, which combines atomic execution, Mixed CNF/ZK grants and owner-isolated LP positions under one Hook. It is unaudited, wire-incompatible with earlier candidates, and has not been deployed or published. See the [executable specification](docs/mixed/SPEC.md) and [local runbook](docs/mixed/RUNBOOK.md).
+
 1. **Compliance overhead** — an institution should not repeat the same eligibility checks for every action.
 2. **Market exposure** — when eligible orders oppose each other, sending both gross legs through an AMM creates avoidable price impact and information leakage.
 

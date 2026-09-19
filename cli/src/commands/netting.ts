@@ -34,7 +34,7 @@ const ZERO_ADDRESS = `0x${"00".repeat(20)}` as Address;
 const PREFLIGHT_CALLER = "0x0000000000000000000000000000000000000001" as Address;
 const BASE_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F" as Address;
 
-const ORDER_COMPONENTS = [
+export const NETTING_ORDER_COMPONENTS = [
   { name: "user", type: "address" },
   { name: "poolId", type: "bytes32" },
   { name: "zeroForOne", type: "bool" },
@@ -64,21 +64,21 @@ const HEADER_COMPONENTS = [
   { name: "exposureReduction", type: "uint256" },
 ] as const;
 
-const NETTING_ROUTER_ABI = [
+export const NETTING_ROUTER_ABI = [
   {
     name: "poolManager", type: "function", stateMutability: "view", inputs: [],
     outputs: [{ name: "", type: "address" }],
   },
   {
     name: "previewBatch", type: "function", stateMutability: "pure",
-    inputs: [{ name: "orders", type: "tuple[]", components: ORDER_COMPONENTS }],
+    inputs: [{ name: "orders", type: "tuple[]", components: NETTING_ORDER_COMPONENTS }],
     outputs: [{ name: "header", type: "tuple", components: HEADER_COMPONENTS }],
   },
   {
     name: "executeBatch", type: "function", stateMutability: "nonpayable",
     inputs: [
       { name: "key", type: "tuple", components: POOL_KEY_COMPONENTS },
-      { name: "orders", type: "tuple[]", components: ORDER_COMPONENTS },
+      { name: "orders", type: "tuple[]", components: NETTING_ORDER_COMPONENTS },
       { name: "signatures", type: "bytes[]" },
     ],
     outputs: [{ name: "batchId", type: "bytes32" }],
@@ -244,6 +244,13 @@ export interface NettingPreflightReport {
   warning: string;
 }
 
+export interface SignedNettingOrderResult {
+  output: string;
+  orderHash: Hex;
+  nonce: Hex;
+  file: SignedOrderFile;
+}
+
 const ORACLE_ERROR_NAMES = new Map<string, string>([
   ["FeedCallFailed(address)", "CHAINLINK_FEED_CALL_FAILED"],
   ["InvalidRound(address,uint80,uint256)", "CHAINLINK_INVALID_ROUND"],
@@ -286,7 +293,7 @@ function uint(value: string | undefined, label: string, maximum = UINT128_MAX): 
   return parsed;
 }
 
-function orderHash(order: NettingOrder): Hex {
+export function orderHash(order: NettingOrder): Hex {
   return keccak256(encodeAbiParameters(
     parseAbiParameters("bytes32,address,bytes32,bool,uint128,uint128,uint128,uint64,bytes32"),
     [
@@ -342,7 +349,7 @@ export function previewNettingOrders(orders: NettingOrder[]): NettingPreview {
   };
 }
 
-function serializeOrder(order: NettingOrder): Record<keyof NettingOrder, string | boolean> {
+export function serializeOrder(order: NettingOrder): Record<keyof NettingOrder, string | boolean> {
   return {
     user: order.user,
     poolId: order.poolId,
@@ -378,7 +385,7 @@ function parseSignedOrder(path: string): { file: SignedOrderFile; order: Netting
   return { file, order };
 }
 
-function loadBatch(paths: string[]): { files: SignedOrderFile[]; orders: NettingOrder[]; signatures: Hex[] } {
+export function loadBatch(paths: string[]): { files: SignedOrderFile[]; orders: NettingOrder[]; signatures: Hex[] } {
   if (paths.length < 2 || paths.length > 16) die("A batch requires 2 to 16 signed order files.");
   const parsed = paths.map(parseSignedOrder);
   const hook = parsed[0]!.file.domain.verifyingContract.toLowerCase();
@@ -686,7 +693,7 @@ export async function nettingOrderSign(opts: {
   pool?: string; hook?: string; user?: string; amountIn: string; minAmountOut: string;
   maxAmmInput: string; zeroForOne?: boolean; oneForZero?: boolean; deadline?: string;
   ttl?: string; nonce?: string; output: string; chain?: string; rpc?: string; privateKey?: string;
-}): Promise<void> {
+}): Promise<SignedNettingOrderResult> {
   const cfg = withConfig(opts);
   if (opts.zeroForOne === opts.oneForZero) die("Choose exactly one direction: --zero-for-one or --one-for-zero.");
   const hook = requireAddress(cfg.hook, "Hook");
@@ -719,7 +726,7 @@ export async function nettingOrderSign(opts: {
     account: clients.account,
     domain: { name: "ILAL Institutional Netting", version: "1", chainId, verifyingContract: hook },
     primaryType: "NettingOrder",
-    types: { NettingOrder: ORDER_COMPONENTS },
+    types: { NettingOrder: NETTING_ORDER_COMPONENTS },
     message: order,
   });
   const file: SignedOrderFile = {
@@ -730,16 +737,25 @@ export async function nettingOrderSign(opts: {
   };
   const output = resolve(opts.output);
   writeFileSync(output, `${JSON.stringify(file, null, 2)}\n`, { mode: 0o600 });
+  const hash = orderHash(order);
   header("Netting order signed", order.zeroForOne ? "token0 → token1" : "token1 → token0");
   log.ok(`Wrote ${output}`);
-  console.log(`orderHash: ${orderHash(order)}`);
+  console.log(`orderHash: ${hash}`);
   console.log(`nonce:     ${nonce}`);
+  return { output, orderHash: hash, nonce, file };
+}
+
+export function previewNettingOrderFiles(paths: string[]): NettingPreview {
+  const batch = loadBatch(paths);
+  const preview = previewNettingOrders(batch.orders);
+  if (preview.total0 === 0n || preview.total1 === 0n) {
+    die("Batch must contain at least one order in each direction.");
+  }
+  return preview;
 }
 
 export async function nettingBatchPreview(opts: { orders: string[] }): Promise<void> {
-  const batch = loadBatch(opts.orders);
-  const preview = previewNettingOrders(batch.orders);
-  if (preview.total0 === 0n || preview.total1 === 0n) die("Batch must contain at least one order in each direction.");
+  const preview = previewNettingOrderFiles(opts.orders);
   header("Atomic netting preview", `${preview.orderCount} orders`);
   printPreview(preview);
 }

@@ -26,6 +26,55 @@ npm test
 
 `ilal init` selects only the active v0.3.3 manifest on Base Sepolia. Deprecated presets are never selected automatically.
 
+## Local institutional console
+
+### Mixed v1 local candidate
+
+The source tree also includes the unpublished Mixed v1 command group. It uses an explicit versioned manifest and RPC; it never falls back to the active v0.3.3 preset.
+
+```bash
+ilal mixed check --manifest mixed.json --rpc http://127.0.0.1:8545
+ilal mixed monitor --manifest mixed.json --rpc http://127.0.0.1:8545
+ilal mixed quote --manifest mixed.json --rpc http://127.0.0.1:8545 --input orders.json
+ilal mixed status --manifest mixed.json --rpc http://127.0.0.1:8545 --input signed-order.json
+ilal mixed console --manifest mixed.json --rpc http://127.0.0.1:8545
+```
+
+`approve` is the ERC-20 permission path. `sign` authorizes execution but cannot move tokens without that permission. `grant` requires an explicit CNF, ZK or BOTH source and never silently falls back. `policy-prepare` only emits reviewable governance calldata. Mixed v1 has no public deployment and remains unaudited.
+
+The preview CLI includes a loopback-only browser console for institution and
+solver workflows. It reuses the CLI implementation; private keys, keystore
+passwords, RPC calls and order files remain in the local CLI process rather
+than browser storage.
+
+```bash
+ilal --keystore ./institution.json --password-file ./institution.password console
+```
+
+The command binds to `127.0.0.1`, opens the institution app at
+`http://127.0.0.1:4173/app.html`, and stops with Ctrl+C. The separate operator
+workspace remains available at `/console.html`. `--rpc-account 0x...` is also
+supported. The institution app has two deliberately different execution paths:
+
+- **Instant** runs the canonical CLI preflight, creates a two-minute one-time
+  confirmation challenge, then uses the configured local signer to approve (if
+  needed) and broadcast the ILAL swap to Base Sepolia. The confirmed swap and
+  optional approval are linked directly to BaseScan.
+- **Netting** creates institution-signed EIP-712 order JSON under
+  `.ilal-console/orders/` and previews it offline. The institution page does not
+  impersonate the Solver: the Solver later broadcasts the atomic batch from the
+  operator workflow.
+
+No transaction is sent by the first review action. A live Instant swap requires
+a positive minimum output and a separate final **Confirm & broadcast to Base
+Sepolia** action. Challenges expire after two minutes and are single-use.
+Invalid requests are returned to the page without terminating the long-running
+console process.
+
+Use `ilal console --no-open --port 4174` when browser launch or the default port
+is not desired. The local API requires an in-memory session token for mutations
+and rejects cross-origin requests.
+
 ## Atomic netting (Hookathon candidate)
 
 ### Signer-free preflight

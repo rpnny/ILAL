@@ -62,3 +62,7 @@ data-room-private/
 
 # Locally generated verification evidence
 artifacts/
+
+# Local Console state and render scratch files
+.ilal-console/
+tmp/

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { registerMixed } from "./commands/mixed.js";
 import { credentialStatus } from "./commands/credential.js";
 import { credentialProve, credentialRoot } from "./commands/prove.js";
 import {
@@ -42,9 +43,11 @@ import { COINBASE_SCHEMA_UID } from "./constants.js";
 import { configureSignerOptions, type GlobalSignerOptions } from "./signer.js";
 import { safePropose } from "./safe.js";
 import { nettingBatchExecute, nettingBatchPreflight, nettingBatchPreview, nettingNonceCancel, nettingOrderSign } from "./commands/netting.js";
+import { startConsole } from "./commands/console.js";
 import { base, baseSepolia } from "viem/chains";
 
 const program = new Command();
+registerMixed(program);
 
 program
   .name("ilal")
@@ -109,6 +112,15 @@ program
   .option("-r, --rpc <url>",          "Custom RPC URL")
   .action(async (opts: { wallet?: string; issuer?: string; hook?: string; registry?: string; grantManager?: string; protocolVersion?: string; pool?: string; chain?: string; rpc?: string }) => {
     await status(opts).catch(err);
+  });
+
+program
+  .command("console")
+  .description("Open the local institutional operations console")
+  .option("--port <port>", "Loopback port", "4173")
+  .option("--no-open", "Do not open the browser automatically")
+  .action(async (opts: { port: string; open: boolean }) => {
+    await startConsole(opts).catch(err);
   });
 
 // ─── demo ─────────────────────────────────────────────────────────────────────

@@ -110,6 +110,28 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const MAX_UINT256 = 2n ** 256n - 1n;
 const SECP256K1_HALF_ORDER = BigInt("0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0");
 
+export interface SwapExecutionResult {
+  mode: "simulation" | "broadcast";
+  chainId: number;
+  network: string;
+  signer: `0x${string}`;
+  tokenIn: `0x${string}`;
+  tokenSymbol: string;
+  tokenDecimals: number;
+  amountIn: string;
+  amountInRaw: string;
+  minAmountOutRaw: string;
+  totalDebitRaw: string;
+  protocolFeePips: number;
+  preflightErrors: string[];
+  approvalHash?: `0x${string}`;
+  approvalExplorerUrl?: string;
+  transactionHash?: `0x${string}`;
+  explorerUrl?: string;
+  blockNumber?: string;
+  gasUsed?: string;
+}
+
 function txUrl(chain: Chain, hash: `0x${string}`): string | undefined {
   if (process.env["ILAL_DISABLE_EXPLORER"] === "1") return undefined;
   const baseUrl = chain.blockExplorers?.default?.url;
@@ -190,7 +212,7 @@ export async function swap(opts: {
   hookData?:     string;
   simulate?:     boolean;
   explain?:      boolean;
-}) {
+}): Promise<SwapExecutionResult> {
   let minAmountOut = 0n;
   if (opts.minAmountOut !== undefined) {
     try {
@@ -490,11 +512,26 @@ export async function swap(opts: {
     log.ok("Simulation mode — skipping approval and on-chain tx");
     log.kv("hookData", hookData.slice(0, 22) + "…");
     console.log();
-    return;
+    return {
+      mode: "simulation",
+      chainId: chain.id,
+      network: chain.name,
+      signer: account.address,
+      tokenIn,
+      tokenSymbol: symbol,
+      tokenDecimals: decimals,
+      amountIn: opts.amountIn,
+      amountInRaw: amountIn.toString(),
+      minAmountOutRaw: minAmountOut.toString(),
+      totalDebitRaw: totalDebit.toString(),
+      protocolFeePips,
+      preflightErrors,
+    };
   }
 
   // Check allowance — approve if needed
   const approveSpin = new Spinner("Checking allowance…").start();
+  let approvalHash: `0x${string}` | undefined;
   const allowed = await pubClient.readContract({
     address: tokenIn,
     abi:     ERC20_ABI,
@@ -511,6 +548,7 @@ export async function swap(opts: {
       args:         [cfg.router as `0x${string}`, totalDebit],
     });
     await pubClient.waitForTransactionReceipt({ hash: approveHash });
+    approvalHash = approveHash;
     approveSpin.succeed(`Approved exact debit ${tokenAmount(totalDebit, decimals, symbol)} ${fmt.gray(fmt.hash(approveHash))}`);
   } else {
     approveSpin.succeed(`Allowance: ${allowanceLabel(allowed, decimals, symbol)}`);
@@ -586,4 +624,25 @@ export async function swap(opts: {
   const explorer = txUrl(chain, txHash!);
   if (explorer) log.kv("explorer", fmt.cyan(explorer));
   console.log();
+  return {
+    mode: "broadcast",
+    chainId: chain.id,
+    network: chain.name,
+    signer: account.address,
+    tokenIn,
+    tokenSymbol: symbol,
+    tokenDecimals: decimals,
+    amountIn: opts.amountIn,
+    amountInRaw: amountIn.toString(),
+    minAmountOutRaw: minAmountOut.toString(),
+    totalDebitRaw: totalDebit.toString(),
+    protocolFeePips,
+    preflightErrors,
+    approvalHash,
+    approvalExplorerUrl: approvalHash ? txUrl(chain, approvalHash) : undefined,
+    transactionHash: txHash!,
+    explorerUrl: explorer,
+    blockNumber: receipt!.blockNumber.toString(),
+    gasUsed: receipt!.gasUsed.toString(),
+  };
 }

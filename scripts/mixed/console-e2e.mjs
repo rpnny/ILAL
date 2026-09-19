@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {request as httpRequest} from 'node:http';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {startMixedConsole} from '../../cli/dist/commands/mixedConsole.js';
+import {mixedJSON} from '../../sdk/dist/index.js';
+const require=createRequire(new URL('../../sdk/package.json',import.meta.url));const {createPublicClient,createWalletClient,http,toHex}=require('viem'),{privateKeyToAccount}=require('viem/accounts'),{foundry}=require('viem/chains');
+const rpc='http://127.0.0.1:8547';const client=createPublicClient({chain:foundry,transport:http(rpc),cacheTime:0,pollingInterval:50});assert.equal(await client.getChainId(),31337);
+const wallets=[0xA11CEn,0xB0Bn].map(k=>createWalletClient({account:privateKeyToAccount(toHex(k,{size:32})),chain:foundry,transport:http(rpc)}));
+const snapshot=await client.request({method:'evm_snapshot'});
+const server=await startMixedConsole({manifest:'artifacts/mixed/local-deployment.json',rpc,port:'4175'}),base='http://127.0.0.1:4175';let checks=[];
+try{
+ const html=await fetch(base);assert.match(await html.text(),/Authorize\. Match\. Settle/);assert.match(html.headers.get('content-security-policy'),/frame-ancestors 'none'/);
+ assert.equal((await fetch(base+'/api/config')).status,403);assert.equal((await fetch(base+'/api/session',{headers:{Origin:'https://invalid.example'}})).status,403);assert.equal(await new Promise((ok,reject)=>{const r=httpRequest(base+'/api/session',{headers:{Host:'invalid.example'}},res=>{res.resume();ok(res.statusCode);});r.on('error',reject);r.end();}),403);checks.push('HTML/CSP/session/origin/host protections');
+ const {token}=await (await fetch(base+'/api/session')).json();
+ const api=async(path,data,expected=200)=>{const r=await fetch(base+'/api/'+path,{method:data?'POST':'GET',headers:{'x-ilal-session':token,'content-type':'application/json'},body:data?mixedJSON(data):undefined});const j=await r.json();assert.equal(r.status,expected,j.error);return j;};
+ const sign=async(p,w)=>{const signature=await w.signTypedData(p.typedData);return api('signed',{challengeId:p.challengeId,signature});};
+ const send=async(t,w=wallets[0])=>{const hash=await w.sendTransaction({...t,value:BigInt(t.value),account:w.account});const r=await client.waitForTransactionReceipt({hash});assert.equal(r.status,'success');return hash;};
+ const drafts=[];for(let i=0;i<2;i++)drafts.push(await api('prepare',{kind:'order',user:wallets[i].account.address,order:{zeroForOne:i===0,amountIn:i?'70000000':'100000000',minAmountOut:'1',maxAmmInput:'100000000',minSqrtPriceX96:'78833030112140176575862854579',maxSqrtPriceX96:'79625275426524748796330556128'}}));
+ const q=await api('quote',{orders:drafts.map(p=>p.typedData.message)});assert.equal(q.allocations.length,2);
+ assert.deepEqual((await api('challenge',{challengeId:drafts[0].challengeId})).typedData,drafts[0].typedData);
+ const signed=[];for(let i=0;i<2;i++)signed.push((await sign(drafts[i],wallets[i])).order);
+ await api('challenge',{challengeId:drafts[0].challengeId},400);checks.push('canonical draft retrieval and single-use signing challenges');
+ const ready=await api('execute-prepare',{user:wallets[0].account.address,orders:signed});const hash=await send(ready.transaction);
+ assert.equal((await api('receipt?hash='+hash)).status,'success');const statuses=await api('status',{orders:signed});assert.ok(statuses.every(s=>s.state==='consumed-or-cancelled'));await api('execute-prepare',{user:wallets[0].account.address,orders:signed},400);checks.push('quote / wallet signatures / re-simulation / execution / receipts / replay rejection / order status');
+ const cn=toHex(9999999n,{size:32});await send((await api('cancel-prepare',{user:wallets[0].account.address,namespace:0,nonce:cn})).transaction);checks.push('explicit namespace cancellation');
+ const lp=await api('prepare',{kind:'liquidity',user:wallets[0].account.address,authorization:{action:5,tickLower:-1000,tickUpper:1000,liquidityDelta:'0',userSalt:toHex(0n,{size:32}),amount0Limit:'0',amount1Limit:'0'}});await send((await sign(lp,wallets[0])).transaction);checks.push('owner-signed fee collection');
+ const proofs=JSON.parse(readFileSync('artifacts/mixed/proofs/fixture.json','utf8'));const gp=await api('prepare',{kind:'grant',user:wallets[0].account.address,source:3,...proofs.proofs[0]});await send((await sign(gp,wallets[0])).transaction);checks.push('BOTH grant with real proof');
+ const state=await api('state?user='+wallets[0].account.address);assert.equal(state.eligible,true);assert.equal(state.market.healthy,true);checks.push('read-only policy / grant / oracle monitor');
+ writeFileSync('artifacts/mixed/console-e2e.json',mixedJSON({passed:true,checks})+'\n');console.log('Console HTTP and wallet-protocol integration passed. Browser rendering checked separately.');
+}finally{await new Promise(resolve=>server.close(resolve));assert.equal(await client.request({method:'evm_revert',params:[snapshot]}),true);}
