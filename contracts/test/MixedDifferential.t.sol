@@ -7,13 +7,16 @@ import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 
 contract MixedDifferentialTest is Test {
     function test_typesAndMathAgainstTypeScript() public {
-        if (!vm.envOr("ILAL_MIXED_DIFFERENTIAL", false)) vm.skip(true);
-        return;
+        if (!vm.envOr("ILAL_MIXED_DIFFERENTIAL", false)) {
+            vm.skip(true);
+            return;
+        }
         string[] memory cmd = new string[](2);
         cmd[0] = "node";
         cmd[1] = "../sdk/scripts/mixed-vectors.mjs";
         (uint256[10][] memory rows, bytes32 orderHash, bytes32 commitment) =
             abi.decode(vm.ffi(cmd), (uint256[10][], bytes32, bytes32));
+        assertEq(rows.length, 128, "unexpected differential vector count");
         for (uint256 i; i < rows.length; i++) {
             uint256[10] memory r = rows[i];
             MatchingMath.Budget memory b = MatchingMath.budget(r[0] + r[1], r[2], uint160(r[3]));
