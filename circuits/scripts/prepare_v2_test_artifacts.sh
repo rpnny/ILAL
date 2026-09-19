@@ -6,7 +6,8 @@ CIRCUITS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${ILAL_V2_BUILD_DIR:-$CIRCUITS_DIR/build-v2}"
 PTAU_FILE="${ILAL_V2_PTAU_FILE:-$CIRCUITS_DIR/ptau/pot18_final.ptau}"
 PTAU_DIR="$(dirname "$PTAU_FILE")"
-PTAU_URL="https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_18.ptau"
+PTAU_PRIMARY_URL="https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_18.ptau"
+PTAU_MIRROR_URL="https://media.githubusercontent.com/media/ttdung/zk-ceremony/bc98bd481d574be093b5b7acdedd94522ddca42c/circuits/powersOfTau28_hez_final_18.ptau"
 PTAU_SHA256="e970efa7774da80101e0ac336d083ef3339855c98112539338d706b2b89ac694"
 
 artifacts_ready() {
@@ -32,10 +33,19 @@ mkdir -p "$PTAU_DIR"
 if [ ! -s "$PTAU_FILE" ] || [ "$(sha256_file "$PTAU_FILE")" != "$PTAU_SHA256" ]; then
   ptau_download="$PTAU_FILE.download"
   echo "Downloading pinned Powers of Tau for the testnet-only V2 proving key..."
-  curl --fail --location --retry 3 --retry-all-errors --output "$ptau_download" "$PTAU_URL"
-  downloaded_sha256="$(sha256_file "$ptau_download")"
-  if [ "$downloaded_sha256" != "$PTAU_SHA256" ]; then
-    echo "ERROR: downloaded Powers of Tau SHA-256 mismatch: $downloaded_sha256" >&2
+  downloaded=false
+  for ptau_url in "${ILAL_V2_PTAU_URL:-$PTAU_PRIMARY_URL}" "$PTAU_MIRROR_URL"; do
+    if curl --fail --location --retry 3 --retry-all-errors --output "$ptau_download" "$ptau_url"; then
+      downloaded_sha256="$(sha256_file "$ptau_download")"
+      if [ "$downloaded_sha256" = "$PTAU_SHA256" ]; then
+        downloaded=true
+        break
+      fi
+      echo "WARNING: rejected Powers of Tau from $ptau_url: SHA-256 $downloaded_sha256" >&2
+    fi
+  done
+  if [ "$downloaded" != true ]; then
+    echo "ERROR: no Powers of Tau source produced pinned SHA-256 $PTAU_SHA256" >&2
     exit 1
   fi
   mv "$ptau_download" "$PTAU_FILE"
