@@ -1,0 +1,246 @@
+1
+00:00:00,000 --> 00:00:05,500
+Why send 170 units into the market
+when the real imbalance is only 30?
+
+2
+00:00:05,500 --> 00:00:10,500
+Two verified institutions
+want opposite trades.
+
+3
+00:00:10,500 --> 00:00:15,000
+ILAL settles what cancels and sends
+only the imbalance to Uniswap v4.
+
+4
+00:00:15,000 --> 00:00:20,500
+The rails are already large:
+roughly $4 trillion of Uniswap volume,
+
+5
+00:00:20,500 --> 00:00:27,000
+$12.7 trillion of adjusted stablecoin value
+in the first half of 2025,
+
+6
+00:00:27,000 --> 00:00:31,500
+and more than $10 billion
+in tokenized Treasuries.
+
+7
+00:00:31,500 --> 00:00:38,500
+Yet institutional controls still sit around the trade,
+not inside final execution.
+
+8
+00:00:38,500 --> 00:00:42,000
+That is the entire why.
+Now, the how.
+
+9
+00:00:42,000 --> 00:00:46,000
+ILAL has two independent candidates today.
+
+10
+00:00:46,000 --> 00:00:52,500
+Session answers who may act:
+prove compliance once through EAS or ZK,
+
+11
+00:00:52,500 --> 00:00:55,500
+and receive a short-lived grant.
+
+12
+00:00:55,500 --> 00:01:01,500
+SOEE answers how a group executes:
+net opposite directions atomically,
+
+13
+00:01:01,500 --> 00:01:05,000
+and route only the imbalance to v4.
+Today, I am demonstrating SOEE.
+
+14
+00:01:05,000 --> 00:01:10,500
+An institution does not need to use
+the Uniswap consumer interface.
+
+15
+00:01:10,500 --> 00:01:16,500
+Its treasury system connects through our SDK or CLI.
+It defines the order, signs locally, and keeps custody.
+
+16
+00:01:16,500 --> 00:01:21,500
+A solver discovers eligible opposite flow
+and selects orders for settlement.
+
+17
+00:01:21,500 --> 00:01:30,000
+But execution succeeds only if the Router and Hook
+enforce every signed condition atomically.
+
+18
+00:01:30,000 --> 00:01:33,000
+This is the important boundary.
+
+19
+00:01:33,000 --> 00:01:41,500
+The institution signs the pool, direction, amount,
+minimum output, maximum AMM input,
+
+20
+00:01:41,500 --> 00:01:46,000
+deadline, and nonce.
+
+21
+00:01:46,000 --> 00:01:51,500
+The solver may choose batch membership and timing,
+but it cannot change those fields.
+
+22
+00:01:51,500 --> 00:01:55,000
+The Hook verifies and enforces them.
+Authority to submit is not authority to decide.
+
+23
+00:01:55,000 --> 00:02:01,000
+Institution A signs 100 units in one direction.
+Institution B signs 70 in the other.
+
+24
+00:02:01,000 --> 00:02:07,000
+Seventy matches seventy,
+so 140 units of gross flow
+
+25
+00:02:07,000 --> 00:02:11,500
+settle without touching the AMM.
+
+26
+00:02:11,500 --> 00:02:20,000
+Only the 30-unit imbalance moves the Uniswap curve—
+an 82.35% reduction in gross AMM exposure.
+
+27
+00:02:20,000 --> 00:02:27,500
+For the same fixed signed set, permutation cannot change
+the batch ID, allocation, or pool result.
+
+28
+00:02:27,500 --> 00:02:34,000
+Policy, CNF, and the Chainlink circuit breaker
+run before assets move.
+
+29
+00:02:34,000 --> 00:02:40,500
+The Hook nets opposing flow with before-swap deltas,
+while v4 executes only one residual exact-input leg.
+
+30
+00:02:40,500 --> 00:02:45,000
+The solver chooses membership and timing.
+It never rewrites a signed order.
+
+31
+00:02:45,000 --> 00:02:48,000
+The tradeoff is explicit.
+
+32
+00:02:48,000 --> 00:02:55,500
+The canonical case reduces AMM exposure by 82.35%
+and improves aggregate output by 4.12 basis points—
+
+33
+00:02:55,500 --> 00:02:59,500
+but local execution gas is 3.57 times higher.
+
+34
+00:02:59,500 --> 00:03:06,000
+At one gwei, the modeled break-even trade value
+ranges from about $1,387 to $2,774,
+
+35
+00:03:06,000 --> 00:03:10,000
+depending on the ETH price.
+This is a reproducible benchmark, not a forecast.
+
+36
+00:03:10,000 --> 00:03:14,000
+Now let's see the actual institutional workflow.
+
+37
+00:03:14,000 --> 00:03:20,500
+Institution A signs an order for 0.10 USDC.
+
+38
+00:03:20,500 --> 00:03:27,500
+Institution B signs the opposite order
+for 0.07 hUSDT.
+
+39
+00:03:27,500 --> 00:03:34,500
+Both signatures remain local.
+Nothing is broadcast yet.
+
+40
+00:03:34,500 --> 00:03:41,500
+ILAL matches 0.14 without touching the AMM
+and routes only the 0.03 USDC imbalance to Uniswap v4.
+
+41
+00:03:41,500 --> 00:03:49,500
+After checking signatures, policy, credentials,
+limits, and Chainlink,
+
+42
+00:03:49,500 --> 00:03:54,500
+the executor broadcasts one atomic transaction.
+
+43
+00:03:54,500 --> 00:04:00,000
+It is confirmed on Base Sepolia.
+Now let's verify it on BaseScan.
+
+44
+00:04:00,000 --> 00:04:04,000
+This is the successful Base Sepolia transaction.
+
+45
+00:04:04,000 --> 00:04:09,000
+The institutions submitted 0.17 tokens
+of gross flow.
+
+46
+00:04:09,000 --> 00:04:14,000
+ILAL matched 0.14 without touching the AMM,
+and only 0.03 reached Uniswap v4.
+
+47
+00:04:14,000 --> 00:04:20,000
+Both nonces were consumed, every signed limit held,
+and the Hook and Router finished with zero token inventory.
+
+48
+00:04:20,000 --> 00:04:24,000
+ILAL does not create another liquidity venue.
+
+49
+00:04:24,000 --> 00:04:29,500
+It provides a working path toward institution-ready
+execution on existing Uniswap liquidity.
+
+50
+00:04:29,500 --> 00:04:33,000
+Session for access—EAS or ZK.
+SOEE for execution—
+
+51
+00:04:33,000 --> 00:04:36,500
+net what cancels,
+send only the residual.
+
+52
+00:04:36,500 --> 00:04:40,000
+This is an unaudited Base Sepolia candidate.
