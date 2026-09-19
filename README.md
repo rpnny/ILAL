@@ -43,7 +43,6 @@ In the latest public settlement, two institutions submitted **0.10 USDC** and **
 | Demo materials | [`ilal-soee-demo-day-v6.html`](docs/hookathon/ilal-soee-demo-day-v6.html) and [`hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command) |
 
 Run the full repository verification:
-
 ```bash
 make verify
 ```
