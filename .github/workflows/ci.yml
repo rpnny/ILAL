@@ -44,6 +44,10 @@ jobs:
           node scripts/summarize-tests.mjs artifacts/verify.log artifacts/test-summary.json
       - name: Prepare V2 testnet proving artifacts
         run: PATH="$RUNNER_TEMP/circom/bin:$PATH" circuits/scripts/prepare_v2_test_artifacts.sh
+      - name: Mixed executable specification and 100000 stateful calls
+        run: PATH="$RUNNER_TEMP/circom/bin:$PATH" make mixed-verify
+      - name: Mixed local end-to-end and economics
+        run: make mixed-local
       - name: Institutional study PR gate
         env:
           ILAL_STUDY_RWA_SIZES: "100"

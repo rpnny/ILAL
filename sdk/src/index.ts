@@ -12,3 +12,8 @@ export type {
   CredentialStatus,
 } from "./types.js";
 export { ACTION_CODES } from "./types.js";
+
+export * from './mixed/model.js';
+export * from './mixed/types.js';
+export * from './mixed/abi.js';
+export * from './mixed/client.js';

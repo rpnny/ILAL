@@ -38,10 +38,10 @@ release-check:
 
 contracts-test:
 	cd contracts && test -d lib/v4-core || ./scripts/install-deps.sh
-	cd contracts && forge fmt --check src/*.sol src/interfaces src/libraries src/mocks src/netting src/oracle src/test src/v2 script test
+	cd contracts && forge fmt --check src/*.sol src/interfaces src/libraries src/mocks src/mixed src/netting src/oracle src/test src/v2 script test
 	cd contracts && forge build && forge test
 
-cli-test:
+cli-test: sdk-build
 	cd cli && npm run build && npm test
 
 sdk-test:
@@ -60,3 +60,22 @@ sbom-check:
 	cd cli && npm sbom --sbom-format cyclonedx >/dev/null
 	cd sdk && npm sbom --sbom-format cyclonedx >/dev/null
 	cd circuits && npm sbom --sbom-format cyclonedx >/dev/null
+
+.PHONY: sdk-build mixed-prepare mixed-verify mixed-local
+sdk-build:
+	cd sdk && npm run build
+
+mixed-prepare: sdk-build
+	cd cli && npm run build
+	circuits/scripts/prepare_v2_test_artifacts.sh
+	node scripts/mixed/prepare-real-proof.mjs
+
+mixed-verify: mixed-prepare
+	ILAL_MIXED_DIFFERENTIAL=true ILAL_MIXED_REAL_PROOF=true forge test --root contracts --match-path 'test/Mixed*.t.sol' --no-match-test invariant_ --ffi
+	FOUNDRY_INVARIANT_RUNS=2500 FOUNDRY_INVARIANT_DEPTH=40 forge test --root contracts --match-contract MixedInvariantTest --match-test invariant_ -vv
+	node scripts/mixed/sync-abis.mjs --check
+	node scripts/mixed/check-sizes.mjs
+	node --test scripts/mixed/deployment.test.mjs
+
+mixed-local:
+	bash scripts/mixed/run-local.sh

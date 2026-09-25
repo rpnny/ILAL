@@ -2,6 +2,13 @@
 
 Date: 2026-07-22
 
+> Historical scope notice (2026-09-19): this document remains the review scope
+> for v0.3.3. It does not cover the later Hookathon SOEE or Mixed v1 candidates,
+> and its statement that V2 was not deployed predates the separate Base Sepolia
+> V2 PoC. Use [`../docs/VERSION_MATRIX.md`](../docs/VERSION_MATRIX.md) for current
+> cross-version status and [`../docs/mixed/AUDIT_SCOPE.md`](../docs/mixed/AUDIT_SCOPE.md)
+> for the Mixed v1 review boundary.
+
 This document supersedes the older `v0.2.5` filenames as the current reviewer entry point. Older reports and v0.3.2 chain transactions are historical evidence. This scope covers v0.3.3 stable software and its Base Sepolia demo; neither the deployment nor this scope is an audit or production-readiness claim.
 
 ## Scope Summary

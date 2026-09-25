@@ -41,6 +41,7 @@
   <div class="nav-overlay" id="navOverlay" aria-hidden="true">
     <nav class="nav-overlay__inner">
       <ul class="nav-list" role="list">
+        <li><a class="nav-item" href="#top" data-close>Start here<span class="nav-item__sub">The institutional execution story</span></a></li>
         <li><a class="nav-item" href="#proof"     data-close>Evidence<span class="nav-item__sub">Live 100/70 and reverse netting batches</span></a></li>
         <li><a class="nav-item" href="#customers" data-close>Customers<span class="nav-item__sub">Institutions · makers · RWA issuers</span></a></li>
         <li><a class="nav-item" href="#product"   data-close>Product<span class="nav-item__sub">Netting Hook · BatchRouter · CNF · CLI</span></a></li>
@@ -78,8 +79,10 @@
       <p class="hero-product-line">Institutional access and execution for Uniswap v4.</p>
       <p class="hero-sub">PROVE ELIGIBILITY ONCE · REUSE SCOPED ACCESS · NET VERIFIED FLOW BEFORE THE MARKET</p>
       <div class="hero-actions">
-        <a class="btn btn--primary" href="#proof">Review evidence</a>
-        <a class="btn btn--ghost"   href="#cli">Build locally</a>
+        <a class="btn btn--primary" href="#problem">See why</a>
+        <a class="btn btn--ghost" href="#how">See the atomic path</a>
+        <a class="btn btn--ghost" href="./app.html">Open institution app</a>
+        <a class="btn btn--ghost" href="#proof">Review evidence</a>
       </div>
 
       <div class="hero-console" aria-label="ILAL release status">
@@ -162,6 +165,12 @@
           <span class="rail-dot rail-dot--on"></span>
         </div>
         <div class="proof-grid">
+          <a class="proof-card" href="https://sepolia.basescan.org/tx/0x6c2dbee372a3a88e0e8fe4e5cd15bf64389a9a4e6ebc6f03cce15ba0e620c72a" target="_blank" rel="noreferrer">
+            <span class="proof-card__label">00 · Institution app batch</span>
+            <strong>0.10 / 0.07 settled live</strong>
+            <span class="proof-card__meta">0.14 internal · 0.03 USDC residual · both nonces consumed</span>
+            <code>0x6c2dbe…0c72a ↗</code>
+          </a>
           <a class="proof-card" href="https://github.com/rpnny/ILAL/blob/main/docs/hookathon/chainlink-candidate-manifest.json" target="_blank" rel="noreferrer">
             <span class="proof-card__label">01 · Evidence manifest</span>
             <strong>Current candidate recorded</strong>
@@ -506,6 +515,11 @@
             <div class="fee-bar"><div class="fee-bar__fill fee-bar__fill--ilal" id="feeBarIlal"></div></div>
           </div>
         </div>
+      </div>
+
+      <div class="hero-actions" aria-label="Continue to the live institutional workflow">
+        <a class="btn btn--primary" href="./app.html">Execute in the institution app</a>
+        <a class="btn btn--ghost" href="#proof">Or inspect the on-chain proof</a>
       </div>
 
       <div class="impact-benchmark" id="impact">
@@ -984,6 +998,11 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.7</span>
 
       <div class="tx-list">
         <p class="eyebrow">V2 public execution evidence</p>
+        <a class="tx-row" href="https://sepolia.basescan.org/tx/0x597347235d905d7e39538c482e9e2a0d894de24d4d423a9d57d27489b01a7472" target="_blank" rel="noreferrer">
+          <span class="tx-row__dot"></span>
+          <span class="tx-row__name">Institution app Session swap</span>
+          <span class="tx-row__hash">0.001 V2B → 0.0010019977 V2A ↗</span>
+        </a>
         <a class="tx-row" href="https://sepolia.basescan.org/tx/0x863f7d8c7c43ae1089258627ac30fd93ff4536cd67dd7b65a6bb84547862a5fc" target="_blank" rel="noreferrer">
           <span class="tx-row__dot"></span>
           <span class="tx-row__name">Groth16 policy grant activated</span>
@@ -1034,6 +1053,7 @@ ilal --version <span class="c-comment"># 0.4.0-v2-poc.7</span>
       <div class="footer-meta">
         <span>Built on Uniswap v4 · Base · Foundry · snarkjs</span>
         <span>Selected · <a href="https://atrium.academy/uniswap" target="_blank" rel="noreferrer">UHI10</a> · July 2026</span>
+        <span><a href="#top">Return to the story</a></span>
         <span>Netting candidate · active v0.3.3 · unaudited</span>
       </div>
     </div>

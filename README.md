@@ -10,6 +10,8 @@
 
 ILAL (Institutional Liquidity Access Layer) is a compliance and settlement layer for Uniswap v4. It addresses two barriers to institutional onchain execution:
 
+The repository also contains the new **Mixed v1 local implementation candidate**, which combines atomic execution, Mixed CNF/ZK grants and owner-isolated LP positions under one Hook. It is unaudited, wire-incompatible with earlier candidates, and has not been deployed or published. See the [version and evidence matrix](docs/VERSION_MATRIX.md), [executable specification](docs/mixed/SPEC.md) and [local runbook](docs/mixed/RUNBOOK.md).
+
 1. **Compliance overhead** — an institution should not repeat the same eligibility checks for every action.
 2. **Market exposure** — when eligible orders oppose each other, sending both gross legs through an AMM creates avoidable price impact and information leakage.
 
@@ -18,7 +20,7 @@ ILAL separates **who may act** from **how signed orders settle**:
 - **Session** grants short-lived, scoped access after an institution proves policy eligibility.
 - **SOEE** verifies and nets signed orders atomically, routing only the residual imbalance through Uniswap v4.
 
-Session and SOEE are independent Base Sepolia candidates today; their combined architecture is the intended system, not a claim that the two candidates are already integrated.
+The public Session/V2 and SOEE deployments remain independent candidates. Mixed v1 integrates those product layers in local source and tests; it is not a claim that the public candidates were upgraded or combined on-chain.
 
 ### Live result
 
@@ -41,7 +43,6 @@ In the latest public settlement, two institutions submitted **0.10 USDC** and **
 | Demo materials | [`ilal-soee-demo-day-v6.html`](docs/hookathon/ilal-soee-demo-day-v6.html) and [`hookathon-pitch-demo.command`](scripts/hookathon-pitch-demo.command) |
 
 Run the full repository verification:
-
 ```bash
 make verify
 ```
@@ -199,6 +200,8 @@ This software is **unaudited and Base Sepolia only**. The Hook is immutable; a s
 
 | Area | Path |
 | --- | --- |
+| Version and evidence status | [`docs/VERSION_MATRIX.md`](docs/VERSION_MATRIX.md) |
+| Mixed v1 unified candidate | [`contracts/src/mixed`](contracts/src/mixed) and [`docs/mixed`](docs/mixed) |
 | Netting contracts | [`contracts/src/netting`](contracts/src/netting) |
 | Oracle integration | [`contracts/src/oracle`](contracts/src/oracle) |
 | CLI | [`cli`](cli) |

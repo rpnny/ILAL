@@ -10,6 +10,8 @@ the preview with:
 npm install @ilalv3/sdk@next viem
 ```
 
+The repository build additionally exports an unpublished Mixed v1 client and exact bigint reference model. `parseMixedOrder`, `signMixedOrder`, `quoteMixedOrders`, `executeMixedOrders`, `activateMixedGrant`, `modifyMixedLiquidity`, `cancelMixedNonce`, `readMixedOrderStatus` and `checkMixedDeployment` are bound to the new versioned manifest and domains. They must not be used with the published legacy deployments or signatures. `quoteMixedOrders` runs complete settlement through an intentional revert, so it cannot consume a nonce or move funds.
+
 ILAL gates swaps and liquidity operations behind on-chain compliance credentials (CNF tokens). This SDK handles the off-chain signing step: build a short-lived EIP-712 session token, sign it locally, and encode it into the `hookData` blob that `ComplianceHook` verifies on every action.
 
 ## Install

@@ -6,10 +6,15 @@ active public deployment remains `v0.3.3`, while netting and V2 are separately
 recorded candidates. Deployment addresses and release status must be read from the manifests,
 not copied from historical audit documents.
 
+Start with [`VERSION_MATRIX.md`](VERSION_MATRIX.md) when deciding which protocol
+line, wire format and evidence set a document or change refers to.
+
 ## Start Here
 
 | Goal | Primary files |
 |---|---|
+| Distinguish protocol lines and evidence | `docs/VERSION_MATRIX.md` |
+| Review the unified Mixed v1 candidate | `contracts/src/mixed/`, `docs/mixed/` |
 | Understand the active protocol path | `contracts/src/ILALRouter.sol`, `contracts/src/ComplianceHook.sol`, `contracts/src/CNFIssuer.sol`, `contracts/src/PolicyRegistry.sol` |
 | Understand atomic netting | `contracts/src/netting/InstitutionalNettingHook.sol`, `contracts/src/netting/InstitutionalBatchRouter.sol`, `contracts/src/oracle/ChainlinkStablecoinOracleGuard.sol`, `docs/HOOKATHON_NETTING.md` |
 | Change session authorization | `contracts/src/libraries/SessionLib.sol`, `cli/src/sessionProtocol.ts`, `sdk/src/session.ts`, `sdk/src/encode.ts` |

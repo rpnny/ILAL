@@ -1,5 +1,23 @@
 # ILAL release handoff
 
+## Current local unified candidate
+
+| Field | Value |
+|---|---|
+| Protocol | Mixed v1 |
+| Software | Local implementation candidate |
+| Deployment | None |
+| Package publication | None |
+| Compatibility | New wire format; no legacy signature or state migration |
+| Production | Not production-ready |
+| Audit | Unaudited |
+
+Mixed v1 combines CNF/ZK policy grants, atomic batch and direct execution, and
+owner-isolated liquidity operations in one modular protocol. Its local evidence
+does not change the active v0.3.3 deployment or the status of the separate V2
+and Hookathon candidates. See [`docs/VERSION_MATRIX.md`](docs/VERSION_MATRIX.md)
+for the cross-version boundary.
+
 ## Current npm previews
 
 | Field | Value |

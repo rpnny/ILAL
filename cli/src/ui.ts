@@ -235,7 +235,14 @@ function parseViemError(e: unknown): string {
   return msg.split("\n")[0]!.slice(0, 120);
 }
 
+let throwOnFatalError = false;
+
+export function configureFatalErrorHandling(mode: "exit" | "throw"): void {
+  throwOnFatalError = mode === "throw";
+}
+
 export function die(msg: string): never {
+  if (throwOnFatalError) throw new Error(msg);
   console.error();
   console.error(`  ${fmt.red("✗")} ${fmt.bold("Error:")} ${msg}`);
   console.error();
