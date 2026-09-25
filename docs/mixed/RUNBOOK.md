@@ -28,6 +28,28 @@ The Console binds to loopback, uses a random session token, rejects foreign Host
 
 ## Deployment preparation
 
-`scripts/mixed/prepare-deployment.mjs` validates an explicit configuration and writes ordered unsigned transaction data. It has no broadcaster or signer. Production classification fails closed unless source, external runtime hashes, proving ceremony, issuer acceptance and independent audit evidence are supplied. `scripts/mixed/preflight.mjs` performs read-only post-deployment checks for code and immutable bindings, Hook flags, feeds, thresholds, sequencer, policy, roles, verifier and current oracle health.
+`scripts/mixed/prepare-deployment.mjs` validates an explicit configuration and writes ordered unsigned transaction data. The plan deploys a dedicated owner-restricted `MixedHookFactory`; it does not depend on a test fixture or a pre-existing arbitrary deployer. Production classification fails closed unless source, external runtime hashes, proving ceremony, issuer acceptance and independent audit evidence are supplied.
 
-The reviewed deployer must still simulate and approve the concrete plan. No deployment was created by this implementation.
+After reviewing the exact plan, build the CLI and broadcast with exactly one explicit signer:
+
+```bash
+npm run build --prefix cli
+node scripts/mixed/prepare-base-sepolia.mjs "$DEPLOYER" "$ADMIN" "$RPC_URL"
+node scripts/mixed/broadcast-deployment.mjs \
+  artifacts/mixed/base-sepolia-plan.json "$RPC_URL" deployments/<network>/<version>.json \
+  --keystore "$KEYSTORE" --password-file "$PASSWORD_FILE"
+```
+
+The Base Sepolia helper reads the current deployer nonce, external runtime hashes, token metadata, issuer credential type and live feed rounds before writing a plan. It uses Circle test USDC and the existing ILAL `hUSDT` test representation; `hUSDT` is not official USDT. Pass the generated `artifacts/mixed/base-sepolia-plan.json` to the broadcaster unless custom output paths were supplied.
+
+`--rpc-account <address>` is available for a node-managed signer. `--unsafe-private-key` reads `PRIVATE_KEY` only for an explicitly classified testnet plan. The broadcaster checks the chain, signer, pending nonce and every planned transaction, waits for each receipt, persists a resumable journal after every confirmation, and writes the deployment manifest only after all code is present.
+
+Run the read-only post-deployment verification immediately afterward:
+
+```bash
+node scripts/mixed/preflight.mjs deployments/<network>/<version>.json config.json "$RPC_URL"
+```
+
+The preflight checks code and immutable bindings, Hook flags, feeds, thresholds, sequencer, policy, roles, verifier and current oracle health.
+
+The reviewed deployer must still approve the concrete plan. The implementation does not treat a generated plan as a deployment.
