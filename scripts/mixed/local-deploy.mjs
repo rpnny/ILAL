@@ -25,10 +25,10 @@ export async function deployLocal(rpc='http://127.0.0.1:8547') {
  const verifier=await deploy('ILALPolicyVerifierV2');const adapter=await deploy('Groth16VerifierAdapterV2',[verifier]);
  const grantManager=await deploy('MixedGrantManager',[policyRegistry,adapter]);
  const executionRouter=await deploy('MixedExecutionRouter',[poolManager]);const liquidityRouter=await deploy('MixedLiquidityRouter',[poolManager]);
- const factory=await deploy('MixedLocalFactory');const h=artifact('MixedHook');
- const code=encodeDeployData({abi:h.abi,bytecode:h.bytecode.object,args:[{manager:poolManager,oracle,eligibility:grantManager,executionRouter,liquidityRouter}]});
- let salt,hook;for(let i=0n;;i++){salt=toHex(i,{size:32});hook=getCreate2Address({from:factory,salt,bytecodeHash:keccak256(code)});if((BigInt(hook)&0x3fffn)===0xaa8n)break;}
- await send({address:factory,abi:artifact('MixedLocalFactory').abi,functionName:'deploy',args:[salt,code]});
+ const factory=await deploy('MixedHookFactory',[account.address]);const h=artifact('MixedHook');
+ const code=encodeDeployData({abi:h.abi,bytecode:h.bytecode.object,args:[{manager:poolManager,oracle,eligibility:grantManager,executionRouter,liquidityRouter}]}),codeHash=keccak256(code);
+ let salt,hook;for(let i=0n;;i++){salt=toHex(i,{size:32});hook=getCreate2Address({from:factory,salt,bytecodeHash:codeHash});if((BigInt(hook)&0x3fffn)===0xaa8n)break;}
+ await send({address:factory,abi:artifact('MixedHookFactory').abi,functionName:'deploy',args:[salt,code]});
  for(const [name,address] of [['MixedExecutionRouter',executionRouter],['MixedLiquidityRouter',liquidityRouter]])await send({address,abi:artifact(name).abi,functionName:'bindHook',args:[hook]});
  const pool={currency0:tokens[0],currency1:tokens[1],fee:500,tickSpacing:10,hooks:hook};
  const poolId=keccak256(encodeAbiParameters([{type:'address'},{type:'address'},{type:'uint24'},{type:'int24'},{type:'address'}],[...tokens,500,10,hook]));
