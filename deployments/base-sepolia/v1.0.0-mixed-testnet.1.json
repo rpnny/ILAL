@@ -1,0 +1,341 @@
+{
+  "$schema": "../schema/deployment-manifest.schema.json",
+  "schemaVersion": 1,
+  "version": "1.0.0-mixed-testnet.1",
+  "status": "candidate",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "protocolVersion": 3,
+  "sourceCommit": "fe4276d952a70eab4bf0b4551887030fbe3317d7",
+  "releaseCommit": null,
+  "deployer": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+  "admin": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+  "treasury": null,
+  "adminTreasuryShared": false,
+  "contracts": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "hook": "0xFc20f754C6aed4b38f02509a115f1dc59B080Aa8",
+    "executionRouter": "0x20797940146531688cA908Cf6eAeaFcb3BB1d490",
+    "liquidityRouter": "0x1Ef11dB7eeA5e7Ea150cBF79c37Dc55A13f0fCf1",
+    "oracle": "0xaDe73C355208A30e7493ff9639C91d6FfF641eD3",
+    "grantManager": "0x98D65417527ad992699B63884B712b0Eb83BdE96",
+    "policyRegistry": "0x832Ad208c42cD033255fF8B68df3b9B642840C1d",
+    "referenceGuard": "0x5B9e5A4AC8Cbf99D438a20840E1bd0f10980B043",
+    "factory": "0xAf1A44A1639E3Bb13B1Fd7005419945f10c2F4eA",
+    "verifierAdapter": "0xaa204E50309e41d33f60D7d23D070B796AeF7330",
+    "cnfIssuer": "0x4B3fAf8664eB85ED59059491925F763459E72386"
+  },
+  "assets": {
+    "token0": {
+      "symbol": "USDC",
+      "address": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "decimals": 6,
+      "provenance": "Circle official Base Sepolia test USDC"
+    },
+    "token1": {
+      "symbol": "hUSDT",
+      "address": "0xC4946fEC334f4B9350dF08E311261e4361B7c72C",
+      "decimals": 6,
+      "provenance": "ILAL test representation; not official USDT"
+    }
+  },
+  "pool": {
+    "poolId": "0xfdec362c2e8a05061b094c7bc96a60f48f1231caeacca9fd4c2770ae23d24b45",
+    "initializationTransactionHash": "0x5bc7af5db9d17c5514ac790a1cd7926d24d6f4f3129e0c6a080c8f943f234f5d",
+    "initializationBlockNumber": 47284988,
+    "key": {
+      "currency0": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "currency1": "0xC4946fEC334f4B9350dF08E311261e4361B7c72C",
+      "fee": 500,
+      "tickSpacing": 10,
+      "hook": "0xFc20f754C6aed4b38f02509a115f1dc59B080Aa8"
+    },
+    "initialSqrtPriceX96": "79228162514264337593543950336",
+    "initialTick": 0,
+    "currency0": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "currency1": "0xC4946fEC334f4B9350dF08E311261e4361B7c72C",
+    "fee": 500,
+    "tickSpacing": 10,
+    "hooks": "0xFc20f754C6aed4b38f02509a115f1dc59B080Aa8"
+  },
+  "policy": {
+    "mode": "CNF_ONLY",
+    "transactionHash": "0x329ca34cb3c95ac5502fa6ea1eae13d66c07d398f2dfc363cc5be3a815de49aa",
+    "blockNumber": 47284987,
+    "executionPolicyHash": "0xbfe917687ffd4deeaca21d8c600ca93af5eed1c08dc0868a79d09041acf9389d",
+    "revision": 1,
+    "rootEpoch": 1,
+    "enabled": true,
+    "zkEnabled": false,
+    "cnfIssuer": "0x4B3fAf8664eB85ED59059491925F763459E72386",
+    "credentialType": "0x042d473b2f3618dde613284bd1c04b64cdded9d5c89fc09205ac9aa30ffac1ed",
+    "maxGrantTTL": 86400
+  },
+  "oracle": {
+    "feed0": "0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165",
+    "feed1": "0x3ec8593F930EA45ea58c968260e6e9FF53FC934f",
+    "heartbeat0": 86400,
+    "heartbeat1": 86400,
+    "usdDeviationBps": 100,
+    "pairDeviationBps": 100,
+    "poolOracleDeviationBps": 100,
+    "sequencerRequired": false,
+    "preflightBlock": 47285001,
+    "status": "healthy"
+  },
+  "deploymentEvidence": {
+    "configurationDigest": "d79697f98a64e3b28fddf759335883f7f33171c25536fd076c626b4e36b59ef0",
+    "sourceDigest": "e22cd96c3c18d81d10073af80b0c79a7373c22aad5bb95ad572423303c9e5eec",
+    "codeHashes": {
+      "poolManager": "0x03c45db6d09b14da7c1f7239a5a49697f976d395277e6d2acb6fbed3f9e0249f",
+      "hook": "0xb8507398f66239241b3a87dd835d071741e9c898b0560addd273fe1e8a5adbe6",
+      "executionRouter": "0x308402ca658f48b3197d58ceb67ee8132293cdf08e812abbd5ac11a543beb251",
+      "liquidityRouter": "0x39accfe7a64b82b4ee73a8d5874176f8ad4a50a45d4903469d855b852b090738",
+      "oracle": "0xb214c354a383176ecebd1b761e394d418f6a163280ce93746a5b2b35d0195168",
+      "grantManager": "0xd903521d8339cbaa01e5e9484474eb925f14153d5526c30234da5266ee6e2eee",
+      "policyRegistry": "0x5dd8cc22299f2abc95eb6166a149dc2013f20e6811b818f78de7ade04f0ee0a4"
+    },
+    "infrastructureCodeHashes": {
+      "referenceGuard": "0x21a4be7ae924f6305059c5c4543f05d1cdb6d604f730b208234be145ec866e94",
+      "factory": "0xef815813bca38cfe06d7f318c897e568076c7df71c046bb2d2b6070b67d04a0c",
+      "verifierAdapter": "0x8f16e632d34cc36800b4a49b0cf19b774aff60464a144ca507a852e27d9c96d7"
+    },
+    "totalGas": "12627548",
+    "transactions": [
+      {
+        "label": "Deploy ChainlinkStablecoinOracleGuard",
+        "nonce": 364,
+        "transactionHash": "0xdb6dcdbadee4866c76614b7c47fa233d94289047f0ffcc3d16dff9c87c2bc601",
+        "blockNumber": "47284969",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": "0x5b9e5a4ac8cbf99d438a20840e1bd0f10980b043",
+        "gasUsed": "717816"
+      },
+      {
+        "label": "Deploy MixedOracleGuard",
+        "nonce": 365,
+        "transactionHash": "0xd78aa3311506288faea94c66c23c8c2d7c6495d2560b8c02155d52063c631d3e",
+        "blockNumber": "47284971",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": "0xade73c355208a30e7493ff9639c91d6fff641ed3",
+        "gasUsed": "608116"
+      },
+      {
+        "label": "Deploy MixedPolicyRegistry",
+        "nonce": 366,
+        "transactionHash": "0x064e082232acbae4d726fad69153c368daea833332b2d242fd26d927f767482a",
+        "blockNumber": "47284973",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": "0x832ad208c42cd033255ff8b68df3b9b642840c1d",
+        "gasUsed": "1654174"
+      },
+      {
+        "label": "Deploy MixedGrantManager",
+        "nonce": 367,
+        "transactionHash": "0x1e6a4304771153823a65d0d26e9d12314daeb70dc4d03beea9902263e7a07629",
+        "blockNumber": "47284975",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": "0x98d65417527ad992699b63884b712b0eb83bde96",
+        "gasUsed": "2237618"
+      },
+      {
+        "label": "Deploy MixedExecutionRouter",
+        "nonce": 368,
+        "transactionHash": "0x15363433c070598f84f4536651494360bf48c8aac0848368611b8103fad96389",
+        "blockNumber": "47284976",
+        "blockHash": "0xeded19fca69658e6ed2be0f309179c99936f0906b65a9059750ce28cb73adfa6",
+        "contractAddress": "0x20797940146531688ca908cf6eaeafcb3bb1d490",
+        "gasUsed": "2021275"
+      },
+      {
+        "label": "Deploy MixedLiquidityRouter",
+        "nonce": 369,
+        "transactionHash": "0x737a12a246c9c908d3bbbcdd3ddbef216479bfc539c6bf93b2fea4ffc725a738",
+        "blockNumber": "47284978",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": "0x1ef11db7eea5e7ea150cbf79c37dc55a13f0fcf1",
+        "gasUsed": "1364718"
+      },
+      {
+        "label": "Deploy MixedHookFactory",
+        "nonce": 370,
+        "transactionHash": "0x74482e38b77a938fb3f91f475b19e11467669264b93013e03431a844846fe2bd",
+        "blockNumber": "47284980",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": "0xaf1a44a1639e3bb13b1fd7005419945f10c2f4ea",
+        "gasUsed": "182005"
+      },
+      {
+        "label": "Deploy mined Hook using protocol factory",
+        "nonce": 371,
+        "transactionHash": "0x233e40167d8f094dfe34d182b9821173b25f968c881e44315777b77bbd600457",
+        "blockNumber": "47284982",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": null,
+        "gasUsed": "3532342"
+      },
+      {
+        "label": "Bind execution Hook once",
+        "nonce": 372,
+        "transactionHash": "0x976d7fe88d1292d48fc3ee627110710c3999f35547c7faac64a2517072969bf3",
+        "blockNumber": "47284984",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": null,
+        "gasUsed": "49414"
+      },
+      {
+        "label": "Bind liquidity Hook once",
+        "nonce": 373,
+        "transactionHash": "0x52253f3e724221729c3ae0420908fce303f2ac74bc5c951528ea3bc5bd00733d",
+        "blockNumber": "47284985",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": null,
+        "gasUsed": "49371"
+      },
+      {
+        "label": "Configure initial policy",
+        "nonce": 374,
+        "transactionHash": "0x329ca34cb3c95ac5502fa6ea1eae13d66c07d398f2dfc363cc5be3a815de49aa",
+        "blockNumber": "47284987",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": null,
+        "gasUsed": "158936"
+      },
+      {
+        "label": "Initialize pool at reviewed parity reference",
+        "nonce": 375,
+        "transactionHash": "0x5bc7af5db9d17c5514ac790a1cd7926d24d6f4f3129e0c6a080c8f943f234f5d",
+        "blockNumber": "47284988",
+        "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "contractAddress": null,
+        "gasUsed": "51763"
+      }
+    ]
+  },
+  "toolchain": {
+    "solc": "0.8.26+commit.8a97fa7a",
+    "optimizerEnabled": true,
+    "optimizerRuns": 200,
+    "viaIR": false,
+    "evmVersion": "cancun",
+    "remappings": [
+      "v4-core/=lib/v4-core/",
+      "v4-periphery/=lib/v4-periphery/",
+      "@uniswap/v4-core/=lib/v4-core/",
+      "permit2/=lib/v4-periphery/lib/permit2/",
+      "@openzeppelin/=lib/openzeppelin-contracts/",
+      "forge-std/=lib/forge-std/src/"
+    ],
+    "libraries": {}
+  },
+  "sourceTreeHash": "0xe22cd96c3c18d81d10073af80b0c79a7373c22aad5bb95ad572423303c9e5eec",
+  "sourceTreeHashAlgorithm": "sha256(paths and contents under contracts/src plus contracts/foundry.toml)",
+  "sourceVerification": {
+    "provider": "Sourcify",
+    "verifiedAt": "2026-09-25",
+    "status": "exact_match",
+    "contracts": {
+      "chainlinkReferenceGuard": "already exact-matched",
+      "oracleGuard": "4c53781e-b6fb-4e1f-85f6-26d0cd1c964b",
+      "policyRegistry": "2ce58eff-bf62-49b3-943a-506e0db76ac6",
+      "grantManager": "c10e3faa-3cd8-4028-83eb-2f53a388c479",
+      "executionRouter": "67afe100-d8b4-4e25-ae82-72841977681e",
+      "liquidityRouter": "f247f7f6-6e4b-46ca-9f01-cee04ea0b63b",
+      "hookFactory": "12c37cb9-394e-4d23-9097-32e03394846a",
+      "mixedHook": "9874c658-3c6b-4b88-a558-a889fcd38163"
+    }
+  },
+  "privilegedRoles": [
+    {
+      "capability": "eligibility policy administrator",
+      "applicable": true,
+      "contract": "0x832Ad208c42cD033255fF8B68df3b9B642840C1d",
+      "holder": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "verificationCall": "MixedPolicyRegistry.owner()",
+      "result": "deployer EOA; testnet PoC only",
+      "deployerRetained": true
+    },
+    {
+      "capability": "Hook CREATE2 factory owner",
+      "applicable": true,
+      "contract": "0xAf1A44A1639E3Bb13B1Fd7005419945f10c2F4eA",
+      "holder": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "verificationCall": "MixedHookFactory.owner()",
+      "result": "can deploy unrelated future CREATE2 bytecode through the factory; cannot modify the deployed Hook",
+      "deployerRetained": true
+    },
+    {
+      "capability": "authorized execution path",
+      "applicable": true,
+      "contract": "0xFc20f754C6aed4b38f02509a115f1dc59B080Aa8",
+      "holder": "0x20797940146531688cA908Cf6eAeaFcb3BB1d490",
+      "verificationCall": "MixedHook.executionRouter()",
+      "result": "immutable canonical execution Router",
+      "deployerRetained": false
+    },
+    {
+      "capability": "authorized liquidity path",
+      "applicable": true,
+      "contract": "0xFc20f754C6aed4b38f02509a115f1dc59B080Aa8",
+      "holder": "0x1Ef11dB7eeA5e7Ea150cBF79c37Dc55A13f0fCf1",
+      "verificationCall": "MixedHook.liquidityRouter()",
+      "result": "immutable canonical liquidity Router",
+      "deployerRetained": false
+    },
+    {
+      "capability": "protocol fee recipient",
+      "applicable": false,
+      "contract": null,
+      "holder": null,
+      "verificationCall": "source and deployment review",
+      "result": "Mixed v1 protocol fee is zero and no treasury is stored",
+      "deployerRetained": false
+    }
+  ],
+  "features": {
+    "attestation": "CNF_ONLY policy using the existing test CNFIssuer; credential validity is rechecked on every use",
+    "zk": "GrantManager binds the existing development verifier adapter, but this pool has ZK disabled",
+    "audit": "unaudited",
+    "productionReadiness": "Base Sepolia testnet PoC only; development verifier dependency, deployer-administered policy, test hUSDT and no independent audit; deployment signer was an explicitly non-secret test key"
+  },
+  "releaseStatus": {
+    "software": "Mixed v1 implementation candidate",
+    "deployment": "Base Sepolia public Mixed v1 testnet PoC candidate"
+  },
+  "format": "ilal-mixed-deployment-v1",
+  "classification": "testnet",
+  "ceremony": "unsafe-development",
+  "sourceRevision": "fe4276d952a70eab4bf0b4551887030fbe3317d7",
+  "sourceDigest": "e22cd96c3c18d81d10073af80b0c79a7373c22aad5bb95ad572423303c9e5eec",
+  "sourceDirty": false,
+  "codeHashes": {
+    "poolManager": "0x03c45db6d09b14da7c1f7239a5a49697f976d395277e6d2acb6fbed3f9e0249f",
+    "hook": "0xb8507398f66239241b3a87dd835d071741e9c898b0560addd273fe1e8a5adbe6",
+    "executionRouter": "0x308402ca658f48b3197d58ceb67ee8132293cdf08e812abbd5ac11a543beb251",
+    "liquidityRouter": "0x39accfe7a64b82b4ee73a8d5874176f8ad4a50a45d4903469d855b852b090738",
+    "oracle": "0xb214c354a383176ecebd1b761e394d418f6a163280ce93746a5b2b35d0195168",
+    "grantManager": "0xd903521d8339cbaa01e5e9484474eb925f14153d5526c30234da5266ee6e2eee",
+    "policyRegistry": "0x5dd8cc22299f2abc95eb6166a149dc2013f20e6811b818f78de7ade04f0ee0a4"
+  },
+  "infrastructure": {
+    "referenceGuard": "0x5B9e5A4AC8Cbf99D438a20840E1bd0f10980B043",
+    "factory": "0xAf1A44A1639E3Bb13B1Fd7005419945f10c2F4eA",
+    "verifierAdapter": "0xaa204E50309e41d33f60D7d23D070B796AeF7330"
+  },
+  "infrastructureCodeHashes": {
+    "referenceGuard": "0x21a4be7ae924f6305059c5c4543f05d1cdb6d604f730b208234be145ec866e94",
+    "factory": "0xef815813bca38cfe06d7f318c897e568076c7df71c046bb2d2b6070b67d04a0c",
+    "verifierAdapter": "0x8f16e632d34cc36800b4a49b0cf19b774aff60464a144ca507a852e27d9c96d7"
+  },
+  "operationalEvidence": {
+    "readOnlyPreflight": {
+      "status": "passed",
+      "blockNumber": 47285001,
+      "oracleHealthy": true,
+      "referencePrice": "79228162514264337593543950336",
+      "policyRevision": 1,
+      "rootEpoch": 1
+    },
+    "liveGrantAndLiquidity": "not seeded; the test deployer has no credential or test-token balance under the selected external CNF issuer"
+  }
+}

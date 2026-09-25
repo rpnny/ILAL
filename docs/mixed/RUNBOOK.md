@@ -1,6 +1,6 @@
-# ILAL Mixed v1 local runbook
+# ILAL Mixed v1 runbook
 
-Mixed v1 combines atomic matching, bounded residual swaps, Mixed eligibility and owner-isolated liquidity. It currently has no public deployment. All commands below operate locally unless an explicit RPC and reviewed manifest are supplied.
+Mixed v1 combines atomic matching, bounded residual swaps, Mixed eligibility and owner-isolated liquidity. The versioned Base Sepolia CNF_ONLY testnet candidate is recorded in [`deployments/base-sepolia/v1.0.0-mixed-testnet.1.json`](../../deployments/base-sepolia/v1.0.0-mixed-testnet.1.json). It is a separate unaudited PoC using test assets; it is not the active stable deployment.
 
 ## Verification
 

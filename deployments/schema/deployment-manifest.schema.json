@@ -15,7 +15,7 @@
     "releaseCommit": { "anyOf": [{ "type": "string", "pattern": "^[0-9a-f]{40}$" }, { "type": "null" }] },
     "deployer": { "anyOf": [{ "$ref": "#/$defs/address" }, { "type": "null" }] },
     "admin": { "$ref": "#/$defs/address" },
-    "treasury": { "$ref": "#/$defs/address" },
+    "treasury": { "anyOf": [{ "$ref": "#/$defs/address" }, { "type": "null" }] },
     "adminTreasuryShared": { "type": "boolean" },
     "contracts": { "type": "object", "minProperties": 1, "additionalProperties": { "anyOf": [{ "$ref": "#/$defs/address" }, { "$ref": "#/$defs/contract" }] } },
     "pool": { "type": "object" },
