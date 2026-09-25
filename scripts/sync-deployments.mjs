@@ -23,8 +23,8 @@ for (const entry of index.deployments ?? []) {
   if (!manifest.contracts || !manifest.features || !manifest.releaseStatus) throw new Error(`${entry.manifest} is missing common manifest sections.`);
   if (manifest.status === "candidate" || manifest.status === "active") {
     if (!isCommit(manifest.sourceCommit) || !(manifest.releaseCommit === null || isCommit(manifest.releaseCommit)) || !isAddress(manifest.deployer)) throw new Error(`${entry.manifest} has incomplete commit/deployer evidence.`);
-    if (!isAddress(manifest.admin) || !isAddress(manifest.treasury)) throw new Error(`${entry.manifest} has invalid admin or treasury.`);
-    if (manifest.adminTreasuryShared !== (manifest.admin.toLowerCase() === manifest.treasury.toLowerCase())) throw new Error(`${entry.manifest} adminTreasuryShared is inconsistent.`);
+    if (!isAddress(manifest.admin) || !(manifest.treasury === null || isAddress(manifest.treasury))) throw new Error(`${entry.manifest} has invalid admin or treasury.`);
+    if (manifest.adminTreasuryShared !== (manifest.treasury !== null && manifest.admin.toLowerCase() === manifest.treasury.toLowerCase())) throw new Error(`${entry.manifest} adminTreasuryShared is inconsistent.`);
     if (!isHash(manifest.sourceTreeHash) || !isHash(manifest.pool?.poolId) || !manifest.pool?.key) throw new Error(`${entry.manifest} has incomplete source or pool evidence.`);
     if (!manifest.toolchain?.solc || typeof manifest.toolchain.viaIR !== "boolean") throw new Error(`${entry.manifest} has incomplete toolchain evidence.`);
     if (!Array.isArray(manifest.privilegedRoles) || manifest.privilegedRoles.length === 0) throw new Error(`${entry.manifest} has no privilege evidence.`);

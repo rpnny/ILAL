@@ -1,6 +1,6 @@
 # ILAL version and evidence matrix
 
-Status date: 2026-09-19
+Status date: 2026-09-25
 
 ILAL contains four protocol lines with different wire formats, deployment
 histories and evidence. They must not be presented as one deployed system.
@@ -13,7 +13,7 @@ active release or production-ready.
 | v0.3.3 | Stable Session/CNF demo | Stable release; unaudited | Active Base Sepolia demo | CNF plus signed Session | Single v4 swap and controlled liquidity | Legacy v1 wire format |
 | V2 policy-grant PoC | Private tier and jurisdiction policy proof | Candidate; development ceremony | Separate Base Sepolia candidate | Groth16 policy grant | Single v4 path through `ComplianceHookV2` | Does not authorize Hookathon SOEE |
 | Hookathon SOEE | Atomic signed-order netting | Candidate; unaudited | Separate Base Sepolia candidate with exact-match source evidence | V1 CNF checks | Canonical batch netting and residual v4 swap | Does not consume V2 grants |
-| Mixed v1 | Unified CNF/ZK grants, atomic execution and controlled LP | Local implementation candidate; unaudited | Not deployed | Per-pool `CNF_ONLY`, `ZK_ONLY`, `EITHER` or `BOTH` | Batch, direct swap, isolated LP add/exit/collect | New domains, types, nonces, grants and positions |
+| Mixed v1 | Unified CNF/ZK grants, atomic execution and controlled LP | Implementation candidate; unaudited | Separate Base Sepolia CNF_ONLY testnet PoC candidate | Per-pool `CNF_ONLY`, `ZK_ONLY`, `EITHER` or `BOTH` | Batch, direct swap, isolated LP add/exit/collect | New domains, types, nonces, grants and positions |
 
 ## Evidence boundaries
 
@@ -44,14 +44,19 @@ active release or production-ready.
 - Chainlink is a fail-closed opening guard in this candidate; it is not the
   execution price.
 
-### Mixed v1 local candidate
+### Mixed v1 testnet candidate
 
 - Executable behavior: [`docs/mixed/SPEC.md`](mixed/SPEC.md).
 - Review boundary: [`docs/mixed/AUDIT_SCOPE.md`](mixed/AUDIT_SCOPE.md).
 - Migration boundary: [`docs/mixed/MIGRATION.md`](mixed/MIGRATION.md).
-- Mixed v1 integrates the product architecture in source and local end-to-end
-  tests. No Mixed deployment, published package, independent audit, production
-  ceremony or real-issuer acceptance is claimed.
+- Deployment evidence:
+  [`deployments/base-sepolia/v1.0.0-mixed-testnet.1.json`](../deployments/base-sepolia/v1.0.0-mixed-testnet.1.json).
+- Mixed v1 integrates the product architecture in source, local end-to-end
+  tests and a separate CNF_ONLY Base Sepolia pool. No published Mixed package,
+  independent audit, production ceremony or real-issuer acceptance is claimed.
+- The candidate uses Circle test USDC and ILAL hUSDT, which is not official
+  USDT. ZK is disabled for this pool and the referenced verifier remains a
+  development dependency.
 - Legacy orders, grants, nonces, positions and signatures cannot be converted
   or replayed into Mixed v1.
 
@@ -77,6 +82,6 @@ When descriptions conflict, use:
 5. This matrix and current specifications for navigation.
 6. Dated audit and research documents as historical evidence.
 
-Changing one line does not update another. Any future Mixed deployment must add
+Changing one line does not update another. Any later Mixed deployment must add
 a new versioned manifest and release record; it must not overwrite v0.3.3 or
 reuse V2/Hookathon evidence.

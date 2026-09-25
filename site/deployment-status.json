@@ -27,6 +27,14 @@
       "status": "candidate",
       "manifest": "base-sepolia/v0.4.0-v2-poc.1.json",
       "reason": "Public V2 ZK policy-grant PoC; unsafe development ceremony and deployer-administered testnet governance."
+    },
+    {
+      "version": "1.0.0-mixed-testnet.1",
+      "network": "base-sepolia",
+      "chainId": 84532,
+      "status": "candidate",
+      "manifest": "base-sepolia/v1.0.0-mixed-testnet.1.json",
+      "reason": "Public Mixed v1 CNF_ONLY testnet PoC; test hUSDT, development verifier dependency, deployer-administered policy and no independent audit."
     }
   ]
 }

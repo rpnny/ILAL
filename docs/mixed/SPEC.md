@@ -14,4 +14,4 @@ Ownership: PoolManager owner is the canonical Liquidity Router, position salt is
 
 Authorization: a grant is live only while its policy hash/revision, user epoch and source state remain current. CNF is re-read on every use. ZK grants bind the accepted root and root epoch; replacing or invalidating a root immediately invalidates cached grants. A pool-level user ban applies to every source. Policy changes and unbans wait 48 hours; disabling, banning and retiring roots are immediate.
 
-Acceptance order: math/encoding/state machine -> complete execution -> economic protection -> Mixed authorization and LP. No deployment or publish in this implementation task.
+Acceptance order: math/encoding/state machine -> complete execution -> economic protection -> Mixed authorization and LP. The initial implementation task excluded deployment and publication; the later Base Sepolia candidate is tracked by its versioned manifest. No Mixed package is published.
