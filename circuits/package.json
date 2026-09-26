@@ -1,7 +1,7 @@
 {
   "name": "@ilal/circuits",
   "version": "0.1.0",
-  "description": "ILAL Protocol Circom circuits — ZK eligibility proof",
+  "description": "ILAL eligibility policy circuit",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -9,13 +9,9 @@
     "directory": "circuits"
   },
   "scripts": {
-    "compile": "bash scripts/compile.sh",
-    "build:tree": "npx tsx oracle/build_tree.ts",
-    "build:witness": "npx tsx oracle/generate_witness.ts",
-    "test:oracle": "npx --no-install tsx --test oracle/*.test.ts",
-    "test:v1": "bash scripts/test_v1.sh",
-    "test:v2": "bash scripts/test_v2.sh",
-    "prove:v2:demo": "bash scripts/generate_v2_demo_proof.sh"
+    "compile": "bash scripts/compile_v2.sh",
+    "test": "bash scripts/test_v2.sh",
+    "prepare": "bash scripts/prepare_v2_test_artifacts.sh"
   },
   "dependencies": {
     "@zk-kit/incremental-merkle-tree": "^1.1.0",
@@ -34,5 +30,6 @@
     "brace-expansion": "^2.1.4",
     "underscore": "1.13.8",
     "ws": "^8.21.0"
-  }
+  },
+  "private": true
 }

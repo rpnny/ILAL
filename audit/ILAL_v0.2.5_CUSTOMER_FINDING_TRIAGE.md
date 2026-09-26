@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL v0.2.5 Customer Finding Triage
 
 > Historical evidence notice (2026-07-22): addresses and “current deployment” statements below refer to a deprecated test stack. Use the versioned deployment index for the active v0.3.3 Base Sepolia demo.

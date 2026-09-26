@@ -1,7 +1,8 @@
 # ILAL Eligibility Policy Circuit v2
 
-This directory is an isolated design candidate. It does not replace the live
-v1 circuit, verifier, CNFIssuer ABI, or Base Sepolia deployment.
+This is the policy circuit used by the unified ILAL grant manager. The `v2`
+path and circuit-version signal are compatibility identifiers, not a separate
+execution protocol. The public CNF_ONLY candidate does not enable ZK.
 
 The v2 circuit proves that a wallet belongs to an issuer/schema-bound
 credential tree, has a private KYC tier at or above the pool minimum, and has a
@@ -41,7 +42,7 @@ checked by the contract but were not part of a circuit constraint.
 
 ```bash
 cd circuits
-npm run test:v2
+npm test
 ```
 
 The test accepts one valid witness and rejects:
@@ -52,7 +53,7 @@ The test accepts one valid witness and rejects:
 - a modified policy commitment.
 
 No production zkey or verifier is created by this test. A production Phase-2
-ceremony and a v2 verifier/issuer adapter are separate launch gates.
+ceremony and independent review remain launch gates.
 
 ## Base Sepolia verifier build
 

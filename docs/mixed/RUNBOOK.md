@@ -1,25 +1,25 @@
-# ILAL Mixed v1 runbook
+# ILAL v1 runbook
 
-Mixed v1 combines atomic matching, bounded residual swaps, Mixed eligibility and owner-isolated liquidity. The versioned Base Sepolia CNF_ONLY testnet candidate is recorded in [`deployments/base-sepolia/v1.0.0-mixed-testnet.1.json`](../../deployments/base-sepolia/v1.0.0-mixed-testnet.1.json). It is a separate unaudited PoC using test assets; it is not the active stable deployment.
+ILAL v1 combines atomic matching, bounded residual swaps, reusable eligibility grants and owner-isolated liquidity. The versioned Base Sepolia CNF_ONLY testnet candidate is recorded in [`deployments/base-sepolia/v1.0.0-mixed-testnet.1.json`](../../deployments/base-sepolia/v1.0.0-mixed-testnet.1.json). It is an unaudited candidate using test assets and is not a stable deployment.
 
 ## Verification
 
 ```bash
-make mixed-verify
-make mixed-local
+make protocol-test
+make local-test
 ```
 
-`mixed-verify` regenerates two real development Groth16 proofs, checks Solidity/TypeScript vectors, executes the Mixed suites, runs 100,000 stateful handler calls, checks generated ABI drift and rejects deployed bytecode above EIP-170. `mixed-local` owns an ephemeral Anvil process, deploys a local fixture, exercises the SDK and browser protocol, runs four policy modes, root retirement, owner exit/collect and the economic matrix, then stops that process.
+`protocol-test` regenerates two real development Groth16 proofs, checks Solidity/TypeScript vectors, executes the Mixed suites, runs 100,000 stateful handler calls, checks generated ABI drift and rejects deployed bytecode above EIP-170. `local-test` owns an ephemeral Anvil process, deploys a local fixture, exercises the SDK and browser protocol, runs four policy modes, root retirement, owner exit/collect and the economic matrix, then stops that process.
 
 Generated evidence is under `artifacts/mixed/` and is intentionally ignored by git. Development proving artifacts and local manifests must never be presented as production evidence.
 
 ## CLI and Console
 
 ```bash
-node cli/dist/index.js mixed check --manifest <manifest.json> --rpc <explicit-rpc>
-node cli/dist/index.js mixed monitor --manifest <manifest.json> --rpc <explicit-rpc>
-node cli/dist/index.js mixed quote --manifest <manifest.json> --rpc <explicit-rpc> --input unsigned-orders.json
-node cli/dist/index.js mixed console --manifest <manifest.json> --rpc <explicit-rpc>
+node cli/dist/index.js check --manifest <manifest.json> --rpc <explicit-rpc>
+node cli/dist/index.js monitor --manifest <manifest.json> --rpc <explicit-rpc>
+node cli/dist/index.js quote --manifest <manifest.json> --rpc <explicit-rpc> --input unsigned-orders.json
+node cli/dist/index.js console --manifest <manifest.json> --rpc <explicit-rpc>
 ```
 
 The workflow is grant activation, explicit ERC-20 approval, bounded order signing, forced-revert quote, fresh simulation and execution. An order signature never grants token spending permission. Direct swaps require a `MixedDirectSwap` signature and namespace; batch orders are not reused as fallback orders.

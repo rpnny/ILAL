@@ -1,7 +1,7 @@
 {
-  "name": "@ilalv3/sdk",
-  "version": "0.3.0-next.1",
-  "description": "ILAL Protocol SDK — session signing and hookData encoding for Uniswap v4 compliance pools",
+  "name": "@ilal/sdk",
+  "version": "1.0.0-dev.0",
+  "description": "ILAL SDK \u2014 eligibility grants, atomic netting and owner-controlled liquidity",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -34,9 +34,6 @@
     "directory": "sdk"
   },
   "homepage": "https://github.com/rpnny/ilal/tree/main/sdk#readme",
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc",
@@ -48,5 +45,6 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^4.1.9"
-  }
+  },
+  "private": true
 }

@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [HISTORY.md](HISTORY.md).
+
 # ILAL v2 Base Sepolia PoC runbook
 
 This runbook turns the isolated v2 implementation into public testnet

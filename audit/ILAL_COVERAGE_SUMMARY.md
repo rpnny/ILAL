@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL coverage snapshot
 
 > Coverage percentages below were measured for the v0.3.0 release candidate

@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [HISTORY.md](HISTORY.md).
+
 # ILAL v2 issuer integration kit
 
 This guide is for an RWA protocol, regulated DeFi application, fund manager,

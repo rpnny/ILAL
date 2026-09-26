@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL Enterprise Cybersecurity Test Plan
 
 > Status notice (2026-07-22): the v0.2/v0.3.2 Base Sepolia deployments referenced in historical test cases are deprecated. Execute chain scenarios against the active v0.3.3 manifest or use deterministic local Anvil tests.

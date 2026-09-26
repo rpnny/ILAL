@@ -1,281 +1,31 @@
-# `@ilalv3/cli`
+# ILAL CLI
 
-Command-line tooling for ILAL credentials, sessions, policies, swaps, liquidity, deployment, and administrative Safe proposals.
-
-## Which version should I use?
-
-| Version | Distribution | Status |
-|---|---|---|
-| `0.4.0-v2-poc.7` | npm `next` preview | Atomic netting, Chainlink-aware state preflight, and V2 issuer integration; Base Sepolia candidates only, unaudited |
-| `0.3.3` | npm stable | Active Base Sepolia v0.3.3 demo preset; Safe-controlled, MockEAS, unaudited |
-| `0.3.2` | npm deprecated | Points at a deprecated Base Sepolia stack whose owner signer was exposed |
-| `0.2.21` | npm legacy | Published historical old Router ABI; do not mix with v0.3 source or manifests |
-
-The preview keeps the stable v0.3.3 deployment preset isolated while adding
-institutional netting and issuer-operated V2 policy tooling for their recorded candidates. Install it with
-`npm install -g @ilalv3/cli@next`. Published `0.2.21` remains a separate legacy
-line; copying its commands or addresses into current releases will fail.
+One interface for eligibility grants, signed execution and liquidity. Requires Node.js 24. This development package is private and unpublished.
 
 ```bash
-cd cli
-npm ci
-npm run build
-node dist/index.js --version  # 0.4.0-v2-poc.7
-npm test
+npm ci --prefix sdk
+npm ci --prefix cli
+make build
+node cli/dist/index.js --help
+node cli/dist/index.js console --manifest deployments/base-sepolia/v1.0.0-mixed-testnet.1.json --rpc https://sepolia.base.org
 ```
 
-`ilal init` selects only the active v0.3.3 manifest on Base Sepolia. Deprecated presets are never selected automatically.
-
-## Local institutional console
-
-### Mixed v1 local candidate
-
-The source tree also includes the unpublished Mixed v1 command group. It uses an explicit versioned manifest and RPC; it never falls back to the active v0.3.3 preset.
-
-```bash
-ilal mixed check --manifest mixed.json --rpc http://127.0.0.1:8545
-ilal mixed monitor --manifest mixed.json --rpc http://127.0.0.1:8545
-ilal mixed quote --manifest mixed.json --rpc http://127.0.0.1:8545 --input orders.json
-ilal mixed status --manifest mixed.json --rpc http://127.0.0.1:8545 --input signed-order.json
-ilal mixed console --manifest mixed.json --rpc http://127.0.0.1:8545
-```
-
-`approve` is the ERC-20 permission path. `sign` authorizes execution but cannot move tokens without that permission. `grant` requires an explicit CNF, ZK or BOTH source and never silently falls back. `policy-prepare` only emits reviewable governance calldata. Mixed v1 has no public deployment and remains unaudited.
-
-The preview CLI includes a loopback-only browser console for institution and
-solver workflows. It reuses the CLI implementation; private keys, keystore
-passwords, RPC calls and order files remain in the local CLI process rather
-than browser storage.
-
-```bash
-ilal --keystore ./institution.json --password-file ./institution.password console
-```
-
-The command binds to `127.0.0.1`, opens the institution app at
-`http://127.0.0.1:4173/app.html`, and stops with Ctrl+C. The separate operator
-workspace remains available at `/console.html`. `--rpc-account 0x...` is also
-supported. The institution app has two deliberately different execution paths:
-
-- **Instant** runs the canonical CLI preflight, creates a two-minute one-time
-  confirmation challenge, then uses the configured local signer to approve (if
-  needed) and broadcast the ILAL swap to Base Sepolia. The confirmed swap and
-  optional approval are linked directly to BaseScan.
-- **Netting** creates institution-signed EIP-712 order JSON under
-  `.ilal-console/orders/` and previews it offline. The institution page does not
-  impersonate the Solver: the Solver later broadcasts the atomic batch from the
-  operator workflow.
-
-No transaction is sent by the first review action. A live Instant swap requires
-a positive minimum output and a separate final **Confirm & broadcast to Base
-Sepolia** action. Challenges expire after two minutes and are single-use.
-Invalid requests are returned to the page without terminating the long-running
-console process.
-
-Use `ilal console --no-open --port 4174` when browser launch or the default port
-is not desired. The local API requires an in-memory session token for mutations
-and rejects cross-origin requests.
-
-## Atomic netting (Hookathon candidate)
-
-### Signer-free preflight
-
-`preview` remains offline arithmetic. `preflight` pins one RPC block, reads and
-validates the Hook's Chainlink guard, checks deadline, nonce, balance and
-allowance for every signer, then simulates the complete batch with `eth_call`.
-Its optional `oracle` object preserves `ilal-netting-preflight-v1` compatibility
-while recording guard/feed addresses, normalized prices, timestamps, limits,
-sequencer status and `valid/rejected/unavailable`. On Base it reports L2 execution cost and
-`GasPriceOracle.getL1Fee` for a fully serialized transaction-shaped payload.
-
-```bash
-ilal netting batch preflight \
-  --orders order-a.json order-b.json \
-  --output preflight.json
-```
-
-Exit `0` means executable at the recorded snapshot, `2` means an explicit
-on-chain rejection, and `1` means an RPC/tool error. `batch execute` performs
-preflight before signer access and repeats full simulation immediately before
-broadcast; there is no silent bypass. Preflight remains a snapshot—signed
-limits and atomic rollback are the final safety controls.
-
-Operator-facing decoded rejections include `CHAINLINK_STALE_PRICE`,
-`CHAINLINK_PEG_DEVIATION`, `CHAINLINK_PAIR_DEVIATION` and sequencer errors.
-The complete `eth_call`, not the standalone decoded check, remains authoritative.
-
-The candidate supports standard, equal-decimal ERC-20 stablecoins only.
-Fee-on-transfer, rebasing, callback/nonstandard tokens and fee tiers other than
-5 bps are outside the supported operating envelope.
-
-Institutions sign exact-input orders locally; the JSON contains no private key.
-The solver previews the canonical batch commitment and submits it permissionlessly:
-
-```bash
-ilal --keystore institution-a.json --password-file a.password \
-  netting order sign --zero-for-one --amount-in 100000000 \
-  --min-amount-out 99000000 --max-amm-input 30000000 -o order-a.json
-
-ilal netting batch preview --orders order-a.json order-b.json
-
-ilal --keystore solver.json --password-file solver.password \
-  netting batch execute --orders order-a.json order-b.json
-
-ilal --keystore institution-a.json --password-file a.password \
-  netting nonce cancel --nonce 0x...
-```
-
-`preview` prints submitted gross, matched gross, residuals, exposure reduction
-and `batchId`. Input file order is irrelevant: the CLI keeps each signature with
-its order and sorts strict ascending `orderHash`, matching the Router and Hook.
-Duplicate hashes are rejected. `execute` verifies the same preview on-chain
-before broadcast and prints decoded Router settlement events and the transaction hash. See
-[`../docs/HOOKATHON_NETTING.md`](../docs/HOOKATHON_NETTING.md).
-
-## Signers
-
-### Encrypted EOA keystore
-
-```bash
-chmod 600 ./password.txt
-ilal --keystore ./wallet.json --password-file ./password.txt status
-```
-
-Web3 Secret Storage v3 keystores using AES-128-CTR with scrypt or PBKDF2 are supported. Omit `--password-file` for a hidden interactive prompt. The key and password are not placed in command output or config.
-Deployment delegates directly to Foundry's keystore support, so the decrypted key is not copied into the Forge child environment.
-
-### RPC-managed account
-
-```bash
-ilal --rpc-account 0xManagedAccount --rpc https://controlled-node.example ...
-```
-
-The CLI probes chain ID and `eth_accounts` before sending. Commands that need typed-data signing or transaction sending fail if the node lacks the required method. This mode means only “account managed by this RPC”; it does not imply Fireblocks, Copper, HSM, or custody-vendor support.
-
-### Legacy testnet compatibility
-
-```bash
-PRIVATE_KEY=0xTestOnly ilal --unsafe-private-key swap ...
-```
-
-`PRIVATE_KEY` is rejected unless `--unsafe-private-key` is explicit and the configured chain is a known testnet. It is not an institutional signer path and must not be used for deployment.
-
-## Safe administrative proposals
-
-Generate an offline transaction proposal:
-
-```bash
-ilal \
-  --safe 0xSafe \
-  --safe-output ./proposal.json \
-  safe propose \
-  --to 0xPolicyRegistry \
-  --data 0xEncodedCalldata \
-  --value 0 \
-  --operation 0 \
-  --chain 84532
-```
-
-Before writing output, the CLI verifies RPC chain ID, Safe bytecode, owners, threshold, nonce, and the on-chain `getTransactionHash` result. The JSON displays chain ID, Safe, target, value, operation, calldata, nonce, threshold, owners, and transaction hash.
-
-Submission is opt-in:
-
-```bash
-ilal \
-  --safe 0xSafe \
-  --safe-tx-service https://safe-service.example \
-  --owner-keystore ./owner.json \
-  --owner-password-file ./owner.password \
-  --submit-safe-proposal \
-  safe propose --to 0xTarget --data 0xCalldata --chain 84532
-```
-
-This signs and submits one owner proposal; it does not execute the Safe transaction or collect remaining confirmations. HSM/custody integrations require separate, tested adapters.
-
-Configured policy management commands can use the same Safe proposal options. Safe proposal handling is for administrative transactions; it is not a swap-session multisig collector.
-
-## V2 issuer integration kit
-
-The issuer kit converts PII-free JSON or CSV decisions into an encrypted,
-deterministic credential tree. Exact KYC tier, country, wallet records, and
-Merkle paths remain in the issuer environment. Only policy commitments are
-published on-chain.
-
-```bash
-ilal issuer tree init \
-  --issuer "Partner Sandbox Issuer" \
-  --schema institutional-kyc-v1 \
-  --allow-countries 840,826,756 \
-  --store ./private/issuer.enc.json \
-  --store-password-file ./issuer-store.password
-
-ilal issuer tree import \
-  --file ./issuer-decisions.csv \
-  --store ./private/issuer.enc.json \
-  --store-password-file ./issuer-store.password
-
-ilal issuer tree root \
-  --store ./private/issuer.enc.json \
-  --store-password-file ./issuer-store.password
-
-ilal issuer tree export-witness \
-  --wallet 0xInstitution \
-  --out ./private/issuer-witness.json \
-  --store ./private/issuer.enc.json \
-  --store-password-file ./issuer-store.password
-```
-
-The encrypted store uses AES-256-GCM with a scrypt-derived key. Password,
-store, policy export, and witness files must be managed as issuer secrets; the
-CLI rejects group-readable password files and writes generated artifacts with
-mode `600`. Provider references are domain-separated and hashed before being
-stored. See the repository's `docs/ISSUER_INTEGRATION.md` for the data schema,
-Safe policy publication, revocation, and sandbox acceptance workflow.
-
-V2 swap and liquidity preflight pins policy and grant reads to one block. The
-CLI rechecks the policy hash, revision, and grant immediately before broadcast,
-so a newly published root rejects an old grant before the Router transaction is
-sent. The Hook performs the same enforcement on-chain.
-
-## ERC-1271 sessions
-
-External `--hook-data` validation distinguishes EOAs from contract wallets. EOAs require canonical 65-byte low-s ECDSA. Contract wallets are validated on-chain with `isValidSignature(sessionDigest, signature)`, so an ERC-1271 signature is not forced into EOA length or recovery rules.
-
-## Slippage and amount bounds
-
-Live swaps require a positive raw `--min-amount-out`:
-
-```bash
-ilal --keystore ./wallet.json swap \
-  --amount-in 1 \
-  --token-in 0xToken \
-  --min-amount-out 990000
-```
-
-Only controlled test environments may opt out with `--unsafe-no-slippage`. Adding liquidity similarly requires `--max-amount-0` and `--max-amount-1`; removing liquidity requires `--min-amount-0` and `--min-amount-1`.
-
-## Deployment
-
-```bash
-ilal --keystore ./fresh-deployer.json deploy \
-  --chain 84532 \
-  --admin 0xAdminSafe \
-  --treasury 0xTreasury \
-  --mock
-```
-
-Mock deployment also performs ownership handoff. `ADMIN` and `TREASURY` are independent inputs. After deployment, the release process must verify every privileged holder and prove the deployer retains no undeclared role.
-
-The active public v0.3.3 Base Sepolia demo is recorded in `deployments/base-sepolia/v0.3.3.json`. It uses MockEAS, has ZK disabled, is unaudited, and is not production-ready. Historical v0.3.2 addresses are deliberately omitted here.
-
-## Release policy
-
-Ordinary RC tags create GitHub prereleases only. Stable releases publish to
-`latest`; explicitly versioned V2 PoC releases publish to `next`. Both npm
-channels use GitHub OIDC Trusted Publishing, provenance, a protected
-environment, and exact consistency across the Git tag, `package.json`, release
-manifest, and the referenced active or candidate deployment. See the root
-`RELEASE.md` and `docs/RELEASE_PROCESS.md`.
-
-## License
-
-Apache-2.0. See the monorepo `LICENSE`, `NOTICE`, and `THIRD_PARTY_LICENSES.md`.
+Commands run directly under `ilal`; there is no `mixed`, `session`, `netting` or protocol-version command group.
+
+| Command | Purpose |
+| --- | --- |
+| `check`, `monitor` | Validate deployment bindings and inspect policy/grants |
+| `grant` | Activate CNF, ZK or combined eligibility |
+| `approve` | Grant an explicit token allowance to the execution or LP router |
+| `quote`, `sign`, `execute`, `status` | Simulate, authorize, settle and inspect orders |
+| `liquidity` | Add, exit or collect an owner-controlled position |
+| `cancel` | Cancel one authorization nonce namespace |
+| `issuer-build` | Build issuer-controlled ZK policy witnesses |
+| `policy-prepare`, `safe-propose` | Prepare governance calldata and Safe proposals |
+| `console` | Start the local wallet-based application |
+
+Network commands require an explicit `--manifest` and `--rpc`. Historical deployment presets are not loaded. Use `<command> --help` for required inputs.
+
+Select transaction signers with `--keystore` and `--password-file`, or `--rpc-account`. The explicitly enabled `--unsafe-private-key` mode is testnet-only. Safe proposals require the explicit `safe-propose` command; preparation does not imply permission to submit. Browser signing stays in the connected wallet.
+
+Existing `Mixed*` JSON formats and signature domains remain unchanged. Old Session/V2/SOEE authorization files are incompatible. See [the runbook](../docs/mixed/RUNBOOK.md) and [historical migration notes](../docs/HISTORY.md).

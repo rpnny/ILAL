@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL v0.2.5 Design Decisions for Auditors
 
 This document explains intentional choices that may otherwise look like omissions during review.

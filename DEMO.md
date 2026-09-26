@@ -1,3 +1,5 @@
+> Historical demo. Use the unified console described in [README.md](README.md). Old commands require the [historical checkout](docs/HISTORY.md).
+
 # ILAL v0.3.3 demo runbook
 
 ## Current gate

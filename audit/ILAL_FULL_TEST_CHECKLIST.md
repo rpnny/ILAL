@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL Full Product & Security Test Checklist
 
 > Status notice (2026-07-22): v0.3.3 has an active Safe-controlled Base Sepolia demo manifest. References to v0.3.2 remain historical and must not be reused.

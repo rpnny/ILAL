@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL UHI10 提交前静态安全与机制 Review
 
 日期：2026-08-26  

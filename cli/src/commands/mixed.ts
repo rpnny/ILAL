@@ -2,14 +2,14 @@ import { Command } from 'commander';
 import { readFileSync,writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { createPublicClient,defineChain,http,getAddress,encodeAbiParameters,encodeFunctionData,keccak256,erc20Abi,type Address,type Hex,type PublicClient } from 'viem';
-import { checkMixedDeployment,validateMixedDeployment,parseMixedOrder,parseSignedMixedOrder,readMixedPolicy,quoteMixedOrders,signMixedOrder,executeMixedOrders,activateMixedGrant,modifyMixedLiquidity,cancelMixedNonce,mixedJSON,readMixedMarket,readMixedOrderStatus,MixedHookAbi,MixedGrantManagerAbi,MixedPolicyRegistryAbi,MixedExecutionRouterAbi,MixedOracleGuardAbi,type MixedDeployment,type MixedActivation,type MixedLiquidity } from '@ilalv3/sdk';
+import { checkMixedDeployment,validateMixedDeployment,parseMixedOrder,parseSignedMixedOrder,readMixedPolicy,quoteMixedOrders,signMixedOrder,executeMixedOrders,activateMixedGrant,modifyMixedLiquidity,cancelMixedNonce,mixedJSON,readMixedMarket,readMixedOrderStatus,MixedHookAbi,MixedGrantManagerAbi,MixedPolicyRegistryAbi,MixedExecutionRouterAbi,MixedOracleGuardAbi,type MixedDeployment,type MixedActivation,type MixedLiquidity } from '@ilal/sdk';
 import { createExecutionClients } from '../signer.js';
 import { buildMixedIssuer,type MixedIssuerInput } from '../mixedIssuer.js';
 import { startMixedConsole } from './mixedConsole.js';
 export const readMixedJSON=(file:string)=>JSON.parse(readFileSync(file,'utf8'));
 export function mixedContext(manifest:string,rpc:string) {
  const deployment=readMixedJSON(manifest) as MixedDeployment;validateMixedDeployment(deployment);
- const chain=defineChain({id:deployment.chainId,name:`ILAL Mixed ${deployment.chainId}`,nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:{default:{http:[rpc]}},testnet:deployment.classification!=='production'});
+ const chain=defineChain({id:deployment.chainId,name:`ILAL ${deployment.chainId}`,nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:{default:{http:[rpc]}},testnet:deployment.classification!=='production'});
  return {deployment,chain,client:createPublicClient({chain,transport:http(rpc)}) as PublicClient};
 }
 const output=(v:unknown,path?:string)=>{const s=mixedJSON(v);if(path)writeFileSync(path,s+'\n',{mode:0o600});else console.log(s);};
@@ -25,8 +25,8 @@ export async function monitorMixed(client:PublicClient,d:MixedDeployment,user?:A
  return {market,format:'ilal-mixed-monitor-v1',snapshot:{blockNumber:block.number,blockHash:block.hash},policy,user,grant,eligible,logs,note:'Read-only snapshot. Reverted transactions emit no logs; query submitted receipts separately.'};
 }
 export function registerMixed(program:Command) {
- const mixed=program.command('mixed').description('Versioned Mixed execution, policy grants and owner-isolated LP');
- const common=(name:string,description:string)=>mixed.command(name).description(description).requiredOption('--manifest <path>','Mixed deployment manifest').requiredOption('--rpc <url>','Explicit RPC URL').option('-o, --output <path>','Write JSON result');
+ const mixed=program;
+ const common=(name:string,description:string)=>mixed.command(name).description(description).requiredOption('--manifest <path>','ILAL deployment manifest').requiredOption('--rpc <url>','Explicit RPC URL').option('-o, --output <path>','Write JSON result');
  common('check','Check chain, code and immutable deployment bindings').action(async o=>{const c=mixedContext(o.manifest,o.rpc);output(await checkMixedDeployment(c.client,c.deployment),o.output);});
  common('monitor','Read policy, eligibility and recent logs; never sends notifications').option('--user <address>').option('--from-block <number>').action(async o=>{const c=mixedContext(o.manifest,o.rpc);output(await monitorMixed(c.client,c.deployment,o.user?getAddress(o.user):undefined,o.fromBlock?BigInt(o.fromBlock):undefined),o.output);});
  common('status','Read a signed order nonce, deadline and current eligibility').requiredOption('--input <path>').action(async o=>{const c=mixedContext(o.manifest,o.rpc);output(await readMixedOrderStatus(c.client,c.deployment,parseSignedMixedOrder(readMixedJSON(o.input))),o.output);});
@@ -43,7 +43,7 @@ export function registerMixed(program:Command) {
   else if(['activate','disable','invalidateRoot','cancelProposal'].includes(o.action)){data=encodeFunctionData({abi:MixedPolicyRegistryAbi,functionName:o.action as 'activate'|'disable'|'invalidateRoot'|'cancelProposal',args:[id]});}
   else throw new Error('Unknown governance action');output({chainId:c.deployment.chainId,to:c.deployment.contracts.policyRegistry,value:'0',data,note:'Submit via configured admin/Safe. Changes and re-enablement require on-chain delay.'},o.output);});
  mixed.command('issuer-build').description('Build issuer-controlled policy tree and private witnesses').requiredOption('--input <path>').requiredOption('--output <directory>').action(o=>output(buildMixedIssuer(readMixedJSON(o.input) as MixedIssuerInput,o.output)));
- mixed.command('console').description('Local Mixed browser application; all signing stays in wallet').requiredOption('--manifest <path>').requiredOption('--rpc <url>').option('--port <number>','Loopback port','4174').action(async o=>{await startMixedConsole(o);});
+ mixed.command('console').description('Local ILAL browser application; all signing stays in wallet').requiredOption('--manifest <path>').requiredOption('--rpc <url>').option('--port <number>','Loopback port','4174').action(async o=>{await startMixedConsole(o);});
 }
 export function parseLiquidity(x:Record<string,unknown>):MixedLiquidity {return {...x,user:getAddress(String(x.user)),poolId:x.poolId as Hex,executionPolicyHash:x.executionPolicyHash as Hex,policyRevision:BigInt(String(x.policyRevision)),action:Number(x.action),tickLower:Number(x.tickLower),tickUpper:Number(x.tickUpper),liquidityDelta:BigInt(String(x.liquidityDelta)),userSalt:x.userSalt as Hex,amount0Limit:BigInt(String(x.amount0Limit)),amount1Limit:BigInt(String(x.amount1Limit)),deadline:BigInt(String(x.deadline)),nonce:x.nonce as Hex};}
 export async function confirmed(client:PublicClient,hash:Hex){const receipt=await client.waitForTransactionReceipt({hash});if(receipt.status!=='success')throw new Error(`Transaction reverted: ${hash}`);return receipt;}

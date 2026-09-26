@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL Circuit v2 Eligibility Policy Specification
 
 Date: 2026-07-21  
