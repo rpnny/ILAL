@@ -19,7 +19,7 @@ At parity, institution A sells 100 Asset A and institution B sells 70 Asset B. G
 
 LP add requires a current grant. Exit and fee collection must remain available after the LP credential is revoked and the pool policy is disabled.
 
-The TOCTOU gate obtains a valid quote under policy revision N, activates revision N+1, and attempts the same signed orders. Execution must revert atomically without consuming either nonce or changing either institution's balances. A later CNF revocation must also reject new execution-time authorization.
+The local TOCTOU gate obtains a valid quote under policy revision N, activates revision N+1, and attempts the same signed orders. The public rehearsal obtains a valid quote, applies an issuer policy ban that increments the user's authorization epoch, and submits the same signed orders as an actual reverted transaction. Both paths must leave balances and nonces unchanged. A later CNF revocation must also reject new execution-time authorization.
 
 ## Local evidence
 
@@ -32,6 +32,10 @@ The command starts an isolated Anvil instance on port 8548, deploys from an empt
 The evidence format is `ilal-issuer-pilot-evidence-v1`; its schema is in `docs/schemas/issuer-pilot-evidence.schema.json`. The operator configuration format is `ilal-issuer-pilot-config-v1` with an example in `docs/examples/issuer-pilot.config.json`.
 
 ## Base Sepolia candidate
+
+The current public candidate is [v1.0.0-issuer-pilot-testnet.1](../../deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json). Its [public evidence](../../deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json) passed static and fixed-chain verification at Base Sepolia block `47334178`. It proves the 170/140/30 flow decomposition, quote/output equality, a real reverted TOCTOU transaction, CNF revocation, zero Hook/Router inventory, and LP collection and full exit after policy shutdown.
+
+The public candidate uses live Chainlink reference feeds. Those feeds were not mutated. The LP test records a read-only invalid-price oracle failure probe before withdrawal; the fully mutable oracle-failure state transition remains part of the reproducible local gate.
 
 Replace every placeholder role in the example with a separately controlled address. Build contracts and CLI, then prepare the exact deployment without broadcasting:
 
@@ -58,6 +62,8 @@ node scripts/pilot/broadcast-base-sepolia.mjs \
 ```
 
 The resulting manifest deliberately records `operationalEvidence.status` as `not completed`. Deployment receipts do not prove credentials, grants, liquidity or execution. Each role must then use its own signer to issue and fund the assets, issue CNFs, activate grants, add liquidity, sign orders, execute, revoke eligibility and exit liquidity. Do not share keys or collapse roles for the public rehearsal.
+
+The repository includes `scripts/pilot/rehearse-base-sepolia.mjs` for this lifecycle. It requires a mode-600 external test-wallet file and never writes private keys into evidence, manifests or logs.
 
 Validate the resulting evidence statically and against the chain:
 
