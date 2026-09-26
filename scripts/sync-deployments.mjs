@@ -5,12 +5,11 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const indexPath = resolve(root, "deployments/index.json");
-const cliPath = resolve(root, "cli/src/generated/deployments.ts");
 const sitePath = resolve(root, "site/deployment-status.json");
 const check = process.argv.includes("--check");
 
 const index = JSON.parse(readFileSync(indexPath, "utf8"));
-const activePresets = {};
+const protocol = JSON.parse(readFileSync(resolve(root, "protocol.json"), "utf8"));
 const isAddress = value => typeof value === "string" && /^0x[0-9a-fA-F]{40}$/.test(value);
 const isCommit = value => typeof value === "string" && /^[0-9a-f]{40}$/.test(value);
 const isHash = value => typeof value === "string" && /^0x[0-9a-fA-F]{64}$/.test(value);
@@ -38,39 +37,26 @@ for (const entry of index.deployments ?? []) {
   }
 }
 
-for (const [chainId, manifestPath] of Object.entries(index.active ?? {})) {
+for (const manifestPath of Object.values(index.active ?? {})) {
   const manifest = JSON.parse(readFileSync(resolve(root, "deployments", String(manifestPath)), "utf8"));
   if (manifest.status !== "active") throw new Error(`Active deployment ${manifestPath} is not marked active.`);
-  const address = value => typeof value === "string" ? value : value?.address;
-  const grantManager = address(manifest.contracts.policyGrantManager);
-  activePresets[chainId] = {
-    protocolVersion: grantManager ? "2" : "1",
-    issuer: address(manifest.contracts.cnfIssuer),
-    hook: address(manifest.contracts.complianceHook),
-    registry: address(manifest.contracts.policyRegistry),
-    grantManager,
-    router: address(manifest.contracts.router),
-    treasury: manifest.treasury,
-    tokenA: address(manifest.assets?.tokenA ?? manifest.pool.key.currency0),
-    tokenB: address(manifest.assets?.tokenB ?? manifest.pool.key.currency1),
-    poolId: manifest.pool.poolId,
-    fee: String(manifest.pool.key.fee),
-    tickSpacing: String(manifest.pool.key.tickSpacing),
-  };
 }
 
-const generatedTs = `// Generated from deployments/index.json. Do not edit manually.\n` +
-  `export const DEPLOYMENT_INDEX = ${JSON.stringify(index, null, 2)} as const;\n\n` +
-  `export const ACTIVE_PRESETS: Record<string, Record<string, string>> = ${JSON.stringify(activePresets, null, 2)};\n`;
+const current = JSON.parse(readFileSync(resolve(root, protocol.deploymentManifest), "utf8"));
+if (current.format !== "ilal-mixed-deployment-v1" || current.status !== "candidate"
+  || !index.deployments.some(entry => `deployments/${entry.manifest}` === protocol.deploymentManifest)) {
+  throw new Error("Current ILAL implementation must reference a recorded unified-protocol candidate.");
+}
 
 const siteStatus = `${JSON.stringify({
   schemaVersion: index.schemaVersion,
-  generatedFrom: "deployments/index.json",
-  active: index.active,
+  generatedFrom: ["protocol.json", "deployments/index.json"],
+  current: { implementation: protocol.implementation, manifest: protocol.deploymentManifest, status: current.status },
+  historicalActive: index.active,
   deployments: index.deployments,
 }, null, 2)}\n`;
 
-for (const [path, expected] of [[cliPath, generatedTs], [sitePath, siteStatus]]) {
+for (const [path, expected] of [[sitePath, siteStatus]]) {
   if (check) {
     const actual = readFileSync(path, "utf8");
     if (actual !== expected) throw new Error(`${path} is stale. Run node scripts/sync-deployments.mjs.`);

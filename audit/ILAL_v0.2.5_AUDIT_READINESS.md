@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL v0.2.5 Smart Contract Audit Readiness Checklist
 
 Project: ILAL - Institutional Liquidity Access Layer  

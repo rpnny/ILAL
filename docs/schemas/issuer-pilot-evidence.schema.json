@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ilal.xyz/schemas/issuer-pilot-evidence-v1.json",
+  "title": "ILAL issuer pilot evidence v1",
+  "type": "object",
+  "required": ["format", "status", "chainId", "roles", "assets", "policy", "flow", "quote", "execution", "negativeTests", "lpSafety", "inventory", "transactions"],
+  "properties": {
+    "format": { "const": "ilal-issuer-pilot-evidence-v1" },
+    "status": { "enum": ["PASSED", "INCOMPLETE"] },
+    "chainId": { "type": "integer", "minimum": 1 },
+    "flow": {
+      "type": "object",
+      "required": ["grossInstitutionalFlow", "internallyMatchedFlow", "unmatchedResidual", "actualAmmInput"],
+      "properties": {
+        "grossInstitutionalFlow": { "const": "170000000" },
+        "internallyMatchedFlow": { "const": "140000000" },
+        "unmatchedResidual": { "const": "30000000" },
+        "actualAmmInput": { "const": "30000000" }
+      }
+    }
+  }
+}

@@ -1,83 +1,41 @@
 #!/usr/bin/env node
-import { readFileSync, readdirSync } from "node:fs";
-import { resolve } from "node:path";
-
-const root = resolve(new URL("..", import.meta.url).pathname);
-const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
-const fail = message => { throw new Error(message); };
-
-const cli = readJson("cli/package.json");
-const sdk = readJson("sdk/package.json");
-const circuits = readJson("circuits/package.json");
-const proving = readJson("proving-artifacts/package.json");
-const release = readJson(`releases/v${cli.version}.json`);
-const deployments = readJson("deployments/index.json");
-
-if (cli.version !== release.version || release.tag !== `v${cli.version}`) fail("CLI and release versions differ.");
-if (!/^[0-9a-f]{40}$/.test(release.sourceCommit)) fail("sourceCommit must be a full Git commit SHA.");
-if (release.releaseCommit !== null) fail("Tracked releaseCommit must remain null until the tag workflow resolves it.");
-for (const pkg of [cli, sdk, circuits, proving]) {
-  if (pkg.license !== "Apache-2.0") fail(`${pkg.name} is not Apache-2.0.`);
-  if (!pkg.repository || pkg.repository.url !== "https://github.com/rpnny/ilal" && pkg.repository.url !== "git+https://github.com/rpnny/ilal.git") {
-    fail(`${pkg.name} repository metadata does not point to rpnny/ilal.`);
-  }
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+const root = resolve(new URL('..', import.meta.url).pathname);
+const json = path => JSON.parse(readFileSync(resolve(root, path), 'utf8'));
+const protocol = json('protocol.json');
+assert.equal(protocol.implementation, 'ilal-v1');
+assert.equal(protocol.softwareStatus, 'development');
+assert.equal(protocol.publication, 'not published');
+assert.equal(protocol.auditStatus, 'unaudited');
+assert.equal(protocol.productionReadiness, 'not production-ready');
+for (const name of ['cli', 'sdk', 'circuits']) {
+  const pkg = json(`${name}/package.json`);
+  assert.equal(pkg.license, 'Apache-2.0');
+  assert.equal(pkg.private, true, `${name} must remain unpublished until a reviewed release`);
+  if (name !== 'circuits') assert.equal(pkg.version, protocol.packageVersion);
+  assert.equal(json(`${name}/package-lock.json`).packages[''].version, pkg.version);
 }
-const legacy = deployments.deployments.find(item => item.version === "0.3.2");
-if (!legacy || legacy.status !== "deprecated") fail("Legacy v0.3.2 deployment must remain explicitly deprecated.");
-const isPrerelease = cli.version.includes("-");
-if (isPrerelease) {
-  if (release.softwareStatus !== "prerelease") fail("Prerelease software status is inconsistent.");
-  if (!["not published", "next"].includes(release.npmPublication)) fail("Prerelease npm publication must be disabled or use the next channel.");
-  const deployment = readJson(`deployments/${release.deploymentManifest}`);
-  if (deployment.status !== "candidate") fail("Prerelease must reference a candidate deployment.");
-  if (deployment.protocolVersion !== 2) fail("V2 prerelease must reference a V2 candidate deployment.");
-  if (release.nettingCandidateManifest) {
-    const netting = readJson(release.nettingCandidateManifest);
-    if (netting.status !== "candidate" || netting.candidate !== "hookathon-institutional-netting") {
-      fail("Netting prerelease must reference the institutional netting candidate.");
-    }
-    if (netting.sourceCommit !== release.sourceCommit) {
-      fail("Netting release and candidate source commits differ.");
-    }
-    if (netting.sourceVerification?.status !== "exact_match") {
-      fail("Netting candidate source verification is incomplete.");
+const deployment = json(protocol.deploymentManifest);
+assert.equal(deployment.format, 'ilal-mixed-deployment-v1');
+assert.equal(deployment.protocolVersion, 3);
+assert.equal(deployment.status, 'candidate');
+assert.equal(deployment.classification, 'testnet');
+const index = json('deployments/index.json');
+assert.ok(index.deployments.some(d => `deployments/${d.manifest}` === protocol.deploymentManifest));
+const foundry = readFileSync(resolve(root, 'contracts/foundry.toml'), 'utf8');
+assert.ok(Number(foundry.match(/\[profile\.default\.fuzz\][\s\S]*?runs\s*=\s*(\d+)/)?.[1]) >= 256);
+function checkSources(directory) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) checkSources(path);
+    else if (entry.name.endsWith('.sol')) {
+      const expected = entry.name === 'ILALPolicyVerifierV2.sol' ? 'GPL-3.0' : 'Apache-2.0';
+      assert.equal(readFileSync(path, 'utf8').split('\n')[0], `// SPDX-License-Identifier: ${expected}`);
     }
   }
-} else {
-  const active = Object.values(deployments.active ?? {}).map(path => readJson(`deployments/${path}`));
-  const deployment = active.find(item => item.version === cli.version);
-  if (!deployment) fail("Stable release must select its active deployment manifest.");
-  if (deployment.sourceCommit !== release.sourceCommit || deployment.releaseCommit !== null) fail("Stable deployment commit linkage is inconsistent.");
-  if (release.softwareStatus !== "stable" || release.npmPublication !== "stable") fail("Stable release publication labels are inconsistent.");
 }
-if (release.productionReadiness !== "not production-ready" || release.auditStatus !== "unaudited") {
-  fail("Release readiness labels are incomplete.");
-}
-if (release.lastLocalVerification.foundry.passed < release.baselineTests.foundry
-  || release.lastLocalVerification.cli.passed < release.baselineTests.cli
-  || release.lastLocalVerification.foundry.failed !== 0
-  || release.lastLocalVerification.foundry.skipped !== 0
-  || release.lastLocalVerification.cli.failed !== 0
-  || release.lastLocalVerification.cli.skipped !== 0) {
-  fail("Recorded local verification is below baseline or contains failures/skips.");
-}
-
-const foundry = readFileSync(resolve(root, "contracts/foundry.toml"), "utf8");
-const fuzz = Number(foundry.match(/\[profile\.default\.fuzz\][\s\S]*?runs\s*=\s*(\d+)/)?.[1] ?? 0);
-if (fuzz < release.baselineTests.fuzzRuns) fail(`Foundry fuzz runs dropped below ${release.baselineTests.fuzzRuns}.`);
-
-const solidityFiles = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
-  const path = resolve(directory, entry.name);
-  return entry.isDirectory() ? solidityFiles(path) : entry.name.endsWith(".sol") ? [path] : [];
-});
-for (const file of ["contracts/src", "contracts/script", "contracts/test"].flatMap(path => solidityFiles(resolve(root, path)))) {
-  const firstLine = readFileSync(file, "utf8").split(/\r?\n/, 1)[0];
-  const generatedGpl = file.endsWith("/contracts/src/verifier/ILALVerifier.sol")
-    || file.endsWith("/contracts/src/verifier/ILALPolicyVerifierV2.sol");
-  const expected = generatedGpl
-    ? "// SPDX-License-Identifier: GPL-3.0"
-    : "// SPDX-License-Identifier: Apache-2.0";
-  if (firstLine !== expected) fail(`${file} has unexpected SPDX identifier ${firstLine}.`);
-}
-
-console.log("release metadata, license policy, fuzz baseline, and deployment status are valid");
+checkSources(resolve(root, 'contracts/src'));
+checkSources(resolve(root, 'contracts/test'));
+console.log('Unified protocol, development packages, candidate evidence and license policy are valid.');

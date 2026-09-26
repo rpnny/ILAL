@@ -1,112 +1,23 @@
-# @ilalv3/sdk
+# ILAL SDK
 
-**ILAL Protocol SDK** — session signing and hookData encoding for Uniswap v4 compliance pools.
+TypeScript/viem client for ILAL's policy-controlled atomic execution and settlement protocol. This development package is private and unpublished.
 
-The current preview is `0.3.0-next.1`. It exports both v1 CNF-bound sessions
-and v2 policy-revision-bound sessions. npm `latest` remains `0.2.0`; install
-the preview with:
+The root exports only the unified protocol: deployment validation, policy/grant queries, typed authorizations, batch/direct quotes and execution, LP operations, cancellation and the integer matching model. `Mixed*` names and wire formats remain stable to match the candidate contracts.
+
+```typescript
+import { validateMixedDeployment, checkMixedDeployment, readMixedPolicy } from '@ilal/sdk';
+
+validateMixedDeployment(deployment);
+await checkMixedDeployment(publicClient, deployment);
+const policy = await readMixedPolicy(publicClient, deployment);
+```
+
+Supply a manifest in `ilal-mixed-deployment-v1` format and a viem client connected to its chain. Use `quoteMixedOrders`, `signMixedOrder`, `executeMixedOrders`, `activateMixedGrant` and `modifyMixedLiquidity` for the complete lifecycle.
+
+Legacy session helpers and encoders are no longer exported. A grant caches eligibility while individual orders retain explicit signatures, limits and nonce protection. See [the specification](../docs/mixed/SPEC.md) and [migration notes](../docs/HISTORY.md).
 
 ```bash
-npm install @ilalv3/sdk@next viem
+npm ci
+npm run build
+npm test
 ```
-
-The repository build additionally exports an unpublished Mixed v1 client and exact bigint reference model. `parseMixedOrder`, `signMixedOrder`, `quoteMixedOrders`, `executeMixedOrders`, `activateMixedGrant`, `modifyMixedLiquidity`, `cancelMixedNonce`, `readMixedOrderStatus` and `checkMixedDeployment` are bound to the new versioned manifest and domains. They must not be used with the published legacy deployments or signatures. `quoteMixedOrders` runs complete settlement through an intentional revert, so it cannot consume a nonce or move funds.
-
-ILAL gates swaps and liquidity operations behind on-chain compliance credentials (CNF tokens). This SDK handles the off-chain signing step: build a short-lived EIP-712 session token, sign it locally, and encode it into the `hookData` blob that `ComplianceHook` verifies on every action.
-
-## Install
-
-```bash
-npm install @ilalv3/sdk@next viem
-```
-
-## Quick start
-
-```ts
-import { createWalletClient, createPublicClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { baseSepolia } from "viem/chains";
-import { signSession, encodeHookData, getCredentialStatus } from "@ilalv3/sdk";
-
-const account = privateKeyToAccount("0x...");
-const walletClient = createWalletClient({ account, chain: baseSepolia, transport: http() });
-const publicClient = createPublicClient({ chain: baseSepolia, transport: http() });
-
-// 1. Check if the user has a valid compliance credential
-const status = await getCredentialStatus(publicClient, CNF_ISSUER, account.address);
-if (!status.valid) throw new Error("No valid CNF credential — mint or renew first");
-
-// 2. Sign a 10-minute session token (zero gas, fully local)
-const session = await signSession(walletClient, {
-  user:             account.address,
-  authorizedCaller: ILAL_ROUTER,   // only ILALRouter can submit this session
-  cnfIssuer:        CNF_ISSUER,
-  poolId:           POOL_ID,
-  action:           "swap",
-  verifyingHook:    COMPLIANCE_HOOK,
-  chainId:          BigInt(baseSepolia.id),
-});
-
-// 3. Encode into hookData and pass to ILALRouter.swap()
-const hookData = encodeHookData(session);
-```
-
-## API
-
-### `signSession(walletClient, params)` → `Promise<SignedSession>`
-
-Signs an EIP-712 `SessionToken` locally. No on-chain call.
-
-| Param | Type | Description |
-|---|---|---|
-| `user` | `Address` | Wallet that will trade |
-| `authorizedCaller` | `Address` | Contract allowed to submit the session (use `ILALRouter` address) |
-| `cnfIssuer` | `Address` | The `CNFIssuer` contract for this pool |
-| `poolId` | `Hex` | Uniswap v4 pool ID (`bytes32`) |
-| `action` | `"swap" \| "addLiquidity" \| "removeLiquidity"` | Must match the on-chain action |
-| `verifyingHook` | `Address` | `ComplianceHook` address |
-| `chainId` | `bigint` | Chain ID |
-| `expiresIn?` | `number` | TTL in seconds (default: 600) |
-
-### `encodeHookData(session)` → `0x${string}`
-
-ABI-encodes a `SignedSession` into the `bytes hookData` expected by `ComplianceHook`.
-
-### `signSessionV2(walletClient, params)` / `encodeHookDataV2(session)`
-
-Builds a version-2 EIP-712 session bound to the current `policyHash` and
-`policyRevision`, then ABI-encodes it for `ComplianceHookV2`. A policy revision
-change invalidates the signed session and its cached grant. V2 remains an
-unaudited Base Sepolia PoC using development proving artifacts.
-
-### `getCredentialStatus(publicClient, cnfIssuer, wallet)` → `Promise<CredentialStatus>`
-
-Reads credential state from the `CNFIssuer` contract.
-
-```ts
-interface CredentialStatus {
-  exists:    boolean;
-  valid:     boolean;   // !revoked && expiresAt > now
-  tokenId:   bigint;
-  expiresAt: bigint;    // Unix timestamp
-  revoked:   boolean;
-}
-```
-
-## Base Sepolia demo deployment
-
-| Contract | Address |
-|---|---|
-| CNFIssuer | `0x57d6faea0159C95e96D7a6Ed4e3D416701aA9aEF` |
-| ComplianceHook | `0x9B894a6fD363CfBA6E8A5876256Fb7698659CA80` |
-| ILALRouter | `0x2ccd398F6F60A1d926374a78F25e90E3Bef99A77` |
-
-Pool ID: `0x1a05b49e39c3ed799c4f0f23bb61e647ff9d3c558136f718a2ab2fa87c82d1ad`
-
-These values mirror `deployments/index.json` and the active versioned
-manifest. Treat those files as the source of truth when a new deployment is
-activated.
-
-## License
-
-Apache-2.0

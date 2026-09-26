@@ -1,6 +1,6 @@
-# ILAL Mixed v1 executable specification
+# ILAL v1 executable specification
 
-Status: local implementation candidate, unaudited, not deployed and not published. This version is wire-incompatible with the legacy Session, V2 PoC and Hookathon netting candidates.
+Status: sole maintained ILAL implementation; unaudited and unpublished. A CNF_ONLY Base Sepolia testnet candidate is recorded in the deployment manifest. Internal `Mixed*` names identify its deployed wire format. Earlier Session, V2 PoC and Hookathon netting formats are incompatible historical versions.
 
 Execution is one transaction / one unlock. No escrow, saved quote, or cross-transaction execution context exists. Order signature and ERC-20 allowance are separate authorizations. Matched flow crosses at the pre-fee execution reference price; protocol fee is zero; only residual pays the pool fee.
 
@@ -14,4 +14,4 @@ Ownership: PoolManager owner is the canonical Liquidity Router, position salt is
 
 Authorization: a grant is live only while its policy hash/revision, user epoch and source state remain current. CNF is re-read on every use. ZK grants bind the accepted root and root epoch; replacing or invalidating a root immediately invalidates cached grants. A pool-level user ban applies to every source. Policy changes and unbans wait 48 hours; disabling, banning and retiring roots are immediate.
 
-Acceptance order: math/encoding/state machine -> complete execution -> economic protection -> Mixed authorization and LP. The initial implementation task excluded deployment and publication; the later Base Sepolia candidate is tracked by its versioned manifest. No Mixed package is published.
+Acceptance order: math/encoding/state machine -> complete execution -> economic protection -> authorization and LP. The Base Sepolia candidate is tracked by its versioned manifest. No ILAL v1 package is published.

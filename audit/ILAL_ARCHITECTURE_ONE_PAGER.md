@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL Architecture One-Pager
 
 Project: ILAL - Institutional Liquidity Access Layer  

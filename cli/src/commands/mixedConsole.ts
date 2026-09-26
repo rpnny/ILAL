@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { dirname,resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getAddress,encodeFunctionData,erc20Abi,type Address,type Hex } from 'viem';
-import { mixedJSON,readMixedOrderStatus,checkMixedDeployment,readMixedPolicy,quoteMixedOrders,parseMixedOrder,parseSignedMixedOrder,prepareMixedExecution,mixedDomain,mixedTypedData,MixedActivationFields,MixedLiquidityFields,MixedExecutionRouterAbi,MixedLiquidityRouterAbi,MixedGrantManagerAbi,MixedHookAbi,type MixedActivation,type MixedLiquidity,type SignedMixedOrder } from '@ilalv3/sdk';
+import { mixedJSON,readMixedOrderStatus,checkMixedDeployment,readMixedPolicy,quoteMixedOrders,parseMixedOrder,parseSignedMixedOrder,prepareMixedExecution,mixedDomain,mixedTypedData,MixedActivationFields,MixedLiquidityFields,MixedExecutionRouterAbi,MixedLiquidityRouterAbi,MixedGrantManagerAbi,MixedHookAbi,type MixedActivation,type MixedLiquidity,type SignedMixedOrder } from '@ilal/sdk';
 import { mixedContext,activationFromPolicy,monitorMixed,parseLiquidity } from './mixed.js';
 interface Options {manifest:string;rpc:string;port?:string;}
 interface Challenge {user:Address;expires:number;kind:'order'|'grant'|'liquidity';direct?:boolean;payload:unknown;proof?:Hex;inputs?:bigint[];}
@@ -93,6 +93,6 @@ export async function startMixedConsole(opts:Options) {
   send(res,404,{error:'Unknown route'});
  }catch(error){send(res,400,{error:error instanceof Error?error.message:String(error)});}});
  await new Promise<void>((ok,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',ok);});
- console.log(`Mixed console: ${origin}\nWallet signing only. Manifest: ${opts.manifest}`);
+ console.log(`ILAL console: ${origin}\nWallet signing only. Manifest: ${opts.manifest}`);
  return server;
 }

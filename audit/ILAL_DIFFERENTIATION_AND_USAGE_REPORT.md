@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # ILAL Differentiation & Usage Report
 
 > Historical evidence notice (2026-07-22): live Base Sepolia observations in this report describe the now-deprecated v0.3.2 stack. They do not describe the current v0.3.3 release candidate or an active deployment.

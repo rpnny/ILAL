@@ -1,5 +1,7 @@
 # ILAL 机构压力测试与价值评估报告
 
+> 历史合并前研究。本文的就绪结论、命令和候选证据不代表当前 ILAL v1 发行方试点；当前验收标准见 `docs/pilot/ISSUER_PILOT.md`。
+
 ## 1. Executive verdict
 
 **PASS — ready for institutional pilot。** 独立审计前不得称为 production-ready。

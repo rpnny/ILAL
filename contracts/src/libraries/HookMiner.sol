@@ -10,7 +10,7 @@ library HookMiner {
     /// @notice Find a salt that produces a hook address with the required flags.
     /// @param deployer  The address that will call CREATE2 (typically a factory or this contract)
     /// @param flags     Required bits in the hook address (e.g. 0x0A80 for beforeSwap + beforeAdd/RemoveLiquidity)
-    /// @param creationCode The contract creation bytecode (type(ComplianceHook).creationCode)
+    /// @param creationCode The Hook contract creation bytecode
     /// @param constructorArgs ABI-encoded constructor arguments
     /// @return hookAddress The mined address
     /// @return salt        The salt to use in CREATE2

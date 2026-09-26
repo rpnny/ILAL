@@ -14,6 +14,11 @@ for i in $(seq 1 50); do
   if curl --silent --max-time 1 http://127.0.0.1:8547 >/dev/null; then break; fi
   sleep 0.1
 done
+# The economics baseline deploys Uniswap's test routers directly. Foundry does
+# not emit dependency test artifacts during the normal contracts build.
+forge build --root contracts \
+  lib/v4-core/src/test/PoolSwapTest.sol \
+  lib/v4-core/src/test/PoolModifyLiquidityTest.sol
 node scripts/mixed/local-deploy.mjs
 node scripts/mixed/local-e2e.mjs
 node scripts/mixed/economics.mjs

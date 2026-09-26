@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [HISTORY.md](HISTORY.md).
+
 # ILAL Incident and Pool Migration Runbook
 
 This runbook covers the operational consequence of immutable Uniswap v4 Hook

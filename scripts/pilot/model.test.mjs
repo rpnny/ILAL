@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validatePilotConfig,validatePilotEvidence} from './model.mjs';
+
+const address = n => `0x${n.toString(16).padStart(40,'0')}`;
+const config = {format:'ilal-issuer-pilot-config-v1',chainId:31337,roles:{deployer:address(1),issuer:address(2),settlementAssetOperator:address(3),liquidityProvider:address(4),institutionA:address(5),institutionB:address(6),executor:address(7)},assets:{issuerStablecoin:{name:'Issuer Stablecoin',symbol:'iUSD',decimals:6,role:'issuer-stablecoin'},settlementCash:{name:'Sandbox Settlement Cash',symbol:'sUSD',decimals:6,role:'sandbox-settlement-cash'}},scenario:{issuerAssetInput:'100000000',settlementCashInput:'70000000',tickLower:-1000,tickUpper:1000,liquidityDelta:'100000000000000'},policy:{mode:'CNF_ONLY',grantTtlSeconds:3600}};
+const hash = `0x${'11'.repeat(32)}`;
+const evidence = {format:'ilal-issuer-pilot-evidence-v1',status:'PASSED',chainId:31337,roles:config.roles,assets:config.assets,policy:config.policy,flow:{grossInstitutionalFlow:'170000000',internallyMatchedFlow:'140000000',unmatchedResidual:'30000000',actualAmmInput:'30000000'},quote:{outputs:['1','2']},execution:{outputs:['1','2']},negativeTests:{quotePolicyChangeExecute:{passed:true,stateUnchanged:true},revokedInstitutionRejected:{passed:true,stateUnchanged:true}},lpSafety:{exitAfterPolicyFailure:true,collectAfterPolicyFailure:true,oracleFailureInduced:true},inventory:{hookAssetA:'0',hookAssetB:'0',executionRouterAssetA:'0',executionRouterAssetB:'0',liquidityRouterAssetA:'0',liquidityRouterAssetB:'0'},transactions:Object.fromEntries(Array.from({length:8},(_,i)=>[`t${i}`,hash]))};
+
+test('accepts the canonical separated-role pilot',()=>assert.equal(validatePilotConfig(config),config));
+test('rejects role reuse and ambiguous assets',()=>{assert.throws(()=>validatePilotConfig({...config,roles:{...config.roles,executor:config.roles.issuer}}),/distinct/);assert.throws(()=>validatePilotConfig({...config,assets:{...config.assets,settlementCash:{...config.assets.settlementCash,role:'issuer-stablecoin'}}}),/responsibilities/);});
+test('enforces 170/140/30 and LP safety evidence',()=>{assert.equal(validatePilotEvidence(evidence),evidence);assert.throws(()=>validatePilotEvidence({...evidence,flow:{...evidence.flow,actualAmmInput:'31000000'}}),/unmatched residual/);assert.throws(()=>validatePilotEvidence({...evidence,lpSafety:{...evidence.lpSafety,exitAfterPolicyFailure:false}}),/principal/);});

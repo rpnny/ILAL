@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [HISTORY.md](HISTORY.md).
+
 # Release process
 
 ## History and repository gate

@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [HISTORY.md](HISTORY.md).
+
 # ILAL 核心代码大白话精读
 
 > 适合第一次接触 Solidity、Uniswap v4 Hook、EIP-712 和零知识证明的读者。

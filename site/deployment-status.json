@@ -1,7 +1,15 @@
 {
   "schemaVersion": 1,
-  "generatedFrom": "deployments/index.json",
-  "active": {
+  "generatedFrom": [
+    "protocol.json",
+    "deployments/index.json"
+  ],
+  "current": {
+    "implementation": "ilal-v1",
+    "manifest": "deployments/base-sepolia/v1.0.0-mixed-testnet.1.json",
+    "status": "candidate"
+  },
+  "historicalActive": {
     "84532": "base-sepolia/v0.3.3.json"
   },
   "deployments": [

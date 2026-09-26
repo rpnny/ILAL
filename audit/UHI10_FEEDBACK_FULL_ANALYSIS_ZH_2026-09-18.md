@@ -1,3 +1,5 @@
+> Historical document. For the maintained ILAL implementation and current commands, see [docs/HISTORY.md](../docs/HISTORY.md).
+
 # UHI10 Feedback × ILAL 全量分析
 
 日期：2026-09-18。代码基线：HEAD `453e404`，同时检查当前工作区已有的 CLI、Console、App 改动。反馈来源：用户提供的两页 Hookathon Feedback Form。本文是反馈驱动的架构、机制、产品和验证分析，不是逐行独立安全审计。
