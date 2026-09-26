@@ -1,7 +1,7 @@
 {
   "name": "@ilal/sdk",
   "version": "1.0.0-dev.0",
-  "description": "ILAL SDK \u2014 eligibility grants, atomic netting and owner-controlled liquidity",
+  "description": "ILAL SDK \u2014 policy-controlled atomic execution and settlement",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

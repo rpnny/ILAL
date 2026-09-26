@@ -1,9 +1,9 @@
-.PHONY: verify build contracts-test cli-test sdk-test circuits-test protocol-test local-test deployments-check release-check package-check secret-check sbom-check history-check
+.PHONY: verify build contracts-test cli-test sdk-test circuits-test protocol-test local-test pilot-test deployments-check release-check package-check secret-check sbom-check history-check
 
 .NOTPARALLEL:
 
-# One protocol: reusable grants + atomic settlement + owner-controlled LP.
-verify: history-check deployments-check release-check contracts-test cli-test sdk-test circuits-test protocol-test local-test package-check secret-check sbom-check
+# One protocol: policy-controlled atomic execution and settlement.
+verify: history-check deployments-check release-check contracts-test cli-test sdk-test circuits-test protocol-test local-test pilot-test package-check secret-check sbom-check
 
 build:
 	cd cli && npm run build
@@ -32,6 +32,11 @@ protocol-test: build contracts-test
 
 local-test: protocol-test
 	bash scripts/mixed/run-local.sh
+
+pilot-test: build contracts-test
+	node --test scripts/pilot/model.test.mjs scripts/pilot/deployment.test.mjs
+	bash scripts/pilot/run-local.sh
+	node scripts/pilot/verify-evidence.mjs artifacts/pilot/local-evidence.json
 
 deployments-check:
 	node scripts/sync-deployments.mjs --check

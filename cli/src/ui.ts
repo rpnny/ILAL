@@ -175,8 +175,8 @@ export const log = {
 
 export function header(title: string, subtitle?: string) {
   console.log();
-  const brand = `${fmt.bold(fmt.cyan("ILAL"))} ${fmt.gray("Institutional Liquidity Access Layer")}`;
-  const slogan = `${fmt.green("Compliance is the hook.")} ${fmt.gray("Just prove it and swap.")}`;
+  const brand = `${fmt.bold(fmt.cyan("ILAL"))} ${fmt.gray("Permissioned digital asset liquidity")}`;
+  const slogan = `${fmt.green("Authorize. Match. Settle.")} ${fmt.gray("Only the residual reaches public liquidity.")}`;
   const heading = `${fmt.bold(title)}${subtitle ? ` ${fmt.badge(subtitle, "gray")}` : ""}`;
   const width = Math.max(70, visibleLength(brand), visibleLength(slogan), visibleLength(heading)) + 2;
   console.log(fmt.cyan(`  ╭${"─".repeat(width)}╮`));

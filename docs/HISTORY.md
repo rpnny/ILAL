@@ -15,7 +15,7 @@ Use that checkout to reproduce old tests, benchmarks and demonstrations. Histori
 
 - `deployments/` preserves the original manifests and deployment index. Its historical `active` pointer to v0.3.3 is not the current CLI default; the CLI requires an explicit unified-protocol manifest.
 - `releases/` preserves published release metadata. It does not describe the current private development packages.
-- `docs/hookathon/`, `docs/research/`, `docs/data-room/` and `audit/` preserve dated research and review evidence.
+- `docs/hookathon/`, `docs/research/`, `docs/data-room/` and `audit/` preserve dated research and review evidence. Their former readiness verdicts and Session/SOEE product language do not describe the maintained issuer pilot.
 - `docs/history/proving-artifacts/` preserves the old proving package metadata and verification key; it is not used by the current proof workflow.
 - The current implementation and candidate are selected by `protocol.json`. The candidate is not promoted to a stable deployment by this repository consolidation.
 

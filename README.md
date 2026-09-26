@@ -1,68 +1,72 @@
-# ILAL — Institutional Access and Execution for Uniswap v4
+# ILAL — Policy-controlled atomic execution and settlement
 
-Prove eligibility once. Net opposing orders. Send only the residual to Uniswap v4.
+**Policy-controlled atomic execution and settlement infrastructure for permissioned digital asset liquidity.**
 
-ILAL has **one maintained protocol**: eligibility grants, atomic signed-order settlement and owner-controlled liquidity. Internal `Mixed*` names remain only where the deployed wire format requires them. Earlier Session, V2 and SOEE implementations are historical and are not selectable products or executable stacks in this checkout.
+ILAL lets an asset issuer define who may enter a liquidity pool, lets eligible institutions authorize bounded orders, matches opposing flow atomically, and sends only the unmatched residual to Uniswap v4.
 
-## How it works
+## Issuer pilot
 
-1. **Eligibility:** a pool accepts CNF credentials, a ZK policy proof, either source, or both.
-2. **Reusable access:** a short-lived grant binds eligibility to a user, pool and policy revision. Source validity is checked on use; expiry, revocation and policy changes can invalidate access.
-3. **Execution:** users sign bounded orders. ILAL sorts the batch, matches opposing flow and sends the residual through Uniswap v4, all in one transaction. Direct swaps use the same protocol with their own authorization.
-4. **Liquidity:** positions belong to individual users. Adding liquidity requires a live grant; withdrawing principal and collecting fees remain available without one.
+The first pilot models one issuer stablecoin against a separate settlement asset:
 
-A grant reuses eligibility, not permission to spend. Each execution still needs its own authorization and ERC-20 allowance. Order limits, deadlines and nonce protection are enforced on-chain. Quotes simulate settlement and always roll back; they never authorize execution.
+- **Asset A — Issuer Stablecoin:** the issuer controls eligibility for the ILAL pool involving its asset.
+- **Asset B — USDC-like Settlement Asset:** an independently controlled sandbox cash leg.
+- **Participants:** issuer, settlement-asset operator, liquidity provider, institutions A and B, and a permissionless executor are separate roles.
 
-## Current status
+The canonical case has 100 units of Asset A offered against 70 units of Asset B at parity:
 
-The current [Base Sepolia candidate](deployments/base-sepolia/v1.0.0-mixed-testnet.1.json) uses **CNF_ONLY**, Circle test USDC and ILAL hUSDT. It is unaudited; ZK is disabled in this public pool. The deployment manifest records a successful read-only preflight, not a funded grant/trading/LP demonstration. Local end-to-end tests exercise those capabilities.
+| Measure | Amount |
+| --- | ---: |
+| Gross institutional flow | 170 |
+| Internally matched flow | 140 |
+| Public AMM exposure | 30 |
 
-The source packages are private, unpublished development packages. Selecting this implementation does not promote the candidate to an active stable release, migrate any positions, or change existing deployments. [protocol.json](protocol.json) selects the implementation and candidate; [historical records](docs/HISTORY.md) preserve earlier release evidence.
+> **Only the unmatched residual may reach public AMM liquidity. Internally matched flow must never be exposed to the AMM.**
 
-## Start locally
+The execution happens in one PoolManager unlock. A quote is a full forced-revert simulation and never authorizes execution. Eligibility, policy revision, signatures, limits, balances and allowances are checked again against execution-time state.
 
-Requires Node.js 24, Foundry v1.5.1 and Circom 2.2.3.
+> **Policy enforcement must never trap LP principal. Eligibility controls new risk-taking actions, not withdrawal of existing assets.**
+
+Adding liquidity requires a live grant. The position owner can exit principal and collect fees after credential revocation, grant expiry, policy shutdown or oracle failure.
+
+Run the complete local pilot from a blank Anvil chain:
 
 ```bash
 npm ci --prefix sdk
 npm ci --prefix cli
-npm ci --prefix circuits
 make build
-node cli/dist/index.js --help
+make pilot-test
 ```
 
-Open the wallet-based console against the candidate using an explicit RPC:
+The gate writes `artifacts/pilot/local-evidence.json` and verifies role separation, the 170/140/30 flow decomposition, quote-to-execution equality, zero Hook/Router inventory, a quote → policy change → execute atomic failure, credential revocation and LP exit safety. See the [issuer pilot guide](docs/pilot/ISSUER_PILOT.md).
 
-```bash
-node cli/dist/index.js console \
-  --manifest deployments/base-sepolia/v1.0.0-mixed-testnet.1.json \
-  --rpc https://sepolia.base.org
-```
+## Protocol
 
-The console listens on `http://127.0.0.1:4174`. Signing stays in the wallet. Use `ilal grant`, `quote`, `sign`, `execute`, `liquidity` and `monitor` when installed from a locally packed CLI. There is no protocol-version selector.
+ILAL has one maintained implementation: CNF/ZK eligibility sources, reusable pool-scoped grants, bounded signed orders, atomic matching and owner-controlled liquidity. Existing internal `Mixed*` names remain only where the deployed wire format requires them.
+
+A grant reuses eligibility, not permission to spend. Every execution still requires its own authorization and ERC-20 allowance. Direct swaps use the same policy and authorization system. Quotes always roll back.
+
+The current [Base Sepolia protocol candidate](deployments/base-sepolia/v1.0.0-mixed-testnet.1.json) is separate from the issuer pilot. It uses Circle test USDC and ILAL hUSDT, has read-only deployment evidence, and has no funded public lifecycle demonstration. The dedicated issuer-pilot deployment workflow produces a new candidate whose operational evidence remains `not completed` until the full rehearsal is run and independently checked.
 
 ## Development
 
+Requires Node.js 24, Foundry v1.5.1 and Circom 2.2.3.
+
 ```bash
-make verify          # all current checks, including real proofs and local end-to-end
-make contracts-test  # Solidity unit/fuzz tests
-make cli-test        # CLI and signer tests
-make sdk-test        # model, encoding and client tests
-make circuits-test   # policy-circuit constraint tests
-make protocol-test   # real proof, differential, 100,000 invariant calls, deployment checks
-make local-test      # isolated Anvil lifecycle, economics and console integration
+make verify          # complete maintained protocol and issuer-pilot gates
+make pilot-test      # isolated issuer pilot and evidence validation
+make contracts-test  # Solidity unit and fuzz tests
+make protocol-test   # real proof, differential and invariant checks
+make local-test      # unified protocol lifecycle and economics
 ```
 
 | Area | Entry |
 | --- | --- |
-| Protocol contracts | [contracts/src/mixed](contracts/src/mixed) |
-| Shared credential and oracle infrastructure | [contracts/README.md](contracts/README.md) |
+| Issuer pilot | [docs/pilot/ISSUER_PILOT.md](docs/pilot/ISSUER_PILOT.md) |
+| Protocol specification | [docs/mixed/SPEC.md](docs/mixed/SPEC.md) |
+| Operations | [docs/mixed/RUNBOOK.md](docs/mixed/RUNBOOK.md) |
+| Audit boundary | [docs/mixed/AUDIT_SCOPE.md](docs/mixed/AUDIT_SCOPE.md) |
+| CLI | [cli/README.md](cli/README.md) |
 | SDK | [sdk/README.md](sdk/README.md) |
-| CLI and local console | [cli/README.md](cli/README.md) |
-| Executable specification | [docs/mixed/SPEC.md](docs/mixed/SPEC.md) |
-| Operations and deployment | [docs/mixed/RUNBOOK.md](docs/mixed/RUNBOOK.md) |
-| Migration and history | [docs/HISTORY.md](docs/HISTORY.md) |
+| Historical records | [docs/HISTORY.md](docs/HISTORY.md) |
 
-The Hook is immutable. Protocol changes require explicit deployment and migration review. See [SECURITY.md](SECURITY.md) and the [audit scope](docs/mixed/AUDIT_SCOPE.md).
-
-Apache License 2.0; generated verifier and third-party exceptions are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+The software and pilot are unaudited, unpublished and not production-ready. Apache License 2.0; generated-verifier and third-party exceptions are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

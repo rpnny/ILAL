@@ -1,5 +1,7 @@
 # ILAL Institutional Stress & Value Validation Report
 
+> Historical pre-consolidation study. Its readiness verdict, commands and candidate evidence do not describe the maintained ILAL v1 issuer pilot. See `docs/pilot/ISSUER_PILOT.md` for current acceptance criteria.
+
 ## 1. Executive verdict
 
 **PASS — ready for institutional pilot.** This result does not claim production readiness before an independent audit.

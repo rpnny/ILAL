@@ -1,0 +1,25 @@
+{
+  "format": "ilal-issuer-pilot-config-v1",
+  "chainId": 84532,
+  "roles": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "issuer": "0x2222222222222222222222222222222222222222",
+    "settlementAssetOperator": "0x3333333333333333333333333333333333333333",
+    "liquidityProvider": "0x4444444444444444444444444444444444444444",
+    "institutionA": "0x5555555555555555555555555555555555555555",
+    "institutionB": "0x6666666666666666666666666666666666666666",
+    "executor": "0x7777777777777777777777777777777777777777"
+  },
+  "assets": {
+    "issuerStablecoin": { "name": "Issuer Pilot Stablecoin", "symbol": "ipUSD", "decimals": 6, "role": "issuer-stablecoin" },
+    "settlementCash": { "name": "Sandbox Settlement Cash", "symbol": "sUSD", "decimals": 6, "role": "sandbox-settlement-cash" }
+  },
+  "scenario": {
+    "issuerAssetInput": "100000000",
+    "settlementCashInput": "70000000",
+    "tickLower": -1000,
+    "tickUpper": 1000,
+    "liquidityDelta": "100000000000000"
+  },
+  "policy": { "mode": "CNF_ONLY", "grantTtlSeconds": 3600 }
+}

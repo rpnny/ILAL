@@ -1,7 +1,7 @@
 {
   "name": "@ilal/cli",
   "version": "1.0.0-dev.0",
-  "description": "ILAL CLI \u2014 eligibility grants, atomic netting and owner-controlled liquidity",
+  "description": "ILAL CLI \u2014 policy-controlled atomic execution and settlement",
   "type": "module",
   "bin": {
     "ilal": "dist/index.js"

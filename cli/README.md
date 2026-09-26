@@ -1,6 +1,6 @@
 # ILAL CLI
 
-One interface for eligibility grants, signed execution and liquidity. Requires Node.js 24. This development package is private and unpublished.
+Command-line access to ILAL's policy-controlled atomic execution and settlement protocol. Requires Node.js 24. This development package is private and unpublished.
 
 ```bash
 npm ci --prefix sdk

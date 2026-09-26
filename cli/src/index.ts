@@ -7,7 +7,7 @@ import { safePropose } from './safe.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const program = new Command();
-program.name('ilal').description('ILAL — eligibility, atomic execution and owner-controlled liquidity').version(version)
+program.name('ilal').description('ILAL — policy-controlled atomic execution and settlement').version(version)
   .option('--keystore <path>', 'Encrypted Web3 Secret Storage v3 keystore')
   .option('--password-file <path>', 'Keystore password file (mode 600)')
   .option('--rpc-account <address>', 'Account managed by the configured JSON-RPC node')

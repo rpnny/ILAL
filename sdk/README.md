@@ -1,6 +1,6 @@
 # ILAL SDK
 
-TypeScript/viem client for the unified ILAL protocol. This development package is private and unpublished.
+TypeScript/viem client for ILAL's policy-controlled atomic execution and settlement protocol. This development package is private and unpublished.
 
 The root exports only the unified protocol: deployment validation, policy/grant queries, typed authorizations, batch/direct quotes and execution, LP operations, cancellation and the integer matching model. `Mixed*` names and wire formats remain stable to match the candidate contracts.
 
