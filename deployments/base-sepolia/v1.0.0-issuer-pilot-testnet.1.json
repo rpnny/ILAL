@@ -1,0 +1,328 @@
+{
+  "$schema": "../schema/deployment-manifest.schema.json",
+  "schemaVersion": 1,
+  "format": "ilal-mixed-deployment-v1",
+  "version": "1.0.0-issuer-pilot-testnet.1",
+  "status": "candidate",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "protocolVersion": 3,
+  "classification": "testnet",
+  "ceremony": "unsafe-development",
+  "sourceCommit": "0a442b8a197cb66d80f560831d28fc7499662d80",
+  "releaseCommit": null,
+  "sourceRevision": "0a442b8a197cb66d80f560831d28fc7499662d80",
+  "sourceDigest": "65ccdf0d876c8d6998bc1c2bcda0d66d33a4859334adbd003e81d14f5174e45b",
+  "sourceTreeHash": "0x65ccdf0d876c8d6998bc1c2bcda0d66d33a4859334adbd003e81d14f5174e45b",
+  "sourceDirty": false,
+  "deployer": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+  "admin": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+  "treasury": null,
+  "adminTreasuryShared": false,
+  "contracts": {
+    "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+    "hook": "0x0dDf18c4d6A7eD4E978ad92975E2e3981FEF4Aa8",
+    "executionRouter": "0x3cAF5f2A080516f470897dc4176d71bF7efD35e7",
+    "liquidityRouter": "0xAe4F779b5FD84103B5090ae3661d25B81906bc90",
+    "oracle": "0x7f0cA96E2855337983Fba6CAa4709321Ad5F49eb",
+    "grantManager": "0x1F603D0ba7B11955e553628446D0dC5a8f5416E9",
+    "policyRegistry": "0x22010c62112D554f13f4D7f2522b85cEBA1c5C4A"
+  },
+  "pool": {
+    "currency0": "0x88c55Be44d6A24958D52d3585a84F6ddb192CC45",
+    "currency1": "0xd25ce3D03444b915E0DCE5C63ACBC30F90aCe38D",
+    "fee": 500,
+    "tickSpacing": 10,
+    "hooks": "0x0dDf18c4d6A7eD4E978ad92975E2e3981FEF4Aa8",
+    "poolId": "0xb5b9752fa7b4b1f79627979634795842aa28086e05b03822f375528eb3f021de",
+    "initializationTransactionHash": "0x1a6aa08d6548cd79be018ad70169b84201aad8baf57534fe5f15fb19be6857b2",
+    "initializationBlockNumber": 47333905,
+    "key": {
+      "currency0": "0x88c55Be44d6A24958D52d3585a84F6ddb192CC45",
+      "currency1": "0xd25ce3D03444b915E0DCE5C63ACBC30F90aCe38D",
+      "fee": 500,
+      "tickSpacing": 10,
+      "hook": "0x0dDf18c4d6A7eD4E978ad92975E2e3981FEF4Aa8"
+    }
+  },
+  "codeHashes": {
+    "poolManager": "0x03c45db6d09b14da7c1f7239a5a49697f976d395277e6d2acb6fbed3f9e0249f",
+    "hook": "0x59f2d31cdefb9f0b88d1fbf4497a653d6e608d2b028e817fcab5d7618d7e6a76",
+    "executionRouter": "0x6e8aa21b2f2a51512b3d2c7d977bc9e0d6191a735a90d9a495667d1067a86874",
+    "liquidityRouter": "0x25daba4806a2b746ee68bb8410c92e578fb327912708a10420ddb8c2fa77c2d5",
+    "oracle": "0x94d15406c9b6fb07d17447b68bd57347dd438970f3622e73b35f98489e0992ed",
+    "grantManager": "0x741e36c3eae08d3d6bfbe2d2bbe0f87f17e380539469d840f1357d65e30bf4f0",
+    "policyRegistry": "0x5dd8cc22299f2abc95eb6166a149dc2013f20e6811b818f78de7ade04f0ee0a4"
+  },
+  "infrastructure": {
+    "referenceGuard": "0x51E3CeCa4DF393Aa34A0793BBa3F86251E735efb",
+    "factory": "0x3077EE1522da25066573528c7B07c6235eAc8C65",
+    "verifierAdapter": "0xaa204E50309e41d33f60D7d23D070B796AeF7330"
+  },
+  "toolchain": {
+    "solc": "0.8.26+commit.8a97fa7a",
+    "optimizerEnabled": true,
+    "optimizerRuns": 200,
+    "viaIR": false,
+    "evmVersion": "cancun",
+    "remappings": [
+      "v4-core/=lib/v4-core/",
+      "v4-periphery/=lib/v4-periphery/",
+      "@uniswap/v4-core/=lib/v4-core/",
+      "permit2/=lib/v4-periphery/lib/permit2/",
+      "@openzeppelin/=lib/openzeppelin-contracts/",
+      "forge-std/=lib/forge-std/src/"
+    ],
+    "libraries": {}
+  },
+  "privilegedRoles": [
+    {
+      "capability": "issuer pilot policy administrator",
+      "applicable": true,
+      "contract": "0x22010c62112D554f13f4D7f2522b85cEBA1c5C4A",
+      "holder": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+      "verificationCall": "owner()",
+      "result": "issuer controls the CNF_ONLY pool policy",
+      "deployerRetained": false
+    },
+    {
+      "capability": "issuer stablecoin and pilot CNF controller",
+      "applicable": true,
+      "contract": "0xd25ce3D03444b915E0DCE5C63ACBC30F90aCe38D",
+      "holder": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+      "verificationCall": "owner()",
+      "result": "testnet sandbox issuance only",
+      "deployerRetained": false
+    },
+    {
+      "capability": "settlement cash controller",
+      "applicable": true,
+      "contract": "0x88c55Be44d6A24958D52d3585a84F6ddb192CC45",
+      "holder": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+      "verificationCall": "owner()",
+      "result": "separate testnet sandbox cash issuance",
+      "deployerRetained": false
+    },
+    {
+      "capability": "Hook CREATE2 factory owner",
+      "applicable": true,
+      "contract": "0x3077EE1522da25066573528c7B07c6235eAc8C65",
+      "holder": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+      "verificationCall": "owner()",
+      "result": "testnet PoC only; cannot modify the deployed Hook",
+      "deployerRetained": true
+    }
+  ],
+  "pilot": {
+    "roles": {
+      "deployer": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+      "issuer": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+      "settlementAssetOperator": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+      "liquidityProvider": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "institutionA": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+      "institutionB": "0x359C370fC666A01216895ddD050eeE5E86702990",
+      "executor": "0x304d3F240e4dCE9Fd47f23AbAedd1cdc117bE3d3"
+    },
+    "assets": {
+      "issuerStablecoin": {
+        "name": "ILAL Issuer Pilot Stablecoin",
+        "symbol": "ipUSD",
+        "decimals": 6,
+        "role": "issuer-stablecoin",
+        "address": "0xd25ce3D03444b915E0DCE5C63ACBC30F90aCe38D",
+        "controller": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3"
+      },
+      "settlementCash": {
+        "name": "ILAL Sandbox Settlement Cash",
+        "symbol": "sUSD",
+        "decimals": 6,
+        "role": "sandbox-settlement-cash",
+        "address": "0x88c55Be44d6A24958D52d3585a84F6ddb192CC45",
+        "controller": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC"
+      }
+    },
+    "cnfIssuer": "0xa74c1bb908f711ddd90D53DDb9b81bf55bD1F85c",
+    "scenario": {
+      "issuerAssetInput": "100000000",
+      "settlementCashInput": "70000000",
+      "tickLower": -1000,
+      "tickUpper": 1000,
+      "liquidityDelta": "100000000000000"
+    }
+  },
+  "operationalEvidence": {
+    "status": "completed",
+    "format": "ilal-issuer-pilot-evidence-v1",
+    "evidencePath": "deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json",
+    "evidenceSHA256": "5d650c69e2dcb9b47bfbf12fe627f9b41391f3b9b15678390c0863b03e42a5cf",
+    "snapshot": {
+      "blockNumber": "47334178",
+      "blockHash": "0x7881cc5021ca43b04f045f56c1e4b8c890e1fc38ee7357715cbca9ac51fe0e38",
+      "timestamp": "1790436644"
+    },
+    "flow": {
+      "grossInstitutionalFlow": "170000000",
+      "internallyMatchedFlow": "140000000",
+      "unmatchedResidual": "30000000",
+      "actualAmmInput": "30000000"
+    },
+    "verifiedAt": "2026-09-26T15:34:14.174Z"
+  },
+  "configurationDigest": "742e53afbed4dc14ab7646a6ec66ae98df3b429d3c11f18bf80b57e7d327e2e0",
+  "transactions": [
+    {
+      "label": "Deploy issuer-controlled Asset A",
+      "nonce": 1633,
+      "transactionHash": "0x2fb50623d2bf8370ac31dc3c98099c139b37cab71a9a74e2d1daed5e343853e1",
+      "blockNumber": "47333807",
+      "blockHash": "0x109a40779ab5cae7876312f10e4ddf311817fc9a61a7489563212d4f73600017",
+      "contractAddress": "0xd25ce3d03444b915e0dce5c63acbc30f90ace38d",
+      "gasUsed": "603562"
+    },
+    {
+      "label": "Deploy sandbox settlement Asset B",
+      "nonce": 1634,
+      "transactionHash": "0xb5bc1cded3aac5d690d7f3045dd1f2a4828a501b9b270dcbe8e899233cb7eae9",
+      "blockNumber": "47333809",
+      "blockHash": "0x4bc62d4ad12586a2e2963e781d4e797d5c360156ce71ef120d304fe9ced4e7cf",
+      "contractAddress": "0x88c55be44d6a24958d52d3585a84f6ddb192cc45",
+      "gasUsed": "603550"
+    },
+    {
+      "label": "Deploy issuer-controlled CNF sandbox",
+      "nonce": 1635,
+      "transactionHash": "0xa98d0e5b93f57fe675c6715b189aa0cca1650553ea7621b169e09ef4b88b4a39",
+      "blockNumber": "47333811",
+      "blockHash": "0x7350d31a546b5fa3848981b3afaaf312e19903fca1f8a6934fac635be0165ce4",
+      "contractAddress": "0xa74c1bb908f711ddd90d53ddb9b81bf55bd1f85c",
+      "gasUsed": "602068"
+    },
+    {
+      "label": "Deploy ChainlinkStablecoinOracleGuard",
+      "nonce": 1636,
+      "transactionHash": "0x1d8aa2c03898e5ac030e2f8f56a4604a3576bab5dc3fb09529ef4c2608b2077a",
+      "blockNumber": "47333813",
+      "blockHash": "0x1d65adfb91ba45652825b16662108378338f73d4299c1019d1b1540df03d2857",
+      "contractAddress": "0x51e3ceca4df393aa34a0793bba3f86251e735efb",
+      "gasUsed": "717816"
+    },
+    {
+      "label": "Deploy MixedOracleGuard",
+      "nonce": 1637,
+      "transactionHash": "0x3a7036b498923a65943d9e4e2e6386263c0e7edf1fcb57fb33f2835c3b3b93fc",
+      "blockNumber": "47333866",
+      "blockHash": "0x3cbb20827592cfbabd563523629d01a88da6dc9f27051a3872ddf5d79823cca2",
+      "contractAddress": "0x7f0ca96e2855337983fba6caa4709321ad5f49eb",
+      "gasUsed": "608116"
+    },
+    {
+      "label": "Deploy MixedPolicyRegistry",
+      "nonce": 1638,
+      "transactionHash": "0x1ed8a7448e20b98428ded5b6ac56825940943fafd3c65dfdec3256148159d276",
+      "blockNumber": "47333872",
+      "blockHash": "0xc6149cb78dd10864271541e5320b42ea8cef86303f40358f205d831fa9d48ed5",
+      "contractAddress": "0x22010c62112d554f13f4d7f2522b85ceba1c5c4a",
+      "gasUsed": "1654174"
+    },
+    {
+      "label": "Deploy MixedGrantManager",
+      "nonce": 1639,
+      "transactionHash": "0x6d585a69cb099b8924d392c343e60ea3961f1c7b1bfea9af624ddb0ce460384f",
+      "blockNumber": "47333876",
+      "blockHash": "0x6e787760018f2e162a05ad3b5d74a43b357fb851bab6c8bfb945366c2e91afd5",
+      "contractAddress": "0x1f603d0ba7b11955e553628446d0dc5a8f5416e9",
+      "gasUsed": "2237618"
+    },
+    {
+      "label": "Deploy MixedExecutionRouter",
+      "nonce": 1640,
+      "transactionHash": "0x3af458d70705203f98f76596c9cf76946d23b66a1c84887f27e948a740ebf6e6",
+      "blockNumber": "47333880",
+      "blockHash": "0x4bd70c5a9716ecb7adf30cd0211dcf4da2176c73a776b4a73206155e4d593272",
+      "contractAddress": "0x3caf5f2a080516f470897dc4176d71bf7efd35e7",
+      "gasUsed": "2021275"
+    },
+    {
+      "label": "Deploy MixedLiquidityRouter",
+      "nonce": 1641,
+      "transactionHash": "0xa7beeca62c1d72f96495d888c81760417d63ec440abe0d1934bc2a62c0cafa11",
+      "blockNumber": "47333884",
+      "blockHash": "0x16c699cf3755417055988e7a141b2be73bd0adc6c1265e33f783deccedf79a40",
+      "contractAddress": "0xae4f779b5fd84103b5090ae3661d25b81906bc90",
+      "gasUsed": "1364718"
+    },
+    {
+      "label": "Deploy MixedHookFactory",
+      "nonce": 1642,
+      "transactionHash": "0x11d99dd0aa9df3d4ffaf3cce05fec2d5ce2662aa0d5e0d48984391decb7aeb90",
+      "blockNumber": "47333888",
+      "blockHash": "0xd548b53311813edf4f38e7e3bd1e513fc9277424c5ebf77956d06f170f93ffe1",
+      "contractAddress": "0x3077ee1522da25066573528c7b07c6235eac8c65",
+      "gasUsed": "182005"
+    },
+    {
+      "label": "Deploy mined Hook using protocol factory",
+      "nonce": 1643,
+      "transactionHash": "0x289675ffe53f6ad3f14a41c9dd883c4c41f017ae5994ce8bb0932f3650fac5d0",
+      "blockNumber": "47333893",
+      "blockHash": "0xb90a5947e8173c8fce05e0b996041b4766d3637ab992a322c614236d651d48cb",
+      "contractAddress": null,
+      "gasUsed": "3520982"
+    },
+    {
+      "label": "Bind execution Hook once",
+      "nonce": 1644,
+      "transactionHash": "0x34a9cbbde27972f3b91eaf898062214bb01d2821cdebee14067f800d292f4e7c",
+      "blockNumber": "47333896",
+      "blockHash": "0xf5802d3947140e9317f44049d1e9cfe7a888cfb79f2ee5cd29b447c97b869588",
+      "contractAddress": null,
+      "gasUsed": "49414"
+    },
+    {
+      "label": "Bind liquidity Hook once",
+      "nonce": 1645,
+      "transactionHash": "0x1e3972958b2f440be954208eee8beafa6ed6747ff265d9e784c856a3dc9ade2b",
+      "blockNumber": "47333899",
+      "blockHash": "0xdcbb8b6960b5a80f08e4654fcd3bfa6250c457ee063f8b5b1e38e84fb3a299bf",
+      "contractAddress": null,
+      "gasUsed": "49371"
+    },
+    {
+      "label": "Configure initial policy",
+      "nonce": 1646,
+      "transactionHash": "0x026009fd3ae0eb7fd88180bf7533ca449de465751f3464ec42e262e0fc39ecc1",
+      "blockNumber": "47333902",
+      "blockHash": "0xa8f83d8c34b659f9cfffa0504c11befb49ea92a3fb132dcc5011be6bd1dc6671",
+      "contractAddress": null,
+      "gasUsed": "158924"
+    },
+    {
+      "label": "Initialize pool at reviewed parity reference",
+      "nonce": 1647,
+      "transactionHash": "0x1a6aa08d6548cd79be018ad70169b84201aad8baf57534fe5f15fb19be6857b2",
+      "blockNumber": "47333905",
+      "blockHash": "0x27eecb90a7e63ca1d66ccb9a6257b98cd50f145d258182720fce10983672833c",
+      "contractAddress": null,
+      "gasUsed": "51763"
+    },
+    {
+      "label": "Transfer policy governance to reviewed admin",
+      "nonce": 1648,
+      "transactionHash": "0xee42bf948f546c475fcd932961902746fe3fb6c74c54d90bffe1460891213202",
+      "blockNumber": "47333908",
+      "blockHash": "0x7ed4af20b543ef05e21c72cd3d50a582b563177cf09cd593962b36fbdf831e9b",
+      "contractAddress": null,
+      "gasUsed": "28649"
+    }
+  ],
+  "features": {
+    "attestation": "CNF_ONLY direct issuer-pilot sandbox; not KYC/KYB",
+    "zk": "disabled for this pilot",
+    "audit": "unaudited",
+    "productionReadiness": "Base Sepolia testnet PoC only; direct pilot CNF, test assets, retained factory deployer and no independent audit."
+  },
+  "releaseStatus": {
+    "software": "ILAL v1 development issuer-pilot workflow",
+    "deployment": "Base Sepolia issuer-pilot sandbox candidate"
+  }
+}
