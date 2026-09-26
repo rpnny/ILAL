@@ -28,15 +28,16 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
         with:
           version: v1.5.1
-      - name: Install JavaScript dependencies
+      - name: Install CLI and SDK dependencies
         run: |
           npm ci --prefix cli
           npm ci --prefix sdk
-          npm ci --prefix circuits
-      - name: Install pinned contract dependencies
-        run: contracts/scripts/install-deps.sh
       - name: Install circom 2.2.3
         run: cargo install --locked --git https://github.com/iden3/circom --tag v2.2.3 --root "$RUNNER_TEMP/circom" circom
+      - name: Install circuit dependencies
+        run: PATH="$RUNNER_TEMP/circom/bin:$PATH" npm ci --prefix circuits
+      - name: Install pinned contract dependencies
+        run: contracts/scripts/install-deps.sh
       - name: Verify repository
         run: |
           set -o pipefail
