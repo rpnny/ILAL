@@ -45,7 +45,7 @@ ILAL has one maintained implementation: CNF/ZK eligibility sources, reusable poo
 
 A grant reuses eligibility, not permission to spend. Every execution still requires its own authorization and ERC-20 allowance. Direct swaps use the same policy and authorization system. Quotes always roll back.
 
-The current [Base Sepolia protocol candidate](deployments/base-sepolia/v1.0.0-mixed-testnet.1.json) is separate from the issuer pilot. It uses Circle test USDC and ILAL hUSDT, has read-only deployment evidence, and has no funded public lifecycle demonstration. The dedicated issuer-pilot deployment workflow produces a new candidate whose operational evidence remains `not completed` until the full rehearsal is run and independently checked.
+The current [Base Sepolia issuer-pilot candidate](deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json) has a funded seven-role public lifecycle demonstration. Its [versioned evidence](deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json) records the verified 170/140/30 execution, an execution-time policy-ban TOCTOU revert with unchanged balances and nonces, CNF revocation, zero protocol inventory, and LP collection and full exit after policy shutdown. The candidate remains an unaudited testnet sandbox.
 
 ## Development
 

@@ -1,0 +1,172 @@
+{
+  "format": "ilal-issuer-pilot-evidence-v1",
+  "status": "PASSED",
+  "chainId": 84532,
+  "snapshot": {
+    "blockNumber": "47334178",
+    "blockHash": "0x7881cc5021ca43b04f045f56c1e4b8c890e1fc38ee7357715cbca9ac51fe0e38",
+    "timestamp": "1790436644"
+  },
+  "roles": {
+    "deployer": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+    "issuer": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+    "settlementAssetOperator": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+    "liquidityProvider": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+    "institutionA": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+    "institutionB": "0x359C370fC666A01216895ddD050eeE5E86702990",
+    "executor": "0x304d3F240e4dCE9Fd47f23AbAedd1cdc117bE3d3"
+  },
+  "assets": {
+    "issuerStablecoin": {
+      "name": "ILAL Issuer Pilot Stablecoin",
+      "symbol": "ipUSD",
+      "decimals": 6,
+      "role": "issuer-stablecoin",
+      "address": "0xd25ce3D03444b915E0DCE5C63ACBC30F90aCe38D",
+      "controller": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3"
+    },
+    "settlementCash": {
+      "name": "ILAL Sandbox Settlement Cash",
+      "symbol": "sUSD",
+      "decimals": 6,
+      "role": "sandbox-settlement-cash",
+      "address": "0x88c55Be44d6A24958D52d3585a84F6ddb192CC45",
+      "controller": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC"
+    }
+  },
+  "deployment": {
+    "contracts": {
+      "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+      "hook": "0x0dDf18c4d6A7eD4E978ad92975E2e3981FEF4Aa8",
+      "executionRouter": "0x3cAF5f2A080516f470897dc4176d71bF7efD35e7",
+      "liquidityRouter": "0xAe4F779b5FD84103B5090ae3661d25B81906bc90",
+      "oracle": "0x7f0cA96E2855337983Fba6CAa4709321Ad5F49eb",
+      "grantManager": "0x1F603D0ba7B11955e553628446D0dC5a8f5416E9",
+      "policyRegistry": "0x22010c62112D554f13f4D7f2522b85cEBA1c5C4A"
+    },
+    "pool": {
+      "currency0": "0x88c55Be44d6A24958D52d3585a84F6ddb192CC45",
+      "currency1": "0xd25ce3D03444b915E0DCE5C63ACBC30F90aCe38D",
+      "fee": 500,
+      "tickSpacing": 10,
+      "hooks": "0x0dDf18c4d6A7eD4E978ad92975E2e3981FEF4Aa8",
+      "poolId": "0xb5b9752fa7b4b1f79627979634795842aa28086e05b03822f375528eb3f021de",
+      "key": {
+        "currency0": "0x88c55Be44d6A24958D52d3585a84F6ddb192CC45",
+        "currency1": "0xd25ce3D03444b915E0DCE5C63ACBC30F90aCe38D",
+        "fee": 500,
+        "tickSpacing": 10,
+        "hook": "0x0dDf18c4d6A7eD4E978ad92975E2e3981FEF4Aa8"
+      }
+    }
+  },
+  "policy": {
+    "mode": "CNF_ONLY",
+    "initialRevision": "1",
+    "executedRevision": "1",
+    "finalRevision": "2"
+  },
+  "flow": {
+    "grossInstitutionalFlow": "170000000",
+    "internallyMatchedFlow": "140000000",
+    "unmatchedResidual": "30000000",
+    "actualAmmInput": "30000000"
+  },
+  "quote": {
+    "snapshotBlock": "47334117",
+    "commitment": "0x7216f8305d52a01e49f36149f4e2f4caf5f34e5520aa6a18a6ebdbfb923e4c85",
+    "outputs": [
+      "70000000",
+      "99984991"
+    ]
+  },
+  "execution": {
+    "transactionHash": "0x409a4d9f097c96c8096b51d00429857b6f6b000207e454115a0bbd6c73d711ff",
+    "outputs": [
+      "70000000",
+      "99984991"
+    ],
+    "balancesBefore": [
+      "1000000000000",
+      "0",
+      "0",
+      "1000000000000"
+    ],
+    "balancesAfter": [
+      "999900000000",
+      "70000000",
+      "99984991",
+      "999930000000"
+    ],
+    "nonces": [
+      "0x000000000000000000000000000000000000000000000000000001a0de540147",
+      "0x000000000000000000000000000000000000000000000000000001a0de540148"
+    ]
+  },
+  "negativeTests": {
+    "quotePolicyChangeExecute": {
+      "passed": true,
+      "stateUnchanged": true,
+      "trigger": "issuer policy ban increments the user authorization epoch",
+      "revertTransactionHash": "0x6e146a19bffa83236ddf4d936ca988e150e429d7d51d8ccc493a94add4b1c455",
+      "noncesUnconsumed": true,
+      "quoteCommitment": "0x054e1771a0aa3f1ffe7491bb803aff263d7f382cee2af9359c8277e29568faed"
+    },
+    "revokedInstitutionRejected": {
+      "passed": true,
+      "stateUnchanged": true,
+      "method": "CNF revoked after policy-ban TOCTOU proof"
+    }
+  },
+  "lpSafety": {
+    "principle": "Eligibility controls new risk-taking actions, not withdrawal of existing assets.",
+    "exitAfterPolicyFailure": true,
+    "collectAfterPolicyFailure": true,
+    "policyDisabled": true,
+    "lpCredentialRevoked": true,
+    "oracleFailureInduced": true,
+    "oracleFailureMethod": "read-only invalid pool-price probe; public Chainlink feeds were not mutated"
+  },
+  "inventory": {
+    "hook.issuerStablecoin": "0",
+    "hook.settlementCash": "0",
+    "executionRouter.issuerStablecoin": "0",
+    "executionRouter.settlementCash": "0",
+    "liquidityRouter.issuerStablecoin": "0",
+    "liquidityRouter.settlementCash": "0"
+  },
+  "transactions": {
+    "fundExecutor": "0x31f0eb0202070cc91a9c240301e357ad44953d44ff3e9c19f5ff6d3924863419",
+    "issueliquidityProvider": "0xa76340300a1513f1f1dd51609e7269ea8b373a5b0b81fdd0b06ac5757905b797",
+    "issueinstitutionA": "0xf9d6c0c5160bdbd609b03fb865992effb72b473b1e035584d33d2f4466bfcc5b",
+    "issueinstitutionB": "0x6465ec5aaffc32778cb77099c23a85a5804c19ebffd81dfe07c6131c15b04cbe",
+    "mintIssuerAssetLp": "0xc8a22a2ed9051d369c3a6a7e172748bf9c7168ab2068c79c3ffb566a4cb03e0c",
+    "mintIssuerAssetInstitutionA": "0x9c39bfd16ad6487383c74867050514117863ccb89cf40b5b88958c7976f2740b",
+    "mintSettlementCashLp": "0xc537c55d73dc5ac9ccf84ece48e131b9642b40d6e4dec1eceb9c95c1e503b2d4",
+    "mintSettlementCashInstitutionB": "0xdf0c78aa53659ec68fa8ef80ed7b9f69f46d2446b6ce5792c1312510e7864dbd",
+    "approve-liquidityProvider-d25ce3-3cAF5f": "0x07e57c0024143aac6feea54099dcd000b0a6fa60890795df3f3eaede75b7ce84",
+    "approve-liquidityProvider-d25ce3-Ae4F77": "0xfbfd2d864361198056d80c8214f18455348a917a7e7bf76ef07f23213c0023ea",
+    "approve-liquidityProvider-88c55B-3cAF5f": "0x9e80323c1c226bb315b7f37a65f1d9bb7c3675d793b8da478354eb42e5fe3b6a",
+    "approve-liquidityProvider-88c55B-Ae4F77": "0x4092272da3298353e8a6230c84d214ed7a16797e0e5dc01a5063e8068edd54e6",
+    "approve-institutionA-d25ce3-3cAF5f": "0x297936552ddae3202210208d609b49a19f13b44fd4941d957fed56a89a5ccdf0",
+    "approve-institutionA-d25ce3-Ae4F77": "0x1706f60e85e25beec48fad5a0d958b65ca692215c68598ff69cc4171f23661c2",
+    "approve-institutionA-88c55B-3cAF5f": "0x9259abcd483d833d02a669c274c30b6c7211330fd554fe3324632cdc1e0244f6",
+    "approve-institutionA-88c55B-Ae4F77": "0x509f2a35fe9817e0a9b212d0f83fe445dde7706d31d70766755604076c6004dc",
+    "approve-institutionB-d25ce3-3cAF5f": "0xcbffd0e7bc73d6ba0623bb8159f95ef255a2a8d2279ea7c83b1c5467662082bd",
+    "approve-institutionB-d25ce3-Ae4F77": "0xc95b2b4428db43c0e5e7387c60b0987443676cee72ca8fd0fac3568f90a4dd45",
+    "approve-institutionB-88c55B-3cAF5f": "0x3c580d61313c82db96b2fc3f934890ec3d03e86ccab463667f32f8b5e2d1d47c",
+    "approve-institutionB-88c55B-Ae4F77": "0x04feebbb9724ecfed1a3236d67aabf08c2c2830311f226017191b5ce162695cc",
+    "grantliquidityProvider": "0xcd46e3f892b3a2713785c13955fe636eee32e52f005a88b0760b1dfdaf2b17fa",
+    "grantinstitutionA": "0xca68b3adad49165a8b66399a9cdae02a5efbdf4259cc2554b34002fbf3390adb",
+    "grantinstitutionB": "0xffe24a8d0084dc04dcf971f2d491ac558d6dbb170ce5527fd9e81bd62000fbed",
+    "addLiquidity": "0xeb3ff1f6345eaf57614dd97ad05d8e33d9bbe99d7db5030d9c748df4c3d21067",
+    "executeBatch": "0x409a4d9f097c96c8096b51d00429857b6f6b000207e454115a0bbd6c73d711ff",
+    "banInstitutionA": "0x304c016efba2e24b619f23bdc6c1c4389cfe50b3d9928197729e133ec4e6248c",
+    "revokeInstitutionA": "0xfae35c25ec670985a89022a803c70bb29fc62361b851cf9acc01435a12119d8f",
+    "revokeLp": "0xdcebc4f02d4c2d0ba232747716daba44889e76ccfaefbe20c28892cea032f709",
+    "disablePolicy": "0xc418e119378ada25f866bf2be3325e6f47283367bad3e70afd09570115f7fff4",
+    "exitLiquidity": "0x3561deecd7ed916dfa4aa875f9e9438fca77bafebda0ea7f37087f514127ab6f",
+    "collectFees": "0x77374f2db4103265c603cf1930e92fbd43c5223b75d65b9bbeffb04e1b2d6190",
+    "exitRemainingLiquidity": "0x594de1a0d73e112f146ec3e33c5bf354db10842d5b316f594b2534242e0cb26d"
+  }
+}

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { validatePilotEvidence } from './pilot/model.mjs';
 const root = resolve(new URL('..', import.meta.url).pathname);
 const json = path => JSON.parse(readFileSync(resolve(root, path), 'utf8'));
 const protocol = json('protocol.json');
@@ -22,6 +24,11 @@ assert.equal(deployment.format, 'ilal-mixed-deployment-v1');
 assert.equal(deployment.protocolVersion, 3);
 assert.equal(deployment.status, 'candidate');
 assert.equal(deployment.classification, 'testnet');
+if (deployment.operationalEvidence?.status === 'completed') {
+  const evidenceRaw = readFileSync(resolve(root, deployment.operationalEvidence.evidencePath));
+  validatePilotEvidence(JSON.parse(evidenceRaw));
+  assert.equal(createHash('sha256').update(evidenceRaw).digest('hex'), deployment.operationalEvidence.evidenceSHA256);
+}
 const index = json('deployments/index.json');
 assert.ok(index.deployments.some(d => `deployments/${d.manifest}` === protocol.deploymentManifest));
 const foundry = readFileSync(resolve(root, 'contracts/foundry.toml'), 'utf8');

@@ -3,7 +3,7 @@
   "implementation": "ilal-v1",
   "softwareStatus": "development",
   "packageVersion": "1.0.0-dev.0",
-  "deploymentManifest": "deployments/base-sepolia/v1.0.0-mixed-testnet.1.json",
+  "deploymentManifest": "deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json",
   "publication": "not published",
   "auditStatus": "unaudited",
   "productionReadiness": "not production-ready"
