@@ -31,3 +31,9 @@ Public oracle evidence is a read-only invalid-price probe. Mutable oracle failur
 `make pilot-test` runs both legacy compatibility and v2 on isolated Anvil, independently verifies v2 while the chain is alive, resumes a completed journal without broadcasting, and rejects tampered checkpoint hashes, signatures, quote outputs, targets, failed nonce state, AMM input claims and LP collection data. Local time advancement is allowed only on chain 31337; public runs wait the real timelock.
 
 A historical RPC outage, missing receipt or reorg fails verification. The supported fixture uses an isolated pool and position; before/after checkpoint comparisons deliberately reject unrelated changes in the observed state instead of attributing those changes to the tested transaction. Operational use may require richer transaction-level tracing for shared-state workloads.
+
+## Public candidate progress (2026-09-28)
+
+Candidate `.2` has been deployed from clean source commit `6f7a05a`. Its policy proposal is confirmed; activation is allowed from **2026-09-30 07:59:24 UTC (15:59:24 Asia/Shanghai)**. The candidate remains evidence-incomplete. `protocol.json` still selects `.1`; it will only move after successful v2 historical verification.
+
+Proposal transaction: [Base Sepolia receipt](https://sepolia.basescan.org/tx/0x49596102e18dd4c8958508cbc77bc4152ac4946294bbe9e38e4b23ff5c2d7018).

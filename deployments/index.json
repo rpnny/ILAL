@@ -42,6 +42,14 @@
       "status": "candidate",
       "manifest": "base-sepolia/v1.0.0-issuer-pilot-testnet.1.json",
       "reason": "Publicly reproducible issuer stablecoin pilot with distinct roles, verified 170/140/30 execution evidence, TOCTOU rollback and LP exit safety; unaudited testnet sandbox only."
+    },
+    {
+      "version": "1.0.0-issuer-pilot-testnet.2",
+      "network": "base-sepolia",
+      "chainId": 84532,
+      "status": "candidate",
+      "manifest": "base-sepolia/v1.0.0-issuer-pilot-testnet.2.json",
+      "reason": "V2 independent-evidence candidate; deployed and policy change proposed, waiting for real timelock until 2026-09-30T07:59:24Z. Operational evidence is not completed."
     }
   ]
 }
