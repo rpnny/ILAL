@@ -16,3 +16,8 @@ test('rejects a changed canonical block or contract',()=>{
   assert.throws(()=>reconcileJournalReceipt({transactionHash:tx,blockHash:`0x${'33'.repeat(32)}`,contractAddress:contract},receipt),/Reorged/);
   assert.throws(()=>reconcileJournalReceipt({transactionHash:tx,blockHash:zero,contractAddress:'0x2222222222222222222222222222222222222222'},receipt),/contract mismatch/);
 });
+
+test('rejects reverted and missing canonical receipt fields',()=>{
+  assert.equal(isCanonicalReceipt({...receipt,status:'reverted'}),false);
+  assert.equal(isCanonicalReceipt({...receipt,blockHash:undefined}),false);
+});

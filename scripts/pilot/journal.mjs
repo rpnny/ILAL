@@ -1,7 +1,7 @@
 const ZERO_HASH = `0x${'00'.repeat(32)}`;
 
 export function isCanonicalReceipt(receipt) {
-  return receipt?.status === 'success' && receipt.blockHash !== ZERO_HASH;
+  return receipt?.status === 'success' && typeof receipt.blockHash === 'string' && /^0x[0-9a-fA-F]{64}$/.test(receipt.blockHash) && receipt.blockHash !== ZERO_HASH;
 }
 export function reconcileJournalReceipt(row, receipt) {
   if (!isCanonicalReceipt(receipt)) throw new Error(`Non-canonical journal receipt: ${row.transactionHash}`);

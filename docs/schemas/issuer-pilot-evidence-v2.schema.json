@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ilal.xyz/schemas/issuer-pilot-evidence-v2.json",
+  "title": "ILAL independently verifiable issuer pilot evidence v2",
+  "type": "object",
+  "required": [
+    "format",
+    "status",
+    "chainId",
+    "roles",
+    "assets",
+    "deployment",
+    "cases",
+    "transactions",
+    "lp",
+    "oracle",
+    "snapshot",
+    "flow"
+  ],
+  "properties": {
+    "format": {
+      "const": "ilal-issuer-pilot-evidence-v2"
+    },
+    "status": {
+      "const": "COMPLETE"
+    },
+    "chainId": {
+      "enum": [
+        31337,
+        84532
+      ]
+    },
+    "snapshot": {
+      "$ref": "#/$defs/checkpoint"
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deployer",
+        "issuer",
+        "settlementAssetOperator",
+        "liquidityProvider",
+        "institutionA",
+        "institutionB",
+        "executor"
+      ],
+      "properties": {
+        "deployer": {
+          "$ref": "#/$defs/address"
+        },
+        "issuer": {
+          "$ref": "#/$defs/address"
+        },
+        "settlementAssetOperator": {
+          "$ref": "#/$defs/address"
+        },
+        "liquidityProvider": {
+          "$ref": "#/$defs/address"
+        },
+        "institutionA": {
+          "$ref": "#/$defs/address"
+        },
+        "institutionB": {
+          "$ref": "#/$defs/address"
+        },
+        "executor": {
+          "$ref": "#/$defs/address"
+        }
+      }
+    },
+    "cases": {
+      "type": "object",
+      "required": [
+        "revision",
+        "execution",
+        "revocation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/case"
+        },
+        "execution": {
+          "$ref": "#/$defs/case"
+        },
+        "revocation": {
+          "$ref": "#/$defs/case"
+        }
+      }
+    },
+    "transactions": {
+      "type": "object",
+      "minProperties": 5,
+      "additionalProperties": {
+        "$ref": "#/$defs/transaction"
+      }
+    },
+    "lp": {
+      "type": "object",
+      "required": [
+        "add",
+        "collect",
+        "exit",
+        "userSalt",
+        "tickLower",
+        "tickUpper"
+      ],
+      "properties": {
+        "add": {
+          "$ref": "#/$defs/liquidity"
+        },
+        "collect": {
+          "$ref": "#/$defs/liquidity"
+        },
+        "exit": {
+          "$ref": "#/$defs/liquidity"
+        },
+        "userSalt": {
+          "$ref": "#/$defs/hash"
+        },
+        "tickLower": {
+          "const": -1000
+        },
+        "tickUpper": {
+          "const": 1000
+        }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "required": [
+        "method"
+      ],
+      "properties": {
+        "method": {
+          "enum": [
+            "read-only-probe",
+            "mutable-local-state"
+          ]
+        }
+      }
+    },
+    "flow": {
+      "type": "object",
+      "required": [
+        "grossInstitutionalFlow",
+        "internallyMatchedFlow",
+        "actualAmmInput"
+      ],
+      "properties": {
+        "grossInstitutionalFlow": {
+          "const": "170000000"
+        },
+        "internallyMatchedFlow": {
+          "const": "140000000"
+        },
+        "actualAmmInput": {
+          "const": "30000000"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{64}$"
+    },
+    "address": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": [
+        "blockNumber",
+        "blockHash",
+        "timestamp"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "blockNumber": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "blockHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "timestamp": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      }
+    },
+    "transaction": {
+      "type": "object",
+      "required": [
+        "hash",
+        "from",
+        "to",
+        "data",
+        "block"
+      ],
+      "properties": {
+        "hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "from": {
+          "$ref": "#/$defs/address"
+        },
+        "to": {
+          "$ref": "#/$defs/address"
+        },
+        "data": {
+          "type": "string",
+          "pattern": "^0x([0-9a-fA-F]{2})*$"
+        },
+        "block": {
+          "$ref": "#/$defs/checkpoint"
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "required": [
+        "transaction",
+        "before",
+        "after",
+        "stateBefore",
+        "stateAfter",
+        "signed",
+        "quote"
+      ],
+      "properties": {
+        "transaction": {
+          "$ref": "#/$defs/transaction"
+        },
+        "before": {
+          "$ref": "#/$defs/checkpoint"
+        },
+        "after": {
+          "$ref": "#/$defs/checkpoint"
+        },
+        "stateBefore": {
+          "type": "object"
+        },
+        "stateAfter": {
+          "type": "object"
+        },
+        "signed": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "format",
+              "kind",
+              "domain",
+              "order",
+              "signature"
+            ]
+          }
+        },
+        "quote": {
+          "type": "object",
+          "required": [
+            "snapshot",
+            "commitment",
+            "allocations"
+          ],
+          "properties": {
+            "snapshot": {
+              "$ref": "#/$defs/checkpoint"
+            },
+            "commitment": {
+              "$ref": "#/$defs/hash"
+            }
+          }
+        }
+      }
+    },
+    "liquidity": {
+      "type": "object",
+      "required": [
+        "transaction",
+        "before",
+        "after",
+        "stateBefore",
+        "stateAfter",
+        "authorization",
+        "signature"
+      ],
+      "properties": {
+        "transaction": {
+          "$ref": "#/$defs/transaction"
+        },
+        "before": {
+          "$ref": "#/$defs/checkpoint"
+        },
+        "after": {
+          "$ref": "#/$defs/checkpoint"
+        },
+        "stateBefore": {
+          "type": "object"
+        },
+        "stateAfter": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

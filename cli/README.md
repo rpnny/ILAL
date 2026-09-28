@@ -7,7 +7,7 @@ npm ci --prefix sdk
 npm ci --prefix cli
 make build
 node cli/dist/index.js --help
-node cli/dist/index.js console --manifest deployments/base-sepolia/v1.0.0-mixed-testnet.1.json --rpc https://sepolia.base.org
+node cli/dist/index.js console --manifest deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json --rpc https://sepolia.base.org
 ```
 
 Commands run directly under `ilal`; there is no `mixed`, `session`, `netting` or protocol-version command group.

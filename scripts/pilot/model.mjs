@@ -9,6 +9,7 @@ const decimal = (value, name) => {
 
 export function validatePilotConfig(config) {
   if (config?.format !== 'ilal-issuer-pilot-config-v1' || !Number.isSafeInteger(config.chainId) || config.chainId < 1) throw new Error('Pilot config format/chain');
+  if(config.candidateVersion!==undefined&&!/^1\.0\.0-issuer-pilot-testnet\.[1-9][0-9]*$/.test(config.candidateVersion))throw new Error('Pilot candidate version');
   const roleNames = ['deployer','issuer','settlementAssetOperator','liquidityProvider','institutionA','institutionB','executor'];
   const roles = roleNames.map(name => getAddress(config.roles?.[name]));
   if (new Set(roles.map(address => address.toLowerCase())).size !== roles.length) throw new Error('Pilot roles must be distinct');

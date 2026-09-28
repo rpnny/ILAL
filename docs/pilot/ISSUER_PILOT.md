@@ -33,7 +33,7 @@ The evidence format is `ilal-issuer-pilot-evidence-v1`; its schema is in `docs/s
 
 ## Base Sepolia candidate
 
-The current public candidate is [v1.0.0-issuer-pilot-testnet.1](../../deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json). Its [public evidence](../../deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json) passed static and fixed-chain verification at Base Sepolia block `47334178`. It proves the 170/140/30 flow decomposition, quote/output equality, a real reverted TOCTOU transaction, CNF revocation, zero Hook/Router inventory, and LP collection and full exit after policy shutdown.
+The current public candidate is [v1.0.0-issuer-pilot-testnet.1](../../deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json). Its [public evidence](../../deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json) records snapshot block `47334178` and passed legacy static and current-state checks. Its rehearsal records the 170/140/30 flow decomposition, quote/output equality, a real reverted TOCTOU transaction, CNF revocation, zero Hook/Router inventory, and LP collection and full exit after policy shutdown.
 
 The public candidate uses live Chainlink reference feeds. Those feeds were not mutated. The LP test records a read-only invalid-price oracle failure probe before withdrawal; the fully mutable oracle-failure state transition remains part of the reproducible local gate.
 
@@ -85,3 +85,7 @@ The recorder repeats the complete chain verification, checks every protocol addr
 ## Supported boundary
 
 The pilot uses standard six-decimal test ERC-20 assets, a 5 bps pool, parity reference price, CNF_ONLY eligibility, two opposing orders and one owner-isolated LP position. It does not provide fiat issuance or redemption, custody, post-settlement reversal, sanctions screening, KYC/KYB, production governance, SLA, independent audit or a customer ROI claim. ZK remains an available protocol path but is outside this pilot.
+
+## Independent verification upgrade
+
+See [Evidence v2](EVIDENCE_V2.md) for historical quote replay, event-derived flow, isolated negative cases and nonzero collection before exit. The historical v1 validator does not independently replay every assertion at its recorded snapshot; a v1 completion flag is not a v2 verification result.

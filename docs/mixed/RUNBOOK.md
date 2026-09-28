@@ -1,6 +1,6 @@
 # ILAL v1 runbook
 
-ILAL v1 combines atomic matching, bounded residual swaps, reusable eligibility grants and owner-isolated liquidity. The versioned Base Sepolia CNF_ONLY testnet candidate is recorded in [`deployments/base-sepolia/v1.0.0-mixed-testnet.1.json`](../../deployments/base-sepolia/v1.0.0-mixed-testnet.1.json). It is an unaudited candidate using test assets and is not a stable deployment.
+ILAL v1 combines atomic matching, bounded residual swaps, reusable eligibility grants and owner-isolated liquidity. The versioned Base Sepolia CNF_ONLY testnet candidate is recorded in [`deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json`](../../deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json). It is an unaudited candidate using test assets and is not a stable deployment.
 
 ## Verification
 
