@@ -37,3 +37,13 @@ node scripts/pilot/verify-zk-evidence.mjs artifacts/pilot/zk-evidence.json "$BAS
 ```
 
 The current proving key and verifier use an unsafe development ceremony. This package is unaudited, testnet-only and not production-ready. The issuer inputs are synthetic eligibility attributes for the sandbox; they are not KYC/KYB attestations. Production use requires an independently reviewed ceremony, audit, production governance and real identity-provider integration.
+
+## Public Base Sepolia result
+
+Candidate `1.0.0-issuer-pilot-testnet.3` completed at block `47436852`. The versioned manifest is `deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.3.json`; its SHA-256-bound evidence is `deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.3.json`.
+
+- Atomic 100/70 execution: `0x09c0efd86c9e78bc68a69eb5c6bdd16e372047ca9b038ec66aca622f075457bf`
+- Root retirement: `0x79a96bbb192c4178b52977a015279aafc892114e2ec2dbdff5cab15dfbe07987`
+- Same signed orders reverted after retirement: `0x4fc312400f5d339f20c963bb621b0e9e654637f6b10e821fdda359c216709934`
+- Nonzero fee collection: `0xab690cce26628e747cad754e3591dcbfa7d4ec7489cbd040a1e31bde317b1d63`
+- Full LP exit: `0x72d8b0a6edff2cdbeb68cdbc78ac2cd10d996fcc018d870159171242d509d9b1`
