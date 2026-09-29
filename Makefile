@@ -35,6 +35,8 @@ local-test: protocol-test
 
 pilot-test: build contracts-test
 	node --test scripts/pilot/model.test.mjs scripts/pilot/deployment.test.mjs scripts/pilot/journal.test.mjs scripts/pilot/evidence-v2.test.mjs
+	node --test scripts/diligence/verify-package.test.mjs
+	node scripts/diligence/verify-package.mjs docs/data-room/CIRCUIT_V2_FREEZE.json
 	node --check scripts/pilot/rehearse-base-sepolia.mjs
 	node --check scripts/pilot/rehearse-v2.mjs
 	node --check scripts/pilot/rehearse-zk.mjs

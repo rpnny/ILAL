@@ -1,0 +1,38 @@
+{
+  "format": "ilal-circuit-freeze-v1",
+  "status": "FROZEN",
+  "frozenAt": "2026-09-29T00:00:00Z",
+  "sourceRevision": "fcb3b3890f539275ef07b0c103c206889c58e12c",
+  "circuit": {
+    "name": "ILALEligibilityPolicyV2",
+    "version": 2,
+    "compiler": "circom 2.2.3",
+    "publicInputs": 9,
+    "privateInputs": 219,
+    "constraints": 256308,
+    "credentialTreeDepth": 20,
+    "jurisdictionTreeDepth": 8,
+    "publicSignalOrder": ["walletHash", "issuerHash", "schemaHash", "expiresAt", "credentialRoot", "minKycLevel", "jurisdictionRoot", "policyHash", "circuitVersion"]
+  },
+  "sources": [
+    {"path": "circuits/helpers/merkle_proof.circom", "sha256": "a7f55d479b8b24e8e1ce619d2ed337e4745d493fe5bd68a154041c71855c2150"},
+    {"path": "circuits/scripts/compile_v2.sh", "sha256": "6e22107fecf45fb946e835ae1714c55345c9cf8b7de64e009c9b58fc866d54dc"},
+    {"path": "circuits/scripts/test_v2.sh", "sha256": "7441189854c4513d249ba03bf15bfe1b32cc4a6a615372c786771441e830163c"},
+    {"path": "circuits/v2/build_multi_tree.mjs", "sha256": "2aaf59c967b09c0384aaa5a91a2c8ce467f1ce27b2376b3f97b583ab15e1cd02"},
+    {"path": "circuits/v2/build_test_vectors.ts", "sha256": "e1344c92c500cc99ac2297122758802b7d08edf0ed22d05efef3b12dfa01271e"},
+    {"path": "circuits/v2/ilal_policy.circom", "sha256": "b8d8ba72951653810ffc2ba8d7af39fc379b703ebe9f587bdca8f2b6e0323118"}
+  ],
+  "sourceSetSHA256": "cbf3a35b3823c8d614f300af8cff41edca43fbfcd26134d1975a14f8acf59803",
+  "developmentReferenceArtifacts": {
+    "classification": "unsafe-development; never reuse as independent ceremony output",
+    "r1csSHA256": "ac0a283c3874c404be39389fb6813e97375e79fb627fa0dc6c87fefbe3cb5a41",
+    "wasmSHA256": "a560ee9eb39498aac242d69209aa800cc1cfeb58fbbf881ce0c8bd7133ade39f",
+    "zkeySHA256": "1acf76cb9f61cdcf6211bafca004adf762def009968adfcc18f3788221430c14",
+    "vkeySHA256": "5c159bce0d8704a51c8ad3f57ebdfb74f57b17a10860516c03062df3f2453709"
+  },
+  "changeControl": {
+    "requiresNewCircuitVersion": true,
+    "productionCeremonyMayNotModifySources": true,
+    "reviewRequired": ["circuit diff", "constraint count", "public signal order", "Solidity verifier interface", "issuer acceptance"]
+  }
+}

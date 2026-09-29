@@ -71,4 +71,6 @@ make local-test      # unified protocol lifecycle and economics
 
 The software and pilot are unaudited, unpublished and not production-ready. Apache License 2.0; generated-verifier and third-party exceptions are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
+The next diligence milestone freezes circuit v2 and requires an independently conducted Groth16 ceremony plus a fresh pilot using Asset A controlled by a real issuer. The public gates and non-secret evidence formats are defined in [the diligence readiness package](docs/diligence/READINESS.md); no additional circuit is planned for this milestone.
+
 Independent historical verification and the phased public upgrade are documented in [Evidence v2](docs/pilot/EVIDENCE_V2.md). Legacy v1 checks are limited and must not be described as complete fixed-block verification.
