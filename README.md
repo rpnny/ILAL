@@ -61,6 +61,7 @@ make local-test      # unified protocol lifecycle and economics
 
 | Area | Entry |
 | --- | --- |
+| Project introduction (Chinese) | [docs/PROJECT_INTRODUCTION_ZH.md](docs/PROJECT_INTRODUCTION_ZH.md) |
 | Issuer pilot | [docs/pilot/ISSUER_PILOT.md](docs/pilot/ISSUER_PILOT.md) |
 | Protocol specification | [docs/mixed/SPEC.md](docs/mixed/SPEC.md) |
 | Operations | [docs/mixed/RUNBOOK.md](docs/mixed/RUNBOOK.md) |
