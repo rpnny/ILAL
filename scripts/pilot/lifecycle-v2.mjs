@@ -31,8 +31,11 @@ export async function lifecycleV2({client,wallets,manifest,journalPath,outputPat
  const cnf=manifest.pilot.cnfIssuer,registry=d.contracts.policyRegistry;
  const initial=await once('initialPolicy',()=>sdk.readMixedPolicy(client,d));
  const policyConfig={...initial.config,maxGrantTTL:1800n};
+ const pendingBefore=await client.readContract({address:registry,abi:sdk.MixedPolicyRegistryAbi,functionName:'getPending',args:[d.pool.poolId]});
+ if(!journal.steps.proposePolicyChange)assert.equal(pendingBefore.activateAfter,0n,'Pending policy proposal exists; restore the original journal instead of overwriting it');
  e.transactions.proposePolicyChange=await send('proposePolicyChange','issuer',registry,sdk.MixedPolicyRegistryAbi,'configure',[d.pool.poolId,policyConfig]);save();
  const readyAt=BigInt(e.transactions.proposePolicyChange.block.timestamp)+172800n;
+ if(!journal.steps.activatePolicyChange){const pending=await client.readContract({address:registry,abi:sdk.MixedPolicyRegistryAbi,functionName:'getPending',args:[d.pool.poolId]});assert.equal(pending.activateAfter,readyAt,'Pending policy proposal no longer matches the journal');assert.deepEqual(normalized(pending.config),normalized(policyConfig),'Pending policy config no longer matches the journal');}
  if((await client.getBlock()).timestamp<readyAt){if(d.chainId===31337){await client.request({method:'evm_increaseTime',params:[Number(readyAt-(await client.getBlock()).timestamp+1n)]});await client.request({method:'evm_mine',params:[]});}else{return {status:'WAITING_TIMELOCK',activateAfter:String(readyAt),resumeAt:new Date(Number(readyAt)*1000).toISOString()};}}
  const expiry=await once('credentialExpiry',async()=>String((await client.getBlock()).timestamp+30n*86400n));
  for(const role of ['liquidityProvider','institutionA','institutionB'])e.transactions[`issue${role}`]=await send(`issue${role}`,'issuer',cnf,cnfAbi,'issue',[roles[role],BigInt(expiry)]);
