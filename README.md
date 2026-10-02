@@ -45,7 +45,7 @@ ILAL has one maintained implementation: CNF/ZK eligibility sources, reusable poo
 
 A grant reuses eligibility, not permission to spend. Every execution still requires its own authorization and ERC-20 allowance. Direct swaps use the same policy and authorization system. Quotes always roll back.
 
-The current [Base Sepolia issuer-pilot candidate](deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json) has a funded seven-role public lifecycle demonstration. Its [versioned evidence](deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json) records the verified 170/140/30 execution, an execution-time policy-ban TOCTOU revert with unchanged balances and nonces, CNF revocation, zero protocol inventory, and LP collection and full exit after policy shutdown. The candidate remains an unaudited testnet sandbox.
+The current [Base Sepolia issuer-pilot candidate](deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json) has a funded seven-role public lifecycle demonstration. Its [versioned v1 rehearsal evidence](deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json) records the verified 170/140/30 execution, an execution-time policy-ban TOCTOU revert with unchanged balances and nonces, CNF revocation, zero protocol inventory, and LP collection and full exit after policy shutdown. The candidate remains an unaudited testnet sandbox.
 
 ## Development
 
@@ -70,3 +70,5 @@ make local-test      # unified protocol lifecycle and economics
 | Historical records | [docs/HISTORY.md](docs/HISTORY.md) |
 
 The software and pilot are unaudited, unpublished and not production-ready. Apache License 2.0; generated-verifier and third-party exceptions are documented in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+Independent historical verification and the phased public upgrade are documented in [Evidence v2](docs/pilot/EVIDENCE_V2.md). Legacy v1 checks are limited and must not be described as complete fixed-block verification.

@@ -14,3 +14,8 @@ for i in $(seq 1 50); do
   sleep 0.1
 done
 node scripts/pilot/local-pilot.mjs http://127.0.0.1:8548
+node -e "require('node:fs').rmSync('artifacts/pilot/local-v2-journal.json',{force:true})"
+node scripts/pilot/local-pilot-v2.mjs http://127.0.0.1:8548
+
+node scripts/pilot/verify-evidence.mjs artifacts/pilot/local-evidence-v2.json http://127.0.0.1:8548
+node scripts/pilot/tamper-v2.mjs artifacts/pilot/local-evidence-v2.json http://127.0.0.1:8548

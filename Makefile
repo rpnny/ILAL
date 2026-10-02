@@ -34,8 +34,9 @@ local-test: protocol-test
 	bash scripts/mixed/run-local.sh
 
 pilot-test: build contracts-test
-	node --test scripts/pilot/model.test.mjs scripts/pilot/deployment.test.mjs scripts/pilot/journal.test.mjs
+	node --test scripts/pilot/model.test.mjs scripts/pilot/deployment.test.mjs scripts/pilot/journal.test.mjs scripts/pilot/evidence-v2.test.mjs
 	node --check scripts/pilot/rehearse-base-sepolia.mjs
+	node --check scripts/pilot/rehearse-v2.mjs
 	bash scripts/pilot/run-local.sh
 	node scripts/pilot/verify-evidence.mjs artifacts/pilot/local-evidence.json
 	node scripts/pilot/verify-evidence.mjs deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.1.json
@@ -43,7 +44,7 @@ pilot-test: build contracts-test
 deployments-check:
 	node scripts/sync-deployments.mjs --check
 
-release-check:
+release-check: build
 	node scripts/validate-release.mjs
 
 package-check:

@@ -6,7 +6,7 @@
   ],
   "current": {
     "implementation": "ilal-v1",
-    "manifest": "deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.1.json",
+    "manifest": "deployments/base-sepolia/v1.0.0-issuer-pilot-testnet.2.json",
     "status": "candidate"
   },
   "historicalActive": {
@@ -51,6 +51,14 @@
       "status": "candidate",
       "manifest": "base-sepolia/v1.0.0-issuer-pilot-testnet.1.json",
       "reason": "Publicly reproducible issuer stablecoin pilot with distinct roles, verified 170/140/30 execution evidence, TOCTOU rollback and LP exit safety; unaudited testnet sandbox only."
+    },
+    {
+      "version": "1.0.0-issuer-pilot-testnet.2",
+      "network": "base-sepolia",
+      "chainId": 84532,
+      "status": "candidate",
+      "manifest": "base-sepolia/v1.0.0-issuer-pilot-testnet.2.json",
+      "reason": "Public Base Sepolia v2 issuer-pilot lifecycle with independent historical verification of 170/140/30 execution, policy-revision and CNF-revocation rollback, nonzero fee collection, full LP exit and zero router/hook inventory; unaudited testnet sandbox only."
     }
   ]
 }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { validateV2, FORMAT } from './pilot/evidence-v2.mjs';
 import { validatePilotEvidence } from './pilot/model.mjs';
 const root = resolve(new URL('..', import.meta.url).pathname);
 const json = path => JSON.parse(readFileSync(resolve(root, path), 'utf8'));
@@ -26,7 +27,8 @@ assert.equal(deployment.status, 'candidate');
 assert.equal(deployment.classification, 'testnet');
 if (deployment.operationalEvidence?.status === 'completed') {
   const evidenceRaw = readFileSync(resolve(root, deployment.operationalEvidence.evidencePath));
-  validatePilotEvidence(JSON.parse(evidenceRaw));
+  const evidence = JSON.parse(evidenceRaw);
+  if (evidence.format === FORMAT) validateV2(evidence); else validatePilotEvidence(evidence);
   assert.equal(createHash('sha256').update(evidenceRaw).digest('hex'), deployment.operationalEvidence.evidenceSHA256);
 }
 const index = json('deployments/index.json');
