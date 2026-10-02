@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ilal.tech/schemas/real-issuer-pilot-acceptance-v1.json",
+  "title": "ILAL real Asset A issuer pilot acceptance",
+  "type": "object",
+  "required": ["format", "status", "lifecycle", "issuer", "assetA", "settlementAsset", "roles", "responsibility", "ceremony", "acceptance"],
+  "properties": {
+    "format": {"const": "ilal-real-issuer-pilot-acceptance-v1"},
+    "status": {"enum": ["DRAFT", "ACCEPTED", "COMPLETE"]},
+    "lifecycle": {"const": "ilal-zk-issuer-pilot-evidence-v1"},
+    "issuer": {"type": "object"},
+    "assetA": {"type": "object", "required": ["synthetic", "issuerControlsIssuance", "contractAddress", "chainId", "name", "symbol", "decimals"]},
+    "settlementAsset": {"type": "object"},
+    "roles": {"type": "object", "required": ["issuer", "assetAController", "policyAdmin", "liquidityProvider", "institutionA", "institutionB", "executor"]},
+    "responsibility": {"type": "object"},
+    "ceremony": {"type": "object"},
+    "acceptance": {"type": "object"}
+  }
+}

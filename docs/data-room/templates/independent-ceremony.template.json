@@ -1,0 +1,22 @@
+{
+  "format": "ilal-independent-ceremony-v1",
+  "status": "DRAFT",
+  "circuitSourceSetSHA256": "cbf3a35b3823c8d614f300af8cff41edca43fbfcd26134d1975a14f8acf59803",
+  "circuitVersion": 2,
+  "ceremonyType": "Groth16 phase 2",
+  "projectControlExcluded": true,
+  "coordinator": {"entityId": "TBD-independent-coordinator", "organizationReference": "TBD", "attestationSHA256": "TBD"},
+  "independentVerifier": {"entityId": "TBD-independent-verifier", "organizationReference": "TBD", "attestationSHA256": "TBD"},
+  "phase2": {"ptauSHA256": "TBD", "initialZkeySHA256": "TBD", "r1csSHA256": "ac0a283c3874c404be39389fb6813e97375e79fb627fa0dc6c87fefbe3cb5a41"},
+  "contributions": [],
+  "beacon": {"inputZkeySHA256": "TBD", "outputZkeySHA256": "TBD", "publicEntropySHA256": "TBD", "publicSource": "TBD future public randomness", "appliedAt": null, "verificationLogSHA256": "TBD"},
+  "artifacts": {
+    "zkey": {"path": "TBD/final.zkey", "sha256": "TBD"},
+    "vkey": {"path": "TBD/verification_key.json", "sha256": "TBD"},
+    "solidityVerifierSource": {"path": "TBD/Verifier.sol", "sha256": "TBD"},
+    "zkeySHA256": "TBD",
+    "vkeySHA256": "TBD",
+    "verifierRuntimeCodeHash": "TBD"
+  },
+  "verification": {"snarkjsVersion": "0.7.6", "ptauVerified": false, "r1csMatched": false, "finalZkeyVerified": false, "transcriptSHA256": "TBD", "verifiedAt": null}
+}

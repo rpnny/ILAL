@@ -1,0 +1,16 @@
+{
+  "format": "ilal-real-issuer-pilot-acceptance-v1",
+  "status": "DRAFT",
+  "lifecycle": "ilal-zk-issuer-pilot-evidence-v1",
+  "issuer": {"organizationReference": "TBD", "jurisdiction": "TBD", "legalIdentityEvidenceSHA256": "TBD", "authorizedSignerAttestationSHA256": "TBD"},
+  "assetA": {"synthetic": false, "issuerControlsIssuance": true, "contractAddress": "TBD", "chainId": 84532, "name": "TBD", "symbol": "TBD", "decimals": 6, "protocolExternalTransferBoundaryAcknowledged": true},
+  "settlementAsset": {"contractAddress": "TBD", "role": "sandbox or issuer-approved settlement cash", "issuerApproved": false},
+  "roles": {"issuer": "TBD", "assetAController": "TBD", "policyAdmin": "TBD", "liquidityProvider": "TBD", "institutionA": "TBD", "institutionB": "TBD", "executor": "TBD"},
+  "responsibility": {"issuerDefinesEligibility": true, "issuerOwnsIdentityProviderRelationship": true, "issuerControlsAssetA": true, "issuerControlsPolicy": true, "assetAControlEvidenceSHA256": "TBD", "policyControlEvidenceSHA256": "TBD", "ilalMakesRegulatoryDecisions": false, "ilalCustodiesAssets": false, "ilalControlsExternalAssetTransfers": false},
+  "ceremony": {"manifestSHA256": "TBD", "zkeySHA256": "TBD", "vkeySHA256": "TBD"},
+  "acceptance": {
+    "deploymentManifestSHA256": "TBD", "evidenceSHA256": "TBD", "issuerAcceptanceSHA256": "TBD",
+    "zkGrantsVerified": false, "gross170Matched140Residual30": false, "rootRetirementAtomicRollback": false,
+    "lpCollectedNonzeroFees": false, "lpFullyExited": false, "zeroTransientInventory": false, "independentHistoricalVerification": false
+  }
+}

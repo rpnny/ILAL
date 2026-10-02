@@ -9,6 +9,8 @@ The project has not represented these items as complete:
 - Bank records, budgets, runway, tax, and financial statements.
 - Signed customer contracts, verified revenue, pipeline evidence, and references.
 - Production KYC/KYB provider agreement and data-processing terms.
+- Named independent ceremony coordinator, contributors, verifier, signed attestations, and final artifact transcript.
+- Signed real Asset A issuer acceptance and on-chain issuer-control evidence for the fresh pilot.
 - Independent smart-contract, circuit, infrastructure, and operational audits.
 - Production Safe governance, HSM/custody integration, monitoring, incident response, and insurance.
 

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ilal.tech/schemas/independent-ceremony-v1.json",
+  "title": "ILAL independent Groth16 phase-2 ceremony",
+  "type": "object",
+  "required": ["format", "status", "circuitSourceSetSHA256", "circuitVersion", "ceremonyType", "projectControlExcluded", "coordinator", "independentVerifier", "phase2", "contributions", "beacon", "artifacts", "verification"],
+  "properties": {
+    "format": {"const": "ilal-independent-ceremony-v1"},
+    "status": {"enum": ["DRAFT", "COMPLETE"]},
+    "circuitSourceSetSHA256": {"$ref": "#/$defs/hash"},
+    "circuitVersion": {"const": 2},
+    "ceremonyType": {"const": "Groth16 phase 2"},
+    "projectControlExcluded": {"const": true},
+    "coordinator": {"$ref": "#/$defs/entity"},
+    "independentVerifier": {"$ref": "#/$defs/entity"},
+    "phase2": {"type": "object", "required": ["ptauSHA256", "initialZkeySHA256", "r1csSHA256"]},
+    "contributions": {"type": "array", "items": {"type": "object", "required": ["sequence", "entityId", "organizationReference", "inputZkeySHA256", "outputZkeySHA256", "challengeSHA256", "responseSHA256", "verificationLogSHA256", "attestationSHA256"]}},
+    "beacon": {"type": "object"},
+    "artifacts": {"type": "object"},
+    "verification": {"type": "object"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "entity": {"type": "object", "required": ["entityId", "organizationReference", "attestationSHA256"]}
+  }
+}
