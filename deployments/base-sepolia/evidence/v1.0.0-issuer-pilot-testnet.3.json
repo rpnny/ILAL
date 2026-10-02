@@ -1,0 +1,2056 @@
+{
+  "format": "ilal-zk-issuer-pilot-evidence-v1",
+  "status": "COMPLETE",
+  "chainId": 84532,
+  "roles": {
+    "deployer": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+    "issuer": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+    "settlementAssetOperator": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+    "liquidityProvider": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+    "institutionA": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+    "institutionB": "0x359C370fC666A01216895ddD050eeE5E86702990",
+    "executor": "0x304d3F240e4dCE9Fd47f23AbAedd1cdc117bE3d3"
+  },
+  "assets": {
+    "issuerStablecoin": {
+      "name": "Issuer ZK Pilot Stablecoin",
+      "symbol": "zkUSD",
+      "decimals": 6,
+      "role": "issuer-stablecoin",
+      "address": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+      "controller": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3"
+    },
+    "settlementCash": {
+      "name": "USDC-like Sandbox Settlement Cash",
+      "symbol": "sUSDC",
+      "decimals": 6,
+      "role": "sandbox-settlement-cash",
+      "address": "0x3a54C18982e6EE52197De17185583324A39b192A",
+      "controller": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC"
+    }
+  },
+  "deployment": {
+    "$schema": "../schema/deployment-manifest.schema.json",
+    "schemaVersion": 1,
+    "format": "ilal-mixed-deployment-v1",
+    "version": "1.0.0-issuer-pilot-testnet.3",
+    "status": "candidate",
+    "network": "base-sepolia",
+    "chainId": 84532,
+    "protocolVersion": 3,
+    "classification": "testnet",
+    "ceremony": "unsafe-development",
+    "sourceCommit": "38231796a2a96d7b32c4046312a9e74eaf319cdd",
+    "releaseCommit": null,
+    "sourceRevision": "38231796a2a96d7b32c4046312a9e74eaf319cdd",
+    "sourceDigest": "65ccdf0d876c8d6998bc1c2bcda0d66d33a4859334adbd003e81d14f5174e45b",
+    "sourceTreeHash": "0x65ccdf0d876c8d6998bc1c2bcda0d66d33a4859334adbd003e81d14f5174e45b",
+    "sourceDirty": false,
+    "deployer": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+    "admin": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+    "treasury": null,
+    "adminTreasuryShared": false,
+    "contracts": {
+      "poolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
+      "hook": "0xCeF2f9636DAf1f18d9198bd75a9832e98CE24AA8",
+      "executionRouter": "0xbFda50B01b286BCecabb40fc9B5B2bB8fd1493F4",
+      "liquidityRouter": "0x6eC5b3BDF242e1eEB78F88D65963632C1120afF0",
+      "oracle": "0xf6D00CD71a5834CD738059e77D0DaD9caBcf6157",
+      "grantManager": "0x3Ef189FF8B9Cbf7D19976be50bb326D130106793",
+      "policyRegistry": "0x76BE077344056cD1aBAb3c17Db89423C17318D7B"
+    },
+    "pool": {
+      "currency0": "0x3a54C18982e6EE52197De17185583324A39b192A",
+      "currency1": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+      "fee": 500,
+      "tickSpacing": 10,
+      "hooks": "0xCeF2f9636DAf1f18d9198bd75a9832e98CE24AA8",
+      "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+      "initializationTransactionHash": "0x40f3044ddc8b6a21f3bd4dd71b91209b423e48a84265b41da68e4b3916865c9b",
+      "initializationBlockNumber": 47436766,
+      "key": {
+        "currency0": "0x3a54C18982e6EE52197De17185583324A39b192A",
+        "currency1": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+        "fee": 500,
+        "tickSpacing": 10,
+        "hook": "0xCeF2f9636DAf1f18d9198bd75a9832e98CE24AA8"
+      }
+    },
+    "codeHashes": {
+      "poolManager": "0x03c45db6d09b14da7c1f7239a5a49697f976d395277e6d2acb6fbed3f9e0249f",
+      "hook": "0x7e3f37e5e362f119c2a51ce2e201fac4809dbf25b319c03b96d00a3e5441cef2",
+      "executionRouter": "0x6e8aa21b2f2a51512b3d2c7d977bc9e0d6191a735a90d9a495667d1067a86874",
+      "liquidityRouter": "0x25daba4806a2b746ee68bb8410c92e578fb327912708a10420ddb8c2fa77c2d5",
+      "oracle": "0x6df2f77431b0bae907ad2ae0dacb0368be6724e5da56ce8553d6157507accf66",
+      "grantManager": "0xbd2a0c2926c4641a2df978e4c47b448a29429d3fe8cae605d1ee654fc48894ff",
+      "policyRegistry": "0x5dd8cc22299f2abc95eb6166a149dc2013f20e6811b818f78de7ade04f0ee0a4"
+    },
+    "infrastructure": {
+      "referenceGuard": "0x121FB0Ed870B58905B2eE2A7BAbbff7F800f189D",
+      "factory": "0x3710d80A035ad4B4668894Ce02A91a311980940a",
+      "verifierAdapter": "0xaa204E50309e41d33f60D7d23D070B796AeF7330"
+    },
+    "toolchain": {
+      "solc": "0.8.26+commit.8a97fa7a",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "viaIR": false,
+      "evmVersion": "cancun",
+      "remappings": [
+        "v4-core/=lib/v4-core/",
+        "v4-periphery/=lib/v4-periphery/",
+        "@uniswap/v4-core/=lib/v4-core/",
+        "permit2/=lib/v4-periphery/lib/permit2/",
+        "@openzeppelin/=lib/openzeppelin-contracts/",
+        "forge-std/=lib/forge-std/src/"
+      ],
+      "libraries": {}
+    },
+    "privilegedRoles": [
+      {
+        "capability": "issuer pilot policy administrator",
+        "applicable": true,
+        "contract": "0x76BE077344056cD1aBAb3c17Db89423C17318D7B",
+        "holder": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+        "verificationCall": "owner()",
+        "result": "issuer controls the ZK_ONLY pool policy",
+        "deployerRetained": false
+      },
+      {
+        "capability": "issuer stablecoin controller",
+        "applicable": true,
+        "contract": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+        "holder": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+        "verificationCall": "owner()",
+        "result": "testnet sandbox issuance only",
+        "deployerRetained": false
+      },
+      {
+        "capability": "settlement cash controller",
+        "applicable": true,
+        "contract": "0x3a54C18982e6EE52197De17185583324A39b192A",
+        "holder": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+        "verificationCall": "owner()",
+        "result": "separate testnet sandbox cash issuance",
+        "deployerRetained": false
+      },
+      {
+        "capability": "Hook CREATE2 factory owner",
+        "applicable": true,
+        "contract": "0x3710d80A035ad4B4668894Ce02A91a311980940a",
+        "holder": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+        "verificationCall": "owner()",
+        "result": "testnet PoC only; cannot modify the deployed Hook",
+        "deployerRetained": true
+      }
+    ],
+    "pilot": {
+      "roles": {
+        "deployer": "0x1b869CaC69Df23Ad9D727932496AEb3605538c8D",
+        "issuer": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+        "settlementAssetOperator": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+        "liquidityProvider": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "institutionA": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+        "institutionB": "0x359C370fC666A01216895ddD050eeE5E86702990",
+        "executor": "0x304d3F240e4dCE9Fd47f23AbAedd1cdc117bE3d3"
+      },
+      "assets": {
+        "issuerStablecoin": {
+          "name": "Issuer ZK Pilot Stablecoin",
+          "symbol": "zkUSD",
+          "decimals": 6,
+          "role": "issuer-stablecoin",
+          "address": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+          "controller": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3"
+        },
+        "settlementCash": {
+          "name": "USDC-like Sandbox Settlement Cash",
+          "symbol": "sUSDC",
+          "decimals": 6,
+          "role": "sandbox-settlement-cash",
+          "address": "0x3a54C18982e6EE52197De17185583324A39b192A",
+          "controller": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC"
+        }
+      },
+      "cnfIssuer": null,
+      "policy": {
+        "mode": "ZK_ONLY",
+        "grantTtlSeconds": 3600,
+        "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+        "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+        "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+        "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+        "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+        "minKycLevel": 2
+      },
+      "scenario": {
+        "issuerAssetInput": "100000000",
+        "settlementCashInput": "70000000",
+        "tickLower": -1000,
+        "tickUpper": 1000,
+        "liquidityDelta": "100000000000000"
+      }
+    },
+    "operationalEvidence": {
+      "status": "not completed",
+      "reason": "Deployment alone does not prove funded grants, liquidity, execution, root retirement or LP exit."
+    },
+    "configurationDigest": "e3620027d4228bd07d05e4462c413a5cd58c8ff66c8cf90e5db0b228afbb81ef",
+    "transactions": [
+      {
+        "label": "Deploy issuer-controlled Asset A",
+        "nonce": 1665,
+        "transactionHash": "0x0a236124d63f91e680f11556c02d7ee5e3bf16d0be9e1c56cbf8cf01386c0cf2",
+        "blockNumber": "47436735",
+        "blockHash": "0xa54bcac160bb9f85c7f2040a92d4f3a71ffa29bcb2545e5c1fce4bb89b9b973b",
+        "contractAddress": "0x666093b5248bed47e7a72a4569fc18d3a9dec918",
+        "gasUsed": "603538"
+      },
+      {
+        "label": "Deploy sandbox settlement Asset B",
+        "nonce": 1666,
+        "transactionHash": "0xe46c70e903be400c38194768e7730f8a487a300ae0b7649e8fb2c27b85687c2a",
+        "blockNumber": "47436737",
+        "blockHash": "0xfc637429c6d5d91a6709e166ee8152d3fbe198c52d5f91240ccb82d6c909c7b3",
+        "contractAddress": "0x3a54c18982e6ee52197de17185583324a39b192a",
+        "gasUsed": "648139"
+      },
+      {
+        "label": "Deploy ChainlinkStablecoinOracleGuard",
+        "nonce": 1667,
+        "transactionHash": "0x798870e556541d92d08ea1c5f398d9e116e6f54e7af4a58db85f402e62876518",
+        "blockNumber": "47436739",
+        "blockHash": "0xc7d291ffb3d0631f42ff7da8c6f121db15d6b4e71bed8796d90f4cffe6dcf503",
+        "contractAddress": "0x121fb0ed870b58905b2ee2a7babbff7f800f189d",
+        "gasUsed": "717816"
+      },
+      {
+        "label": "Deploy MixedOracleGuard",
+        "nonce": 1668,
+        "transactionHash": "0x4a48c7d467302216383311c57094b1a297c4a1148234fc773f6306aa27ebfbc5",
+        "blockNumber": "47436741",
+        "blockHash": "0xb1619fcd02abc5986c2eb2a1ec3e195f1da9d2eeeb20b54269d342fe1378193a",
+        "contractAddress": "0xf6d00cd71a5834cd738059e77d0dad9cabcf6157",
+        "gasUsed": "608116"
+      },
+      {
+        "label": "Deploy MixedPolicyRegistry",
+        "nonce": 1669,
+        "transactionHash": "0x5f8f01d9880a92b3b01530c49b77cfd78191571f604dbf2087110b4352c7030f",
+        "blockNumber": "47436743",
+        "blockHash": "0x4f4b7810fb75d202f9704d0464e5c82c37770d04c8cba66bf92bfa6e72f78148",
+        "contractAddress": "0x76be077344056cd1abab3c17db89423c17318d7b",
+        "gasUsed": "1654174"
+      },
+      {
+        "label": "Deploy MixedGrantManager",
+        "nonce": 1670,
+        "transactionHash": "0x966216c631eb8e415457ca1f4f5484141c7db91c48330dced78ee91464196bcf",
+        "blockNumber": "47436746",
+        "blockHash": "0xc120e90c010ef52b15fb121cdb01199435e5206e54556f9ed7b28690d145534c",
+        "contractAddress": "0x3ef189ff8b9cbf7d19976be50bb326d130106793",
+        "gasUsed": "2237618"
+      },
+      {
+        "label": "Deploy MixedExecutionRouter",
+        "nonce": 1671,
+        "transactionHash": "0x65b60ede279bf534035ffabf26bfbb14936236345e3dd47ba4e750ea2b2594d3",
+        "blockNumber": "47436749",
+        "blockHash": "0xdfa5a37cd409eb798cbdfdda9c23a39548ebd215b39d050689550705e778c820",
+        "contractAddress": "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4",
+        "gasUsed": "2021275"
+      },
+      {
+        "label": "Deploy MixedLiquidityRouter",
+        "nonce": 1672,
+        "transactionHash": "0x6d3087af919bf0918cc1a4795a4cccec6ff4bfe7392304a3080b59541583347c",
+        "blockNumber": "47436752",
+        "blockHash": "0xbd3ce6c75c03e2fea7743974a06ef0a44e7c5e0d0af480d910c776e04d76a77c",
+        "contractAddress": "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0",
+        "gasUsed": "1364718"
+      },
+      {
+        "label": "Deploy MixedHookFactory",
+        "nonce": 1673,
+        "transactionHash": "0xfd72f7cfad957d540b1a94e40d1bf7fc665568f38dd3df494b4881d8bcbb613c",
+        "blockNumber": "47436755",
+        "blockHash": "0xcecc7fab653cb5f41504146f95891c6c7fb99e289c2340cd1aeaf247b8595b53",
+        "contractAddress": "0x3710d80a035ad4b4668894ce02a91a311980940a",
+        "gasUsed": "182005"
+      },
+      {
+        "label": "Deploy mined Hook using protocol factory",
+        "nonce": 1674,
+        "transactionHash": "0xd71be21c69d5eec4704fc1080004fae3456bc5016b8384e9b930d9da8f4970f2",
+        "blockNumber": "47436758",
+        "blockHash": "0x5b81bada92c38659a4d82e8a0175c9b5310afb869371705f7fedff966dc49ebc",
+        "contractAddress": null,
+        "gasUsed": "3520982"
+      },
+      {
+        "label": "Bind execution Hook once",
+        "nonce": 1675,
+        "transactionHash": "0xcfd513e0bccd461e45e9ed8bbee1986dbd56cab754fedb3be1051caabec26f8f",
+        "blockNumber": "47436760",
+        "blockHash": "0xf6091e49c8d867cc2cd39d6047e5125709c4faa6fa98bd8f613cd254f3e9ce07",
+        "contractAddress": null,
+        "gasUsed": "49414"
+      },
+      {
+        "label": "Bind liquidity Hook once",
+        "nonce": 1676,
+        "transactionHash": "0x902b1569e33f3d52850f198417e718af40bc21900dcad3305c191650b559e6c9",
+        "blockNumber": "47436762",
+        "blockHash": "0x0a0a3c66c3da9912553e3f0fbba5815cfffde801cae95596435ad68ecabdaeb9",
+        "contractAddress": null,
+        "gasUsed": "49371"
+      },
+      {
+        "label": "Configure initial policy",
+        "nonce": 1677,
+        "transactionHash": "0xdbaa2395b5208e39c5beec2598805bb334f43968b6f57034dc26418b9cd6281b",
+        "blockNumber": "47436764",
+        "blockHash": "0x78a9acdd1b28c0851ed422b3e5bf64979887b61fa9b9b35737b44ca3993aa742",
+        "contractAddress": null,
+        "gasUsed": "239929"
+      },
+      {
+        "label": "Initialize pool at reviewed parity reference",
+        "nonce": 1678,
+        "transactionHash": "0x40f3044ddc8b6a21f3bd4dd71b91209b423e48a84265b41da68e4b3916865c9b",
+        "blockNumber": "47436766",
+        "blockHash": "0x2c61ad29827f344d1d326d0f88a5f39d8ca9cfd5018d9100a4aaeccc0615a9df",
+        "contractAddress": null,
+        "gasUsed": "51763"
+      },
+      {
+        "label": "Transfer policy governance to reviewed admin",
+        "nonce": 1679,
+        "transactionHash": "0x39309eb527494153d5f71e95a330e28ba8de7e77fc73260ff5db154d48071a33",
+        "blockNumber": "47436768",
+        "blockHash": "0x7f02d3ea3dc8955d16010e7574c1e2cd4b5ed80b36fde709a08b65e8cdec56a8",
+        "contractAddress": null,
+        "gasUsed": "28649"
+      }
+    ],
+    "features": {
+      "attestation": "ZK_ONLY issuer-pilot sandbox; not KYC/KYB",
+      "zk": "development Groth16 proving key and verifier; unsafe ceremony",
+      "audit": "unaudited",
+      "productionReadiness": "Base Sepolia testnet PoC only; unsafe development ZK ceremony, test assets, retained factory deployer and no independent audit."
+    },
+    "releaseStatus": {
+      "software": "ILAL v1 development issuer-pilot workflow",
+      "deployment": "Base Sepolia issuer-pilot sandbox candidate"
+    }
+  },
+  "proofBundle": {
+    "format": "ilal-zk-pilot-proof-bundle-v1",
+    "classification": "unsafe development Groth16 ceremony; Base Sepolia testnet only",
+    "circuitVersion": 2,
+    "artifacts": {
+      "zkeySHA256": "1acf76cb9f61cdcf6211bafca004adf762def009968adfcc18f3788221430c14",
+      "vkeySHA256": "5c159bce0d8704a51c8ad3f57ebdfb74f57b17a10860516c03062df3f2453709"
+    },
+    "metadata": {
+      "format": "ilal-mixed-policy-source-v1",
+      "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+      "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+      "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+      "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+      "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+      "minKycLevel": 2,
+      "credentialCount": 3
+    },
+    "proofs": [
+      {
+        "role": "liquidityProvider",
+        "wallet": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "proof": "0x061b65ec7721150b6a4e766c91378742cff30239cbc33b87268c4b0301d3bf6e0cb9aeeaea026d096332e9d6bb312fc0dd0e5926fc2266357731392045350fbf20fb953f02bb673a560274d95a8777224f58a9a91d0fa60d65c614ade85c1a910c7a6f3ffc1001aa6142ef50470128107896ebcc19b88478757c377747aab06b27a630049fa48b33f6660db332d334b80541aee9ff7c2c461b81741fb0d1d0820d820d75225ba43b34cbcea8c2ad607c8b6a87debfac50b3a488f35ecf433b61008a495d12931e6d20f4544fb5a0914e2c760439c7521e7cdf7141dfbb39137b10b24970e9cf192b50075570c7a6a95b3baa1235590cc356927d61321f60c8d1",
+        "inputs": [
+          "4961055214671994063056025861969553111715062945046933438140713571031690348870",
+          "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+          "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+          "2000000000",
+          "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+          "2",
+          "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+          "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+          "2"
+        ]
+      },
+      {
+        "role": "institutionA",
+        "wallet": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+        "proof": "0x09569337bf8272878b1ffb6415b9df146a0f7b2d2fa3ea327527c0818988c32b2fb627e00af1b6a60ef3c1e7477347b65b4e68936f9b6405a8fc24611f211aee1a41b6e47dee2f15ca87e5982df3b3729e688fae594c4d3a42179386bca3ede11c926f757673235a6d9d0d9fa70efd04d393d837f490f054364a84ca85ec889b06f4b756081035707602899f2cf7d212ffa8e82c2244584ea9b5ec018ff683570c0bf74247d36bf2cdb19c837a8cac914ee809d017d232b2bbe449c9e0a65eb60496c8295299c18328608f2f771bcd05944b22b78139b50c2cdbc2dd2d35369602df748daaa7f772966db200ff0b7dba7a807708266718472feb71af4c6a9934",
+        "inputs": [
+          "2663131867416956748007404417346965180060545453558040345251043753704782621091",
+          "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+          "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+          "2000000000",
+          "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+          "2",
+          "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+          "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+          "2"
+        ]
+      },
+      {
+        "role": "institutionB",
+        "wallet": "0x359C370fC666A01216895ddD050eeE5E86702990",
+        "proof": "0x21f3a298c35cf9a814f6cc1922fb62c01ef86a08f8beb801148f93f9bb9b274f11503d708bd1a213c13dcd64541122c02969a285d99a0425a0658880b030abd50e9b1a947238f51ba8a4ce14b8caff2d42691f50304dbb4836c0f9fb477e23f12a15dcda001d39fc6a9beb245c1cf103a114ffa8f0af1c1519ac5ae8b06edba41ead2e0a3edd091fdfb2c9e699a19f583492ac236a8f573c0e5c8eab89fb75c61a61f1c760bb8879b5cd08a1f11cf5194d6c001479b6d33dc346491103ce273808fde55ae5584eedc0ce8fd022ad77b61bb9ee15a1dfa646d3bfe97d2479592e18f676e4a299872bb34df47055afb429f2edda152251ccd6bb3879ead2d921c1",
+        "inputs": [
+          "244956724312697821324948670770876448161858239245275209312618501205837352978",
+          "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+          "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+          "2000000000",
+          "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+          "2",
+          "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+          "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+          "2"
+        ]
+      }
+    ]
+  },
+  "cases": {
+    "execution": {
+      "quote": {
+        "format": "ilal-mixed-quote-v1",
+        "snapshot": {
+          "blockNumber": "47436814",
+          "blockHash": "0xcf75f154f9af083a247a6f87dbb98c1ce94da5dfcc55de475a4701b639420ae6",
+          "timestamp": "1790641916"
+        },
+        "commitment": "0xbad0cdaf01dbd100c94c72b32b259eb753704d0e45c3229005c99ab53eda59a6",
+        "referencePrice": "79228162514264337593543950336",
+        "internalFee": "0",
+        "protocolFee": "0",
+        "budget": {
+          "total0": "70000000",
+          "total1": "100000000",
+          "matched0": "70000000",
+          "matched1": "70000000"
+        },
+        "allocations": [
+          {
+            "order": {
+              "user": "0x359C370fC666A01216895ddD050eeE5E86702990",
+              "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+              "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "policyRevision": "1",
+              "zeroForOne": true,
+              "amountIn": "70000000",
+              "minAmountOut": "0",
+              "maxAmmInput": "70000000",
+              "minSqrtPriceX96": "78833030112140176575862854579",
+              "maxSqrtPriceX96": "79625275426524748796330556128",
+              "deadline": "1790643716",
+              "nonce": "0x0000000000000000000000000000000000000000000000000000000000000006"
+            },
+            "orderHash": "0x116433da93057cd9559ec1f5a4aac04d5a03ffbf1ff05449d1175be0a468ee69",
+            "matchedInput": "70000000",
+            "matchedOutput": "70000000",
+            "residual": "0",
+            "output": "70000000",
+            "ammOutput": "0"
+          },
+          {
+            "order": {
+              "user": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+              "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+              "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "policyRevision": "1",
+              "zeroForOne": false,
+              "amountIn": "100000000",
+              "minAmountOut": "0",
+              "maxAmmInput": "100000000",
+              "minSqrtPriceX96": "78833030112140176575862854579",
+              "maxSqrtPriceX96": "79625275426524748796330556128",
+              "deadline": "1790643716",
+              "nonce": "0x0000000000000000000000000000000000000000000000000000000000000005"
+            },
+            "orderHash": "0xfb133338320bd0c250f206fc293ad12aecffadefb7e8413645c68a5bed335d17",
+            "matchedInput": "70000000",
+            "matchedOutput": "70000000",
+            "residual": "30000000",
+            "output": "99984991",
+            "ammOutput": "29984991"
+          }
+        ],
+        "spending": [
+          {
+            "user": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+            "token": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+            "required": "100000000",
+            "spender": "0xbFda50B01b286BCecabb40fc9B5B2bB8fd1493F4",
+            "allowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+            "balance": "1000000000000"
+          },
+          {
+            "user": "0x359C370fC666A01216895ddD050eeE5E86702990",
+            "token": "0x3a54C18982e6EE52197De17185583324A39b192A",
+            "required": "70000000",
+            "spender": "0xbFda50B01b286BCecabb40fc9B5B2bB8fd1493F4",
+            "allowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+            "balance": "1000000000000"
+          }
+        ]
+      },
+      "signed": [
+        {
+          "format": "ilal-mixed-order-v1",
+          "kind": "batch",
+          "domain": {
+            "name": "ILAL Mixed Hook",
+            "version": "1",
+            "chainId": 84532,
+            "verifyingContract": "0xCeF2f9636DAf1f18d9198bd75a9832e98CE24AA8"
+          },
+          "order": {
+            "user": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+            "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+            "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+            "policyRevision": "1",
+            "zeroForOne": false,
+            "amountIn": "100000000",
+            "minAmountOut": "0",
+            "maxAmmInput": "100000000",
+            "minSqrtPriceX96": "78833030112140176575862854579",
+            "maxSqrtPriceX96": "79625275426524748796330556128",
+            "deadline": "1790643716",
+            "nonce": "0x0000000000000000000000000000000000000000000000000000000000000005"
+          },
+          "signature": "0xe610dff62f46823c0ab6225543094d33ed060dfe782f5130fa8fde159c9661661f769c60a21b74564ab9a51ebcc0c7c9fc7cade9cb3934a9b06ea403ee1a2c981b"
+        },
+        {
+          "format": "ilal-mixed-order-v1",
+          "kind": "batch",
+          "domain": {
+            "name": "ILAL Mixed Hook",
+            "version": "1",
+            "chainId": 84532,
+            "verifyingContract": "0xCeF2f9636DAf1f18d9198bd75a9832e98CE24AA8"
+          },
+          "order": {
+            "user": "0x359C370fC666A01216895ddD050eeE5E86702990",
+            "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+            "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+            "policyRevision": "1",
+            "zeroForOne": true,
+            "amountIn": "70000000",
+            "minAmountOut": "0",
+            "maxAmmInput": "70000000",
+            "minSqrtPriceX96": "78833030112140176575862854579",
+            "maxSqrtPriceX96": "79625275426524748796330556128",
+            "deadline": "1790643716",
+            "nonce": "0x0000000000000000000000000000000000000000000000000000000000000006"
+          },
+          "signature": "0x83e616d54721d70ab44aab9c30796c9e6eaf91c85c1a2916333494fecd94c37b0455ca5304f528bde23aa3a4cbcc5a45c4f67e226e85ac3c296154ed8cfb28c21b"
+        }
+      ],
+      "transaction": {
+        "hash": "0x09c0efd86c9e78bc68a69eb5c6bdd16e372047ca9b038ec66aca622f075457bf",
+        "from": "0x304d3F240e4dCE9Fd47f23AbAedd1cdc117bE3d3",
+        "to": "0xbFda50B01b286BCecabb40fc9B5B2bB8fd1493F4",
+        "data": "0x2192b1d90000000000000000000000003a54c18982e6ee52197de17185583324a39b192a000000000000000000000000666093b5248bed47e7a72a4569fc18d3a9dec91800000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000cef2f9636daf1f18d9198bd75a9832e98ce24aa800000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000200000000000000000000000058b24a10593a50a83e9f74bb1ff3f98421288797d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005f5e10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005f5e1000000000000000000000000000000000000000000feb927758f54316b45a2d3b3000000000000000000000000000000000000000101487bee1c17ddb45ce0bae0000000000000000000000000000000000000000000000000000000006abb0e040000000000000000000000000000000000000000000000000000000000000005000000000000000000000000359c370fc666a01216895ddd050eee5e86702990d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d60000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000042c1d80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000042c1d800000000000000000000000000000000000000000feb927758f54316b45a2d3b3000000000000000000000000000000000000000101487bee1c17ddb45ce0bae0000000000000000000000000000000000000000000000000000000006abb0e0400000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000041e610dff62f46823c0ab6225543094d33ed060dfe782f5130fa8fde159c9661661f769c60a21b74564ab9a51ebcc0c7c9fc7cade9cb3934a9b06ea403ee1a2c981b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004183e616d54721d70ab44aab9c30796c9e6eaf91c85c1a2916333494fecd94c37b0455ca5304f528bde23aa3a4cbcc5a45c4f67e226e85ac3c296154ed8cfb28c21b00000000000000000000000000000000000000000000000000000000000000",
+        "block": {
+          "blockNumber": "47436819",
+          "blockHash": "0x42e3ad29b28364d2ab93d53cede516a64e8b5f81632051a918b58eb37e1c79e4",
+          "timestamp": "1790641926"
+        }
+      },
+      "before": {
+        "blockNumber": "47436818",
+        "blockHash": "0x2c62f1ba6caa1a8f75b46f1c9e71f9a5ffc561fa220f09fe2f76c7add8201c65",
+        "timestamp": "1790641924"
+      },
+      "after": {
+        "blockNumber": "47436819",
+        "blockHash": "0x42e3ad29b28364d2ab93d53cede516a64e8b5f81632051a918b58eb37e1c79e4",
+        "timestamp": "1790641926"
+      },
+      "stateBefore": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "1000000000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "1000000000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180241872",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876819758128",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876819758128",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f40000000000000000000000000001000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+          "revision": "1",
+          "rootEpoch": "1",
+          "enabled": true,
+          "zkEnabled": true
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": [
+          false,
+          false
+        ]
+      },
+      "stateAfter": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "99984991",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "999900000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "999930000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "70000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180241872",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876789773137",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876849758128",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f4000000000000000000000000000100000507d88fc445cf1e0920",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+          "revision": "1",
+          "rootEpoch": "1",
+          "enabled": true,
+          "zkEnabled": true
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": [
+          true,
+          true
+        ]
+      }
+    },
+    "rootRetirement": {
+      "quote": {
+        "format": "ilal-mixed-quote-v1",
+        "snapshot": {
+          "blockNumber": "47436826",
+          "blockHash": "0x0983def928edb74b44d51b374da31edfce2e09269f06432ea9d4ef01a7233eb0",
+          "timestamp": "1790641940"
+        },
+        "commitment": "0x831eba199608914182abc6deb1f52d5682f7f5c3bf466376daf743007b537d6e",
+        "referencePrice": "79228186270828867495705577760",
+        "internalFee": "0",
+        "protocolFee": "0",
+        "budget": {
+          "total0": "70000000",
+          "total1": "100000000",
+          "matched0": "70000000",
+          "matched1": "70000041"
+        },
+        "allocations": [
+          {
+            "order": {
+              "user": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+              "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+              "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "policyRevision": "1",
+              "zeroForOne": false,
+              "amountIn": "100000000",
+              "minAmountOut": "0",
+              "maxAmmInput": "100000000",
+              "minSqrtPriceX96": "78833030112140176575862854579",
+              "maxSqrtPriceX96": "79625275426524748796330556128",
+              "deadline": "1790643740",
+              "nonce": "0x0000000000000000000000000000000000000000000000000000000000000007"
+            },
+            "orderHash": "0x116a7d1757de170ed8739a33bfe95912216981a1e6090a93abac153f715c0591",
+            "matchedInput": "70000041",
+            "matchedOutput": "70000000",
+            "residual": "29999959",
+            "output": "99984932",
+            "ammOutput": "29984932"
+          },
+          {
+            "order": {
+              "user": "0x359C370fC666A01216895ddD050eeE5E86702990",
+              "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+              "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "policyRevision": "1",
+              "zeroForOne": true,
+              "amountIn": "70000000",
+              "minAmountOut": "0",
+              "maxAmmInput": "70000000",
+              "minSqrtPriceX96": "78833030112140176575862854579",
+              "maxSqrtPriceX96": "79625275426524748796330556128",
+              "deadline": "1790643740",
+              "nonce": "0x0000000000000000000000000000000000000000000000000000000000000008"
+            },
+            "orderHash": "0x2e4d071c4268a2e2bf6f33fa012cfa1a5f0e835b86942fec0682b1b3761b5c28",
+            "matchedInput": "70000000",
+            "matchedOutput": "70000041",
+            "residual": "0",
+            "output": "70000041",
+            "ammOutput": "0"
+          }
+        ],
+        "spending": [
+          {
+            "user": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+            "token": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+            "required": "100000000",
+            "spender": "0xbFda50B01b286BCecabb40fc9B5B2bB8fd1493F4",
+            "allowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+            "balance": "999900000000"
+          },
+          {
+            "user": "0x359C370fC666A01216895ddD050eeE5E86702990",
+            "token": "0x3a54C18982e6EE52197De17185583324A39b192A",
+            "required": "70000000",
+            "spender": "0xbFda50B01b286BCecabb40fc9B5B2bB8fd1493F4",
+            "allowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+            "balance": "999930000000"
+          }
+        ]
+      },
+      "signed": [
+        {
+          "format": "ilal-mixed-order-v1",
+          "kind": "batch",
+          "domain": {
+            "name": "ILAL Mixed Hook",
+            "version": "1",
+            "chainId": 84532,
+            "verifyingContract": "0xCeF2f9636DAf1f18d9198bd75a9832e98CE24AA8"
+          },
+          "order": {
+            "user": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+            "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+            "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+            "policyRevision": "1",
+            "zeroForOne": false,
+            "amountIn": "100000000",
+            "minAmountOut": "0",
+            "maxAmmInput": "100000000",
+            "minSqrtPriceX96": "78833030112140176575862854579",
+            "maxSqrtPriceX96": "79625275426524748796330556128",
+            "deadline": "1790643740",
+            "nonce": "0x0000000000000000000000000000000000000000000000000000000000000007"
+          },
+          "signature": "0x3a17ac2e33d3badebbffd3961a977a80bd962305c67ac79b3c869c3eb2da351b7c9f71b1a10077109b3cf56c2e213975eeb2fcc4c875c2e39cc04607d4244b241b"
+        },
+        {
+          "format": "ilal-mixed-order-v1",
+          "kind": "batch",
+          "domain": {
+            "name": "ILAL Mixed Hook",
+            "version": "1",
+            "chainId": 84532,
+            "verifyingContract": "0xCeF2f9636DAf1f18d9198bd75a9832e98CE24AA8"
+          },
+          "order": {
+            "user": "0x359C370fC666A01216895ddD050eeE5E86702990",
+            "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+            "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+            "policyRevision": "1",
+            "zeroForOne": true,
+            "amountIn": "70000000",
+            "minAmountOut": "0",
+            "maxAmmInput": "70000000",
+            "minSqrtPriceX96": "78833030112140176575862854579",
+            "maxSqrtPriceX96": "79625275426524748796330556128",
+            "deadline": "1790643740",
+            "nonce": "0x0000000000000000000000000000000000000000000000000000000000000008"
+          },
+          "signature": "0x3640e76fcb570823b720b851b0ca6c556eb1119fd98e67950f7d585debf082227a7d991b8fad7f66e81f93208b7a41c91c8303a0a32f836f82a1d5cc7c4207f61c"
+        }
+      ],
+      "transaction": {
+        "hash": "0x4fc312400f5d339f20c963bb621b0e9e654637f6b10e821fdda359c216709934",
+        "from": "0x304d3F240e4dCE9Fd47f23AbAedd1cdc117bE3d3",
+        "to": "0xbFda50B01b286BCecabb40fc9B5B2bB8fd1493F4",
+        "data": "0x2192b1d90000000000000000000000003a54c18982e6ee52197de17185583324a39b192a000000000000000000000000666093b5248bed47e7a72a4569fc18d3a9dec91800000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000cef2f9636daf1f18d9198bd75a9832e98ce24aa800000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000200000000000000000000000058b24a10593a50a83e9f74bb1ff3f98421288797d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005f5e10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005f5e1000000000000000000000000000000000000000000feb927758f54316b45a2d3b3000000000000000000000000000000000000000101487bee1c17ddb45ce0bae0000000000000000000000000000000000000000000000000000000006abb0e1c0000000000000000000000000000000000000000000000000000000000000007000000000000000000000000359c370fc666a01216895ddd050eee5e86702990d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d60000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000042c1d80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000042c1d800000000000000000000000000000000000000000feb927758f54316b45a2d3b3000000000000000000000000000000000000000101487bee1c17ddb45ce0bae0000000000000000000000000000000000000000000000000000000006abb0e1c00000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000413a17ac2e33d3badebbffd3961a977a80bd962305c67ac79b3c869c3eb2da351b7c9f71b1a10077109b3cf56c2e213975eeb2fcc4c875c2e39cc04607d4244b241b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000413640e76fcb570823b720b851b0ca6c556eb1119fd98e67950f7d585debf082227a7d991b8fad7f66e81f93208b7a41c91c8303a0a32f836f82a1d5cc7c4207f61c00000000000000000000000000000000000000000000000000000000000000",
+        "block": {
+          "blockNumber": "47436833",
+          "blockHash": "0x77848e9f8ceaac6ba8cc016a9ab185b9408349805cabd2054330db2b685a7c1e",
+          "timestamp": "1790641954"
+        }
+      },
+      "before": {
+        "blockNumber": "47436832",
+        "blockHash": "0xcffb8faeebda1a05a04adada80b6767549057f77738ae5b7d3bcf8ac0192d6d7",
+        "timestamp": "1790641952"
+      },
+      "after": {
+        "blockNumber": "47436833",
+        "blockHash": "0x77848e9f8ceaac6ba8cc016a9ab185b9408349805cabd2054330db2b685a7c1e",
+        "timestamp": "1790641954"
+      },
+      "stateBefore": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "99984991",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "999900000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "999930000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "70000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180241872",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876789773137",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876849758128",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f4000000000000000000000000000100000507d88fc445cf1e0920",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+          "revision": "2",
+          "rootEpoch": "2",
+          "enabled": true,
+          "zkEnabled": false
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": [
+          false,
+          false
+        ]
+      },
+      "stateAfter": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "99984991",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "999900000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "999930000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "70000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180241872",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876789773137",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876849758128",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f4000000000000000000000000000100000507d88fc445cf1e0920",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+          "revision": "2",
+          "rootEpoch": "2",
+          "enabled": true,
+          "zkEnabled": false
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": [
+          false,
+          false
+        ]
+      }
+    }
+  },
+  "grants": {
+    "liquidityProvider": {
+      "activation": {
+        "user": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+        "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+        "policyRevision": "1",
+        "source": 2,
+        "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+        "rootEpoch": "1",
+        "evidenceHash": "0xe105d29dd7d928180b958d6101789c1f5d024c364b306d6140cfcfa2f32cc22b",
+        "deadline": "1790643680",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001"
+      },
+      "signature": "0xaab329c43804b7a9eac046af80142ccd9db51970552c1e053172104a70f165927e965d682e90d44491116aa2c1c4c15c862ffa8d86404adea5e49ba16e49e7041c",
+      "proof": "0x061b65ec7721150b6a4e766c91378742cff30239cbc33b87268c4b0301d3bf6e0cb9aeeaea026d096332e9d6bb312fc0dd0e5926fc2266357731392045350fbf20fb953f02bb673a560274d95a8777224f58a9a91d0fa60d65c614ade85c1a910c7a6f3ffc1001aa6142ef50470128107896ebcc19b88478757c377747aab06b27a630049fa48b33f6660db332d334b80541aee9ff7c2c461b81741fb0d1d0820d820d75225ba43b34cbcea8c2ad607c8b6a87debfac50b3a488f35ecf433b61008a495d12931e6d20f4544fb5a0914e2c760439c7521e7cdf7141dfbb39137b10b24970e9cf192b50075570c7a6a95b3baa1235590cc356927d61321f60c8d1",
+      "inputs": [
+        "4961055214671994063056025861969553111715062945046933438140713571031690348870",
+        "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+        "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+        "2000000000",
+        "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+        "2",
+        "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+        "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+        "2"
+      ],
+      "transaction": {
+        "hash": "0xa1d76c3f4234ff41cad08737d76c0ff062c5dae7b066231557e64c8a34df9307",
+        "from": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "to": "0x3Ef189FF8B9Cbf7D19976be50bb326D130106793",
+        "data": "0x9efbba6a000000000000000000000000c0807d4778a9e5fe15ad68a8500e64d65ba78d58d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000001e105d29dd7d928180b958d6101789c1f5d024c364b306d6140cfcfa2f32cc22b000000000000000000000000000000000000000000000000000000006abb0de0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000001a0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000041aab329c43804b7a9eac046af80142ccd9db51970552c1e053172104a70f165927e965d682e90d44491116aa2c1c4c15c862ffa8d86404adea5e49ba16e49e7041c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100061b65ec7721150b6a4e766c91378742cff30239cbc33b87268c4b0301d3bf6e0cb9aeeaea026d096332e9d6bb312fc0dd0e5926fc2266357731392045350fbf20fb953f02bb673a560274d95a8777224f58a9a91d0fa60d65c614ade85c1a910c7a6f3ffc1001aa6142ef50470128107896ebcc19b88478757c377747aab06b27a630049fa48b33f6660db332d334b80541aee9ff7c2c461b81741fb0d1d0820d820d75225ba43b34cbcea8c2ad607c8b6a87debfac50b3a488f35ecf433b61008a495d12931e6d20f4544fb5a0914e2c760439c7521e7cdf7141dfbb39137b10b24970e9cf192b50075570c7a6a95b3baa1235590cc356927d61321f60c8d100000000000000000000000000000000000000000000000000000000000000090af7db95295f7283f97187054b961b6f8e66bc86d5b8627fbaa0722cbf59894624a47616d0f0796b2a3580fb6d74674f3039b54b1a6416120c51f4ea052794b82017a3461657fcea8a6700ee9d8367b0529e12298a3cb6bab8a8d0eafc908dfa0000000000000000000000000000000000000000000000000000000077359400220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000002111a83136eeec6e6b721496dc15b149f3aaed7956f73a2a28662e49b11c74bcb0f195dd17862da05b8928cc7e3a94f48caa354fd3247fa4b6ca64e8d328b501c0000000000000000000000000000000000000000000000000000000000000002",
+        "block": {
+          "blockNumber": "47436799",
+          "blockHash": "0xcc64402c7916fdd86ce9ae479f4ebbddf265684cf763fc6f11f892b2fef96f79",
+          "timestamp": "1790641886"
+        }
+      }
+    },
+    "institutionA": {
+      "activation": {
+        "user": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+        "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+        "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+        "policyRevision": "1",
+        "source": 2,
+        "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+        "rootEpoch": "1",
+        "evidenceHash": "0xd0181562178014af9a04219f3f0214117083b287734112f8aaf11d21847929b4",
+        "deadline": "1790643686",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000002"
+      },
+      "signature": "0x41712f62d6dba1b7b686cd0aa9d0ae4ef5131716bb6fdabfdda0c59293dee5d1649b04557efd95580b925649f52e2a33f499dedd1058becdbb31bd11618235021c",
+      "proof": "0x09569337bf8272878b1ffb6415b9df146a0f7b2d2fa3ea327527c0818988c32b2fb627e00af1b6a60ef3c1e7477347b65b4e68936f9b6405a8fc24611f211aee1a41b6e47dee2f15ca87e5982df3b3729e688fae594c4d3a42179386bca3ede11c926f757673235a6d9d0d9fa70efd04d393d837f490f054364a84ca85ec889b06f4b756081035707602899f2cf7d212ffa8e82c2244584ea9b5ec018ff683570c0bf74247d36bf2cdb19c837a8cac914ee809d017d232b2bbe449c9e0a65eb60496c8295299c18328608f2f771bcd05944b22b78139b50c2cdbc2dd2d35369602df748daaa7f772966db200ff0b7dba7a807708266718472feb71af4c6a9934",
+      "inputs": [
+        "2663131867416956748007404417346965180060545453558040345251043753704782621091",
+        "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+        "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+        "2000000000",
+        "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+        "2",
+        "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+        "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+        "2"
+      ],
+      "transaction": {
+        "hash": "0x3d3af52699134e7892cd92be32aac5988fe0fad8acdd8dcb6ca3e32feacbc828",
+        "from": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+        "to": "0x3Ef189FF8B9Cbf7D19976be50bb326D130106793",
+        "data": "0x9efbba6a00000000000000000000000058b24a10593a50a83e9f74bb1ff3f98421288797d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000001d0181562178014af9a04219f3f0214117083b287734112f8aaf11d21847929b4000000000000000000000000000000000000000000000000000000006abb0de6000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000002200000000000000000000000000000000000000000000000000000000000000340000000000000000000000000000000000000000000000000000000000000004141712f62d6dba1b7b686cd0aa9d0ae4ef5131716bb6fdabfdda0c59293dee5d1649b04557efd95580b925649f52e2a33f499dedd1058becdbb31bd11618235021c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010009569337bf8272878b1ffb6415b9df146a0f7b2d2fa3ea327527c0818988c32b2fb627e00af1b6a60ef3c1e7477347b65b4e68936f9b6405a8fc24611f211aee1a41b6e47dee2f15ca87e5982df3b3729e688fae594c4d3a42179386bca3ede11c926f757673235a6d9d0d9fa70efd04d393d837f490f054364a84ca85ec889b06f4b756081035707602899f2cf7d212ffa8e82c2244584ea9b5ec018ff683570c0bf74247d36bf2cdb19c837a8cac914ee809d017d232b2bbe449c9e0a65eb60496c8295299c18328608f2f771bcd05944b22b78139b50c2cdbc2dd2d35369602df748daaa7f772966db200ff0b7dba7a807708266718472feb71af4c6a9934000000000000000000000000000000000000000000000000000000000000000905e3477b06f3136def7d012b1758b6f811431cd3f7090242e6eceb017bd8e9a324a47616d0f0796b2a3580fb6d74674f3039b54b1a6416120c51f4ea052794b82017a3461657fcea8a6700ee9d8367b0529e12298a3cb6bab8a8d0eafc908dfa0000000000000000000000000000000000000000000000000000000077359400220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000002111a83136eeec6e6b721496dc15b149f3aaed7956f73a2a28662e49b11c74bcb0f195dd17862da05b8928cc7e3a94f48caa354fd3247fa4b6ca64e8d328b501c0000000000000000000000000000000000000000000000000000000000000002",
+        "block": {
+          "blockNumber": "47436802",
+          "blockHash": "0xd2e5007319ab2534af0ef78c37db218ebfafef1f4d54e7e7184bc4ecac01803c",
+          "timestamp": "1790641892"
+        }
+      }
+    },
+    "institutionB": {
+      "activation": {
+        "user": "0x359C370fC666A01216895ddD050eeE5E86702990",
+        "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+        "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+        "policyRevision": "1",
+        "source": 2,
+        "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+        "rootEpoch": "1",
+        "evidenceHash": "0x91d0042f4b698d829c6db23cc8272557292907f4489ba59735d236e38d25e6e0",
+        "deadline": "1790643692",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000003"
+      },
+      "signature": "0xa01bd1ff2a2fd0c1b276834d8acdfb0a5b168bf462687b3457f77a13324568f046e3570f8c9f4273170afaf18823242a38ccb3a72fca0523fa691048f87a36951b",
+      "proof": "0x21f3a298c35cf9a814f6cc1922fb62c01ef86a08f8beb801148f93f9bb9b274f11503d708bd1a213c13dcd64541122c02969a285d99a0425a0658880b030abd50e9b1a947238f51ba8a4ce14b8caff2d42691f50304dbb4836c0f9fb477e23f12a15dcda001d39fc6a9beb245c1cf103a114ffa8f0af1c1519ac5ae8b06edba41ead2e0a3edd091fdfb2c9e699a19f583492ac236a8f573c0e5c8eab89fb75c61a61f1c760bb8879b5cd08a1f11cf5194d6c001479b6d33dc346491103ce273808fde55ae5584eedc0ce8fd022ad77b61bb9ee15a1dfa646d3bfe97d2479592e18f676e4a299872bb34df47055afb429f2edda152251ccd6bb3879ead2d921c1",
+      "inputs": [
+        "244956724312697821324948670770876448161858239245275209312618501205837352978",
+        "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+        "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+        "2000000000",
+        "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+        "2",
+        "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+        "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+        "2"
+      ],
+      "transaction": {
+        "hash": "0xd53b140ecf2b146eaf73b7653ef058c1a1aacfa23ac92d1cd1038734f53d7881",
+        "from": "0x359C370fC666A01216895ddD050eeE5E86702990",
+        "to": "0x3Ef189FF8B9Cbf7D19976be50bb326D130106793",
+        "data": "0x9efbba6a000000000000000000000000359c370fc666a01216895ddd050eee5e86702990d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df42000000000000000000000000000000000000000000000000000000000000000191d0042f4b698d829c6db23cc8272557292907f4489ba59735d236e38d25e6e0000000000000000000000000000000000000000000000000000000006abb0dec000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000001a0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000041a01bd1ff2a2fd0c1b276834d8acdfb0a5b168bf462687b3457f77a13324568f046e3570f8c9f4273170afaf18823242a38ccb3a72fca0523fa691048f87a36951b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010021f3a298c35cf9a814f6cc1922fb62c01ef86a08f8beb801148f93f9bb9b274f11503d708bd1a213c13dcd64541122c02969a285d99a0425a0658880b030abd50e9b1a947238f51ba8a4ce14b8caff2d42691f50304dbb4836c0f9fb477e23f12a15dcda001d39fc6a9beb245c1cf103a114ffa8f0af1c1519ac5ae8b06edba41ead2e0a3edd091fdfb2c9e699a19f583492ac236a8f573c0e5c8eab89fb75c61a61f1c760bb8879b5cd08a1f11cf5194d6c001479b6d33dc346491103ce273808fde55ae5584eedc0ce8fd022ad77b61bb9ee15a1dfa646d3bfe97d2479592e18f676e4a299872bb34df47055afb429f2edda152251ccd6bb3879ead2d921c10000000000000000000000000000000000000000000000000000000000000009008aa3fde27d99d4f702b6af1fb4f9505b1e12e1670d2136b2e2d8e45896101224a47616d0f0796b2a3580fb6d74674f3039b54b1a6416120c51f4ea052794b82017a3461657fcea8a6700ee9d8367b0529e12298a3cb6bab8a8d0eafc908dfa0000000000000000000000000000000000000000000000000000000077359400220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000002111a83136eeec6e6b721496dc15b149f3aaed7956f73a2a28662e49b11c74bcb0f195dd17862da05b8928cc7e3a94f48caa354fd3247fa4b6ca64e8d328b501c0000000000000000000000000000000000000000000000000000000000000002",
+        "block": {
+          "blockNumber": "47436805",
+          "blockHash": "0xe4a81f9cc3537202a59c179cf073076f04491dfd15b2b3a1f74016d5a3364c94",
+          "timestamp": "1790641898"
+        }
+      }
+    }
+  },
+  "transactions": {
+    "mintALp": {
+      "hash": "0xae820e571d21548fe65040b32616ec92c2ae28404867d2a407c58a33ace2bd48",
+      "from": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+      "to": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+      "data": "0x40c10f19000000000000000000000000c0807d4778a9e5fe15ad68a8500e64d65ba78d5800000000000000000000000000000000000000000000000000038d7ea4c68000",
+      "block": {
+        "blockNumber": "47436774",
+        "blockHash": "0x6f7a3d67609dad67c5ab6cd7a7a48c4e393e348ca1af21e306761bcd5a43f8b8",
+        "timestamp": "1790641836"
+      }
+    },
+    "mintA": {
+      "hash": "0x3af69debde82e6968cc1dfe0959369637be69a15a88f4212440e6dbeb3b544f0",
+      "from": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+      "to": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+      "data": "0x40c10f1900000000000000000000000058b24a10593a50a83e9f74bb1ff3f98421288797000000000000000000000000000000000000000000000000000000e8d4a51000",
+      "block": {
+        "blockNumber": "47436784",
+        "blockHash": "0xd78b85b7acfabef505fdeaa92eca736de95ce29f9cc3a73f012ab9552929b052",
+        "timestamp": "1790641856"
+      }
+    },
+    "mintBLp": {
+      "hash": "0x94c4dc46c241bc8f048afa1a4119c9df3d4cc661ab620ac9d68eeeecba26a37c",
+      "from": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+      "to": "0x3a54C18982e6EE52197De17185583324A39b192A",
+      "data": "0x40c10f19000000000000000000000000c0807d4778a9e5fe15ad68a8500e64d65ba78d5800000000000000000000000000000000000000000000000000038d7ea4c68000",
+      "block": {
+        "blockNumber": "47436786",
+        "blockHash": "0x9a5684a4332018d6f1b4a96e0799e9996b3bee3758a252983f0883dad00e9e0e",
+        "timestamp": "1790641860"
+      }
+    },
+    "mintB": {
+      "hash": "0xc0091aa7fec7c7a394f2034a8c4c4557e3dd62e7902bd3c505b5b4b2e98733ba",
+      "from": "0xF40493ACDd33cC4a841fCD69577A66218381C2fC",
+      "to": "0x3a54C18982e6EE52197De17185583324A39b192A",
+      "data": "0x40c10f19000000000000000000000000359c370fc666a01216895ddd050eee5e86702990000000000000000000000000000000000000000000000000000000e8d4a51000",
+      "block": {
+        "blockNumber": "47436788",
+        "blockHash": "0x56c51fb49fca9c6ee727b4c6cb084a323baaffbbdddfd1925d6521092c4bd5ed",
+        "timestamp": "1790641864"
+      }
+    },
+    "approve-liquidityProvider-issuerStablecoin": {
+      "hash": "0x508d8ae6943af729641efbc8233defe329add999c20ca261977995834d25564d",
+      "from": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "to": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+      "data": "0x095ea7b30000000000000000000000006ec5b3bdf242e1eeb78f88d65963632c1120aff0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "block": {
+        "blockNumber": "47436790",
+        "blockHash": "0x7382dbc040177ff1c55f13e444fa69322390144b43af64045104a247aa99a16b",
+        "timestamp": "1790641868"
+      }
+    },
+    "approve-liquidityProvider-settlementCash": {
+      "hash": "0x8da1ef7b0d705094a933546e1842b2d2bb162f2965761df5dcb36a26f572f681",
+      "from": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "to": "0x3a54C18982e6EE52197De17185583324A39b192A",
+      "data": "0x095ea7b30000000000000000000000006ec5b3bdf242e1eeb78f88d65963632c1120aff0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "block": {
+        "blockNumber": "47436792",
+        "blockHash": "0xac29d69960ad05c1e6480972f8e5821990bef4a4bef419e20ab99f0924d4a4cc",
+        "timestamp": "1790641872"
+      }
+    },
+    "approve-institutionA-issuerStablecoin": {
+      "hash": "0xf9c181df22e00c97dea182d55295b84fdaaafd2f6b80e898330adec18a52e991",
+      "from": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+      "to": "0x666093b5248Bed47e7A72A4569FC18d3A9DEc918",
+      "data": "0x095ea7b3000000000000000000000000bfda50b01b286bcecabb40fc9b5b2bb8fd1493f4ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "block": {
+        "blockNumber": "47436794",
+        "blockHash": "0xea2745291597c2f4535bfaf30b641fdc4ad58d057f39127ece13db0b77ae4714",
+        "timestamp": "1790641876"
+      }
+    },
+    "approve-institutionB-settlementCash": {
+      "hash": "0xabf9d67358525c5c1c7899465ca1bd6cab492dd69e65f5930ad6a94f347e661e",
+      "from": "0x359C370fC666A01216895ddD050eeE5E86702990",
+      "to": "0x3a54C18982e6EE52197De17185583324A39b192A",
+      "data": "0x095ea7b3000000000000000000000000bfda50b01b286bcecabb40fc9b5b2bb8fd1493f4ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "block": {
+        "blockNumber": "47436796",
+        "blockHash": "0xa6762b2ae8ead975fe5cc5ddf910441705abe87db7ca96e84bc29bf3968fc84e",
+        "timestamp": "1790641880"
+      }
+    },
+    "grant-liquidityProvider": {
+      "hash": "0xa1d76c3f4234ff41cad08737d76c0ff062c5dae7b066231557e64c8a34df9307",
+      "from": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+      "to": "0x3Ef189FF8B9Cbf7D19976be50bb326D130106793",
+      "data": "0x9efbba6a000000000000000000000000c0807d4778a9e5fe15ad68a8500e64d65ba78d58d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000001e105d29dd7d928180b958d6101789c1f5d024c364b306d6140cfcfa2f32cc22b000000000000000000000000000000000000000000000000000000006abb0de0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000001a0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000041aab329c43804b7a9eac046af80142ccd9db51970552c1e053172104a70f165927e965d682e90d44491116aa2c1c4c15c862ffa8d86404adea5e49ba16e49e7041c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100061b65ec7721150b6a4e766c91378742cff30239cbc33b87268c4b0301d3bf6e0cb9aeeaea026d096332e9d6bb312fc0dd0e5926fc2266357731392045350fbf20fb953f02bb673a560274d95a8777224f58a9a91d0fa60d65c614ade85c1a910c7a6f3ffc1001aa6142ef50470128107896ebcc19b88478757c377747aab06b27a630049fa48b33f6660db332d334b80541aee9ff7c2c461b81741fb0d1d0820d820d75225ba43b34cbcea8c2ad607c8b6a87debfac50b3a488f35ecf433b61008a495d12931e6d20f4544fb5a0914e2c760439c7521e7cdf7141dfbb39137b10b24970e9cf192b50075570c7a6a95b3baa1235590cc356927d61321f60c8d100000000000000000000000000000000000000000000000000000000000000090af7db95295f7283f97187054b961b6f8e66bc86d5b8627fbaa0722cbf59894624a47616d0f0796b2a3580fb6d74674f3039b54b1a6416120c51f4ea052794b82017a3461657fcea8a6700ee9d8367b0529e12298a3cb6bab8a8d0eafc908dfa0000000000000000000000000000000000000000000000000000000077359400220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000002111a83136eeec6e6b721496dc15b149f3aaed7956f73a2a28662e49b11c74bcb0f195dd17862da05b8928cc7e3a94f48caa354fd3247fa4b6ca64e8d328b501c0000000000000000000000000000000000000000000000000000000000000002",
+      "block": {
+        "blockNumber": "47436799",
+        "blockHash": "0xcc64402c7916fdd86ce9ae479f4ebbddf265684cf763fc6f11f892b2fef96f79",
+        "timestamp": "1790641886"
+      }
+    },
+    "grant-institutionA": {
+      "hash": "0x3d3af52699134e7892cd92be32aac5988fe0fad8acdd8dcb6ca3e32feacbc828",
+      "from": "0x58B24A10593a50a83E9F74bB1Ff3F98421288797",
+      "to": "0x3Ef189FF8B9Cbf7D19976be50bb326D130106793",
+      "data": "0x9efbba6a00000000000000000000000058b24a10593a50a83e9f74bb1ff3f98421288797d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000001d0181562178014af9a04219f3f0214117083b287734112f8aaf11d21847929b4000000000000000000000000000000000000000000000000000000006abb0de6000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000002200000000000000000000000000000000000000000000000000000000000000340000000000000000000000000000000000000000000000000000000000000004141712f62d6dba1b7b686cd0aa9d0ae4ef5131716bb6fdabfdda0c59293dee5d1649b04557efd95580b925649f52e2a33f499dedd1058becdbb31bd11618235021c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010009569337bf8272878b1ffb6415b9df146a0f7b2d2fa3ea327527c0818988c32b2fb627e00af1b6a60ef3c1e7477347b65b4e68936f9b6405a8fc24611f211aee1a41b6e47dee2f15ca87e5982df3b3729e688fae594c4d3a42179386bca3ede11c926f757673235a6d9d0d9fa70efd04d393d837f490f054364a84ca85ec889b06f4b756081035707602899f2cf7d212ffa8e82c2244584ea9b5ec018ff683570c0bf74247d36bf2cdb19c837a8cac914ee809d017d232b2bbe449c9e0a65eb60496c8295299c18328608f2f771bcd05944b22b78139b50c2cdbc2dd2d35369602df748daaa7f772966db200ff0b7dba7a807708266718472feb71af4c6a9934000000000000000000000000000000000000000000000000000000000000000905e3477b06f3136def7d012b1758b6f811431cd3f7090242e6eceb017bd8e9a324a47616d0f0796b2a3580fb6d74674f3039b54b1a6416120c51f4ea052794b82017a3461657fcea8a6700ee9d8367b0529e12298a3cb6bab8a8d0eafc908dfa0000000000000000000000000000000000000000000000000000000077359400220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000002111a83136eeec6e6b721496dc15b149f3aaed7956f73a2a28662e49b11c74bcb0f195dd17862da05b8928cc7e3a94f48caa354fd3247fa4b6ca64e8d328b501c0000000000000000000000000000000000000000000000000000000000000002",
+      "block": {
+        "blockNumber": "47436802",
+        "blockHash": "0xd2e5007319ab2534af0ef78c37db218ebfafef1f4d54e7e7184bc4ecac01803c",
+        "timestamp": "1790641892"
+      }
+    },
+    "grant-institutionB": {
+      "hash": "0xd53b140ecf2b146eaf73b7653ef058c1a1aacfa23ac92d1cd1038734f53d7881",
+      "from": "0x359C370fC666A01216895ddD050eeE5E86702990",
+      "to": "0x3Ef189FF8B9Cbf7D19976be50bb326D130106793",
+      "data": "0x9efbba6a000000000000000000000000359c370fc666a01216895ddd050eee5e86702990d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df42000000000000000000000000000000000000000000000000000000000000000191d0042f4b698d829c6db23cc8272557292907f4489ba59735d236e38d25e6e0000000000000000000000000000000000000000000000000000000006abb0dec000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000001a0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000041a01bd1ff2a2fd0c1b276834d8acdfb0a5b168bf462687b3457f77a13324568f046e3570f8c9f4273170afaf18823242a38ccb3a72fca0523fa691048f87a36951b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010021f3a298c35cf9a814f6cc1922fb62c01ef86a08f8beb801148f93f9bb9b274f11503d708bd1a213c13dcd64541122c02969a285d99a0425a0658880b030abd50e9b1a947238f51ba8a4ce14b8caff2d42691f50304dbb4836c0f9fb477e23f12a15dcda001d39fc6a9beb245c1cf103a114ffa8f0af1c1519ac5ae8b06edba41ead2e0a3edd091fdfb2c9e699a19f583492ac236a8f573c0e5c8eab89fb75c61a61f1c760bb8879b5cd08a1f11cf5194d6c001479b6d33dc346491103ce273808fde55ae5584eedc0ce8fd022ad77b61bb9ee15a1dfa646d3bfe97d2479592e18f676e4a299872bb34df47055afb429f2edda152251ccd6bb3879ead2d921c10000000000000000000000000000000000000000000000000000000000000009008aa3fde27d99d4f702b6af1fb4f9505b1e12e1670d2136b2e2d8e45896101224a47616d0f0796b2a3580fb6d74674f3039b54b1a6416120c51f4ea052794b82017a3461657fcea8a6700ee9d8367b0529e12298a3cb6bab8a8d0eafc908dfa0000000000000000000000000000000000000000000000000000000077359400220d7216f261046249fe67c85619bc7391e5b18913f9a6914e33532dc0e2df420000000000000000000000000000000000000000000000000000000000000002111a83136eeec6e6b721496dc15b149f3aaed7956f73a2a28662e49b11c74bcb0f195dd17862da05b8928cc7e3a94f48caa354fd3247fa4b6ca64e8d328b501c0000000000000000000000000000000000000000000000000000000000000002",
+      "block": {
+        "blockNumber": "47436805",
+        "blockHash": "0xe4a81f9cc3537202a59c179cf073076f04491dfd15b2b3a1f74016d5a3364c94",
+        "timestamp": "1790641898"
+      }
+    },
+    "invalidateRoot": {
+      "hash": "0x79a96bbb192c4178b52977a015279aafc892114e2ec2dbdff5cab15dfbe07987",
+      "from": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
+      "to": "0x76BE077344056cD1aBAb3c17Db89423C17318D7B",
+      "data": "0x3eefdcced5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+      "block": {
+        "blockNumber": "47436831",
+        "blockHash": "0x58890db54e3c47a94c3298848bc154a35918774765e8c39e3bfc57a6be62d54a",
+        "timestamp": "1790641950"
+      }
+    }
+  },
+  "lp": {
+    "userSalt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "tickLower": -1000,
+    "tickUpper": 1000,
+    "add": {
+      "authorization": {
+        "user": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+        "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+        "policyRevision": "1",
+        "action": 3,
+        "tickLower": -1000,
+        "tickUpper": 1000,
+        "liquidityDelta": "100000000000000",
+        "userSalt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "amount0Limit": "170141183460469231731687303715884105727",
+        "amount1Limit": "170141183460469231731687303715884105727",
+        "deadline": "1790643698",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000004"
+      },
+      "signature": "0xfd717d4b0fa839a2666a42bfc9eead28c62c8c316fe8c1826eca9668bddf8bcb0ecee14bc05e7f87456d193002a8ca20d8f95505024ec89cda9168e2c367cffa1b",
+      "transaction": {
+        "hash": "0x0d3ca2f765379467959f80d232245abe59612fc11f0af6926b03f5cfdbb26dfa",
+        "from": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "to": "0x6eC5b3BDF242e1eEB78F88D65963632C1120afF0",
+        "data": "0x8d39fb9f0000000000000000000000003a54c18982e6ee52197de17185583324a39b192a000000000000000000000000666093b5248bed47e7a72a4569fc18d3a9dec91800000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000cef2f9636daf1f18d9198bd75a9832e98ce24aa8000000000000000000000000c0807d4778a9e5fe15ad68a8500e64d65ba78d58d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000003fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc1800000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000005af3107a40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007fffffffffffffffffffffffffffffff000000000000000000000000000000007fffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000006abb0df2000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000002600000000000000000000000000000000000000000000000000000000000000041fd717d4b0fa839a2666a42bfc9eead28c62c8c316fe8c1826eca9668bddf8bcb0ecee14bc05e7f87456d193002a8ca20d8f95505024ec89cda9168e2c367cffa1b00000000000000000000000000000000000000000000000000000000000000",
+        "block": {
+          "blockNumber": "47436807",
+          "blockHash": "0x0ae1df62c50817de431f779ac589db5275b0ada999bb83887580a05f963ca77c",
+          "timestamp": "1790641902"
+        }
+      },
+      "before": {
+        "blockNumber": "47436806",
+        "blockHash": "0x6a4d34a7ed512bb31e3a26d08218ee6baec815971bbd7674936f7c73f4ddd3fc",
+        "timestamp": "1790641900"
+      },
+      "after": {
+        "blockNumber": "47436807",
+        "blockHash": "0x0ae1df62c50817de431f779ac589db5275b0ada999bb83887580a05f963ca77c",
+        "timestamp": "1790641902"
+      },
+      "stateBefore": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "1000000000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "1000000000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "1000000000000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "1000000000000000",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f40000000000000000000000000001000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "position": [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+          "revision": "1",
+          "rootEpoch": "1",
+          "enabled": true,
+          "zkEnabled": true
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": []
+      },
+      "stateAfter": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "1000000000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "1000000000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180241872",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876819758128",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876819758128",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f40000000000000000000000000001000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+          "revision": "1",
+          "rootEpoch": "1",
+          "enabled": true,
+          "zkEnabled": true
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": []
+      }
+    },
+    "collect": {
+      "authorization": {
+        "user": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+        "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+        "policyRevision": "2",
+        "action": 5,
+        "tickLower": -1000,
+        "tickUpper": 1000,
+        "liquidityDelta": "0",
+        "userSalt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "amount0Limit": "0",
+        "amount1Limit": "0",
+        "deadline": "1790643768",
+        "nonce": "0x0000000000000000000000000000000000000000000000000000000000000009"
+      },
+      "signature": "0x7f9d9aea5b4c3d75b5262a7e4a74c3136a9669aa2b101fa9a4f0483673989ac862766b12c50917290b25a17ee7b4f1ac625122d2ae2c424ed4af41fe412b7d451b",
+      "transaction": {
+        "hash": "0xab690cce26628e747cad754e3591dcbfa7d4ec7489cbd040a1e31bde317b1d63",
+        "from": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "to": "0x6eC5b3BDF242e1eEB78F88D65963632C1120afF0",
+        "data": "0x8d39fb9f0000000000000000000000003a54c18982e6ee52197de17185583324a39b192a000000000000000000000000666093b5248bed47e7a72a4569fc18d3a9dec91800000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000cef2f9636daf1f18d9198bd75a9832e98ce24aa8000000000000000000000000c0807d4778a9e5fe15ad68a8500e64d65ba78d58d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266dc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c7202500000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000005fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc1800000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006abb0e380000000000000000000000000000000000000000000000000000000000000009000000000000000000000000000000000000000000000000000000000000026000000000000000000000000000000000000000000000000000000000000000417f9d9aea5b4c3d75b5262a7e4a74c3136a9669aa2b101fa9a4f0483673989ac862766b12c50917290b25a17ee7b4f1ac625122d2ae2c424ed4af41fe412b7d451b00000000000000000000000000000000000000000000000000000000000000",
+        "block": {
+          "blockNumber": "47436843",
+          "blockHash": "0x0d0d755178167811e9acd3ff01dad2d0c55cece2802669208cf6fcc91cc4fadd",
+          "timestamp": "1790641974"
+        }
+      },
+      "before": {
+        "blockNumber": "47436842",
+        "blockHash": "0x0109a9916c657159c1d6a461f9daf2efa4134307c9a2c4dc8b61f870f19bcae5",
+        "timestamp": "1790641972"
+      },
+      "after": {
+        "blockNumber": "47436843",
+        "blockHash": "0x0d0d755178167811e9acd3ff01dad2d0c55cece2802669208cf6fcc91cc4fadd",
+        "timestamp": "1790641974"
+      },
+      "stateBefore": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "99984991",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "999900000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "999930000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "70000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180241872",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876789773137",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876849758128",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f4000000000000000000000000000100000507d88fc445cf1e0920",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+          "revision": "2",
+          "rootEpoch": "2",
+          "enabled": true,
+          "zkEnabled": false
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": []
+      },
+      "stateAfter": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "99984991",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "999900000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "999930000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "70000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180256871",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876789773137",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876849743129",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f4000000000000000000000000000100000507d88fc445cf1e0920",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+          "revision": "2",
+          "rootEpoch": "2",
+          "enabled": true,
+          "zkEnabled": false
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": []
+      }
+    },
+    "exit": {
+      "authorization": {
+        "user": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "poolId": "0xd5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266",
+        "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+        "policyRevision": "2",
+        "action": 4,
+        "tickLower": -1000,
+        "tickUpper": 1000,
+        "liquidityDelta": "-100000000000000",
+        "userSalt": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "amount0Limit": "0",
+        "amount1Limit": "0",
+        "deadline": "1790643788",
+        "nonce": "0x000000000000000000000000000000000000000000000000000000000000000a"
+      },
+      "signature": "0x1478b93f60d66f587d76ba4d2069234b0ab6e22296bfc5799da0df324a6150ed45d07c474ca8a642034fab42ef07afa3e757d2a12068447501bd3fdbefd7387b1b",
+      "transaction": {
+        "hash": "0x72d8b0a6edff2cdbeb68cdbc78ac2cd10d996fcc018d870159171242d509d9b1",
+        "from": "0xc0807D4778a9E5FE15ad68A8500e64d65BA78D58",
+        "to": "0x6eC5b3BDF242e1eEB78F88D65963632C1120afF0",
+        "data": "0x8d39fb9f0000000000000000000000003a54c18982e6ee52197de17185583324a39b192a000000000000000000000000666093b5248bed47e7a72a4569fc18d3a9dec91800000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000cef2f9636daf1f18d9198bd75a9832e98ce24aa8000000000000000000000000c0807d4778a9e5fe15ad68a8500e64d65ba78d58d5f7895e627cdf3b5224693a94d9ba00b7b4f2bf1b222d3e7308977605805266dc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c7202500000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000004fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc1800000000000000000000000000000000000000000000000000000000000003e8ffffffffffffffffffffffffffffffffffffffffffffffffffffa50cef85c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006abb0e4c000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000026000000000000000000000000000000000000000000000000000000000000000411478b93f60d66f587d76ba4d2069234b0ab6e22296bfc5799da0df324a6150ed45d07c474ca8a642034fab42ef07afa3e757d2a12068447501bd3fdbefd7387b1b00000000000000000000000000000000000000000000000000000000000000",
+        "block": {
+          "blockNumber": "47436852",
+          "blockHash": "0x6c610e8f83074d4fbad464bdb7a740247eed2ab11fcf479ec2b105f3cf42c2a3",
+          "timestamp": "1790641992"
+        }
+      },
+      "before": {
+        "blockNumber": "47436851",
+        "blockHash": "0xa3440f0978699c988eaaed1e161ed53ac3b8f63a295f510a86b9ed0b35cb5ab7",
+        "timestamp": "1790641990"
+      },
+      "after": {
+        "blockNumber": "47436852",
+        "blockHash": "0x6c610e8f83074d4fbad464bdb7a740247eed2ab11fcf479ec2b105f3cf42c2a3",
+        "timestamp": "1790641992"
+      },
+      "stateBefore": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "99984991",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "999900000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "999930000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "70000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "995123180241872",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "995123180256871",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "4876789773137",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "4876849743129",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f4000000000000000000000000000100000507d88fc445cf1e0920",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a",
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000"
+        ],
+        "position": [
+          "0x00000000000000000000000000000000000000000000000000005af3107a4000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+          "revision": "2",
+          "rootEpoch": "2",
+          "enabled": true,
+          "zkEnabled": false
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": []
+      },
+      "stateAfter": {
+        "balances": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x3a54c18982e6ee52197de17185583324a39b192a": "99984991",
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "999900000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x3a54c18982e6ee52197de17185583324a39b192a": "999930000000",
+          "0x359c370fc666a01216895ddd050eee5e86702990.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "70000000",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x3a54c18982e6ee52197de17185583324a39b192a": "999999970015008",
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "1000000029999998",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x3a54c18982e6ee52197de17185583324a39b192a": "1",
+          "0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "2",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xcef2f9636daf1f18d9198bd75a9832e98ce24aa8.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0xbfda50b01b286bcecabb40fc9b5b2bb8fd1493f4.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x3a54c18982e6ee52197de17185583324a39b192a": "0",
+          "0x6ec5b3bdf242e1eeb78f88d65963632c1120aff0.0x666093b5248bed47e7a72a4569fc18d3a9dec918": "0"
+        },
+        "pool": [
+          "0x0000000001f4000000000000000000000000000100000507d88fc445cf1e0920",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "position": [
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000a4ed3f1b0e72604f0816730a"
+        ],
+        "policy": {
+          "config": {
+            "mode": 2,
+            "cnfIssuer": "0x0000000000000000000000000000000000000000",
+            "credentialType": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "issuerHash": "16573840488812875028019693213617520977614861514605894108491375000805978903736",
+            "schemaHash": "14515775511358287391421496088316323779570165726936020040789386394950245060090",
+            "acceptedRoot": "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+            "jurisdictionRoot": "7736161102292762061292386413892580673328182200372958848548456859964895873995",
+            "zkPolicyHash": "6829511415085700601041486013145959488876895564996061819191138470411746627612",
+            "minKycLevel": 2,
+            "maxGrantTTL": "3600"
+          },
+          "executionPolicyHash": "0xdc456d2744b0bacdf78ea1c9561bd4cd3c060ed2708d92c6d3fed06e45c72025",
+          "revision": "2",
+          "rootEpoch": "2",
+          "enabled": true,
+          "zkEnabled": false
+        },
+        "eligibility": {
+          "0x58b24a10593a50a83e9f74bb1ff3f98421288797": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645492",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0x359c370fc666a01216895ddd050eee5e86702990": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645498",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          },
+          "0xc0807d4778a9e5fe15ad68a8500e64d65ba78d58": {
+            "valid": null,
+            "banned": false,
+            "grant": [
+              "0x441959b88bdf5d156167916077c5ca39ff0470cebc4c6fb1f3ba9a35cd4114d6",
+              "1",
+              "1",
+              "0",
+              "1790645486",
+              2,
+              "15402393281401022116591794878202541844657315035404385409622565537835991097154",
+              "0"
+            ]
+          }
+        },
+        "nonces": []
+      }
+    }
+  },
+  "snapshot": {
+    "blockNumber": "47436852",
+    "blockHash": "0x6c610e8f83074d4fbad464bdb7a740247eed2ab11fcf479ec2b105f3cf42c2a3",
+    "timestamp": "1790641992"
+  },
+  "flow": {
+    "grossInstitutionalFlow": "170000000",
+    "internallyMatchedFlow": "140000000",
+    "actualAmmInput": "30000000"
+  }
+}

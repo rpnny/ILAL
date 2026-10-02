@@ -34,7 +34,7 @@ export async function stateAt(client,e,cp,orders=[]){
  const positionSlot=keccak256(encodeAbiParameters([{type:'bytes32'},{type:'bytes32'}],[positionId,toHex(BigInt(slot)+6n,{size:32})]));
  const position=await c.readContract({address:d.contracts.poolManager,abi:managerAbi,functionName:'extsload',args:[positionSlot,3n]});
  const policy=await sdk.readMixedPolicy(c,d);const eligibility={};
- for(const user of users){eligibility[user.toLowerCase()]={valid:await c.readContract({address:policy.config.cnfIssuer,abi:cnfAbi,functionName:'isValid',args:[user]}),banned:await c.readContract({address:d.contracts.policyRegistry,abi:sdk.MixedPolicyRegistryAbi,functionName:'banned',args:[d.pool.poolId,user]}),grant:await c.readContract({address:d.contracts.grantManager,abi:sdk.MixedGrantManagerAbi,functionName:'grants',args:[d.pool.poolId,user]})};}
+ for(const user of users){eligibility[user.toLowerCase()]={valid:policy.config.mode===2?null:await c.readContract({address:policy.config.cnfIssuer,abi:cnfAbi,functionName:'isValid',args:[user]}),banned:await c.readContract({address:d.contracts.policyRegistry,abi:sdk.MixedPolicyRegistryAbi,functionName:'banned',args:[d.pool.poolId,user]}),grant:await c.readContract({address:d.contracts.grantManager,abi:sdk.MixedGrantManagerAbi,functionName:'grants',args:[d.pool.poolId,user]})};}
  const nonces=await Promise.all(orders.map(o=>c.readContract({address:d.contracts.hook,abi:sdk.MixedHookAbi,functionName:'nonceUsed',args:[o.user,0,o.nonce]})));
  return normalized({balances,pool,position,policy,eligibility,nonces});
 }

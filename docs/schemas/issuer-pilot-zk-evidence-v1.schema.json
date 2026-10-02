@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ilal.tech/schemas/issuer-pilot-zk-evidence-v1.json",
+  "title": "ILAL ZK_ONLY issuer pilot evidence v1",
+  "type": "object",
+  "required": ["format", "status", "chainId", "roles", "assets", "deployment", "proofBundle", "grants", "cases", "transactions", "lp", "snapshot", "flow"],
+  "properties": {
+    "format": { "const": "ilal-zk-issuer-pilot-evidence-v1" },
+    "status": { "const": "COMPLETE" },
+    "chainId": { "enum": [31337, 84532] },
+    "roles": { "type": "object", "minProperties": 7 },
+    "assets": { "type": "object" },
+    "deployment": { "type": "object" },
+    "proofBundle": {
+      "type": "object",
+      "required": ["format", "classification", "circuitVersion", "artifacts", "metadata", "proofs"],
+      "properties": {
+        "format": { "const": "ilal-zk-pilot-proof-bundle-v1" },
+        "classification": { "type": "string" },
+        "circuitVersion": { "const": 2 },
+        "artifacts": { "type": "object" },
+        "metadata": { "type": "object" },
+        "proofs": { "type": "array", "minItems": 3, "maxItems": 3 }
+      }
+    },
+    "grants": { "type": "object", "required": ["liquidityProvider", "institutionA", "institutionB"] },
+    "cases": { "type": "object", "required": ["execution", "rootRetirement"] },
+    "transactions": { "type": "object" },
+    "lp": { "type": "object", "required": ["add", "collect", "exit"] },
+    "snapshot": { "type": "object" },
+    "flow": {
+      "type": "object",
+      "required": ["grossInstitutionalFlow", "internallyMatchedFlow", "actualAmmInput"],
+      "properties": {
+        "grossInstitutionalFlow": { "const": "170000000" },
+        "internallyMatchedFlow": { "const": "140000000" },
+        "actualAmmInput": { "const": "30000000" }
+      }
+    }
+  }
+}

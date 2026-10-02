@@ -1,6 +1,7 @@
 import {createRequire} from 'node:module';
 const require=createRequire(new URL('../../sdk/package.json',import.meta.url));
 const {getAddress}=require('viem');
+const FIELD=21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
 const decimal = (value, name) => {
   if (!/^\d+$/.test(String(value))) throw new Error(`Invalid ${name}`);
@@ -16,7 +17,11 @@ export function validatePilotConfig(config) {
   const a = config.assets?.issuerStablecoin, b = config.assets?.settlementCash;
   if (!a || !b || a.role !== 'issuer-stablecoin' || b.role !== 'sandbox-settlement-cash' || a.decimals !== 6 || b.decimals !== 6) throw new Error('Pilot asset responsibilities');
   if (!a.name || !a.symbol || !b.name || !b.symbol || a.symbol === b.symbol) throw new Error('Pilot asset identity');
-  if (config.policy?.mode !== 'CNF_ONLY' || !Number.isSafeInteger(config.policy.grantTtlSeconds) || config.policy.grantTtlSeconds < 60 || config.policy.grantTtlSeconds > 604800) throw new Error('Pilot policy');
+  if (!['CNF_ONLY','ZK_ONLY'].includes(config.policy?.mode) || !Number.isSafeInteger(config.policy.grantTtlSeconds) || config.policy.grantTtlSeconds < 60 || config.policy.grantTtlSeconds > 604800) throw new Error('Pilot policy');
+  if (config.policy.mode === 'ZK_ONLY') {
+    for (const key of ['issuerHash','schemaHash','acceptedRoot','jurisdictionRoot','zkPolicyHash']) { const value=decimal(config.policy[key], `policy.${key}`);if(value<=0n||value>=FIELD)throw new Error(`Pilot ZK policy ${key}`); }
+    if (!Number.isInteger(config.policy.minKycLevel) || config.policy.minKycLevel < 0 || config.policy.minKycLevel > 3) throw new Error('Pilot ZK policy minKycLevel');
+  }
   const scenario = config.scenario;
   if (decimal(scenario?.issuerAssetInput, 'issuerAssetInput') !== 100000000n || decimal(scenario?.settlementCashInput, 'settlementCashInput') !== 70000000n || scenario.tickLower !== -1000 || scenario.tickUpper !== 1000 || decimal(scenario?.liquidityDelta, 'liquidityDelta') <= 0n) throw new Error('Pilot canonical scenario');
   return config;

@@ -8,7 +8,7 @@ import {prepareDeployment,sourceDigest} from '../mixed/prepare-deployment.mjs';
 import {validatePilotConfig} from './model.mjs';
 
 const require=createRequire(new URL('../../sdk/package.json',import.meta.url));
-const {createPublicClient,getAddress,getContractAddress,http,keccak256,encodeDeployData,parseAbi,zeroAddress}=require('viem');
+const {createPublicClient,getAddress,getContractAddress,http,keccak256,encodeDeployData,parseAbi,toHex,zeroAddress}=require('viem');
 
 export function preparePilotDeployment(pilotConfig,dependencies){
  const pilot=validatePilotConfig(pilotConfig);if(pilot.chainId!==84532)throw new Error('Base Sepolia chain 84532 required');
@@ -17,12 +17,13 @@ export function preparePilotDeployment(pilotConfig,dependencies){
  let nonce=d.startNonce;const deploy=(label,name,args)=>{const a=artifact(name),address=getContractAddress({from:pilot.roles.deployer,nonce:BigInt(nonce)});const tx={label,nonce:nonce++,chainId:pilot.chainId,from:pilot.roles.deployer,to:null,value:'0',data:encodeDeployData({abi:a.abi,bytecode:a.bytecode.object,args}),expectedAddress:address};return {address,tx};};
  const issuerAsset=deploy('Deploy issuer-controlled Asset A','PilotAsset',[pilot.assets.issuerStablecoin.name,pilot.assets.issuerStablecoin.symbol,6,pilot.roles.issuer]);
  const settlementCash=deploy('Deploy sandbox settlement Asset B','PilotAsset',[pilot.assets.settlementCash.name,pilot.assets.settlementCash.symbol,6,pilot.roles.settlementAssetOperator]);
- const credentialType=keccak256(new TextEncoder().encode('ilal.pilot.issuer-eligible'));
- const cnfIssuer=deploy('Deploy issuer-controlled CNF sandbox','PilotCNFIssuer',[pilot.roles.issuer,credentialType]);
+ const credentialType=pilot.policy.mode==='CNF_ONLY'?keccak256(new TextEncoder().encode('ilal.pilot.issuer-eligible')):toHex(0n,{size:32});
+ const cnfIssuer=pilot.policy.mode==='CNF_ONLY'?deploy('Deploy issuer-controlled CNF sandbox','PilotCNFIssuer',[pilot.roles.issuer,credentialType]):null;
  const assets=[{address:issuerAsset.address,feed:d.feedIssuerAsset},{address:settlementCash.address,feed:d.feedSettlementCash}].sort((a,b)=>BigInt(a.address)<BigInt(b.address)?-1:1);
- const protocolConfig={format:'ilal-mixed-deploy-config-v1',classification:'testnet',chainId:84532,deployer:pilot.roles.deployer,admin:pilot.roles.issuer,poolManager:d.poolManager,token0:assets[0].address,token1:assets[1].address,verifierAdapter:d.verifierAdapter,feed0:assets[0].feed,feed1:assets[1].feed,sequencerFeed:zeroAddress,startNonce:nonce,initialTick:0,heartbeat0:86400,heartbeat1:86400,usdDeviationBps:100,pairDeviationBps:100,poolOracleDeviationBps:100,sequencerGracePeriod:0,sequencerRequired:false,lowerTick:-100,upperTick:100,mode:'CNF_ONLY',ceremony:'unsafe-development',sourceCommit:d.sourceCommit,sourceDigest:d.sourceDigest,sourceDirty:d.sourceDirty,poolManagerCodeHash:d.poolManagerCodeHash,verifierAdapterCodeHash:d.verifierAdapterCodeHash,policy:{cnfIssuer:cnfIssuer.address,credentialType,issuerHash:'0',schemaHash:'0',acceptedRoot:'0',jurisdictionRoot:'0',zkPolicyHash:'0',minKycLevel:0,maxGrantTTL:String(pilot.policy.grantTtlSeconds)}};
- const protocolPlan=prepareDeployment(protocolConfig),transactions=[issuerAsset.tx,settlementCash.tx,cnfIssuer.tx,...protocolPlan.transactions];
- return {format:'ilal-issuer-pilot-deployment-plan-v1',status:'UNBROADCAST',pilotConfig:pilot,dependencies:d,protocolPlan,predicted:{issuerStablecoin:issuerAsset.address,settlementCash:settlementCash.address,cnfIssuer:cnfIssuer.address,...protocolPlan.predicted},transactions,operationalEvidence:{status:'not completed',reason:'Deployment is not a funded credential, grant, liquidity or execution rehearsal.'}};
+ const zk=pilot.policy.mode==='ZK_ONLY';
+ const protocolConfig={format:'ilal-mixed-deploy-config-v1',classification:'testnet',chainId:84532,deployer:pilot.roles.deployer,admin:pilot.roles.issuer,poolManager:d.poolManager,token0:assets[0].address,token1:assets[1].address,verifierAdapter:d.verifierAdapter,feed0:assets[0].feed,feed1:assets[1].feed,sequencerFeed:zeroAddress,startNonce:nonce,initialTick:0,heartbeat0:86400,heartbeat1:86400,usdDeviationBps:100,pairDeviationBps:100,poolOracleDeviationBps:100,sequencerGracePeriod:0,sequencerRequired:false,lowerTick:-100,upperTick:100,mode:pilot.policy.mode,ceremony:'unsafe-development',sourceCommit:d.sourceCommit,sourceDigest:d.sourceDigest,sourceDirty:d.sourceDirty,poolManagerCodeHash:d.poolManagerCodeHash,verifierAdapterCodeHash:d.verifierAdapterCodeHash,policy:{cnfIssuer:cnfIssuer?.address??zeroAddress,credentialType,issuerHash:zk?pilot.policy.issuerHash:'0',schemaHash:zk?pilot.policy.schemaHash:'0',acceptedRoot:zk?pilot.policy.acceptedRoot:'0',jurisdictionRoot:zk?pilot.policy.jurisdictionRoot:'0',zkPolicyHash:zk?pilot.policy.zkPolicyHash:'0',minKycLevel:zk?pilot.policy.minKycLevel:0,maxGrantTTL:String(pilot.policy.grantTtlSeconds)}};
+ const protocolPlan=prepareDeployment(protocolConfig),transactions=[issuerAsset.tx,settlementCash.tx,...(cnfIssuer?[cnfIssuer.tx]:[]),...protocolPlan.transactions];
+ return {format:'ilal-issuer-pilot-deployment-plan-v1',status:'UNBROADCAST',pilotConfig:pilot,dependencies:d,protocolPlan,predicted:{issuerStablecoin:issuerAsset.address,settlementCash:settlementCash.address,cnfIssuer:cnfIssuer?.address??null,...protocolPlan.predicted},transactions,operationalEvidence:{status:'not completed',reason:'Deployment is not a funded credential, grant, liquidity or execution rehearsal.'}};
 }
 
 if(process.argv[1]===new URL(import.meta.url).pathname){
