@@ -1,6 +1,6 @@
 # ILAL 项目介绍
 
-更新时间：2026 年 9 月 29 日  
+更新时间：2026 年 10 月 2 日  
 适合读者：第一次接触 ILAL 的稳定币发行方、机构、流动性提供者、投资人和技术尽调人员
 
 ## 一句话介绍
@@ -133,7 +133,7 @@ ILAL 已经超过概念和静态原型阶段：协议、SDK、CLI、完整本地
 | --- | --- |
 | 统一协议与发行方场景 | 已实现 |
 | 本地完整复现 | 已完成 |
-| Base Sepolia CNF 演练 | 已完成 v1；更严格 evidence v2 等待真实 48 小时 timelock 后完成 |
+| Base Sepolia CNF 演练 | 已完成 `.2` evidence v2：真实 timelock 生效后完成策略变更回滚、CNF 撤销、非零费用领取和完整退出，并通过独立历史验证（区块 `47583299`） |
 | Base Sepolia ZK_ONLY 演练 | 已完成 `.3` 开发 ceremony 版本 |
 | Circuit v2 freeze | 已完成 |
 | 独立 ZK ceremony | 尚需外部参与者 |
