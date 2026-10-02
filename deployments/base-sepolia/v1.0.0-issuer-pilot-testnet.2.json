@@ -151,23 +151,22 @@
     }
   },
   "operationalEvidence": {
-    "status": "not completed",
-    "reason": "V2 candidate deployed; real 48-hour policy timelock pending. No complete public v2 lifecycle evidence yet.",
-    "phase": "waiting-timelock",
+    "status": "completed",
     "verificationVersion": 2,
-    "proposal": {
-      "hash": "0x49596102e18dd4c8958508cbc77bc4152ac4946294bbe9e38e4b23ff5c2d7018",
-      "from": "0xC61d6115fcFcbA97Bd44Cb013C877bD0ef868dB3",
-      "to": "0xC21691B8835dd71108f24200c5Ce07Fbb3011D65",
-      "data": "0x50b91b52d5a92c0b900e5ebb78d93429cf260aa234c0f132bc2bb18369f214c80f94aff00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b6e007b04bdb88d11f64f17f0378a5645a0fd3c24728dbcb043ab579e9ef475853e7ab5e7bcb89cffb8e2da018c26ecc3439f4de0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000708",
-      "block": {
-        "blockNumber": "47407038",
-        "blockHash": "0xda761cdb83e50d52685b26725523d62ac1d01283dd6b14227fcc7dcd689b2e8c",
-        "timestamp": "1790582364"
-      }
+    "format": "ilal-issuer-pilot-evidence-v2",
+    "evidencePath": "deployments/base-sepolia/evidence/v1.0.0-issuer-pilot-testnet.2.json",
+    "evidenceSHA256": "94a1ffaa73ee7a3ce62965af1e8b4852a048dabdfbe50bec00a3fe01c357db94",
+    "snapshot": {
+      "blockNumber": "47583299",
+      "blockHash": "0x4b5fa4b3d408236119f0ab3ebb0514d61247829d20f7fd45712d992485d9f654",
+      "timestamp": "1790934886"
     },
-    "activateAfter": "1790755164",
-    "resumeAt": "2026-09-30T07:59:24Z"
+    "flow": {
+      "grossInstitutionalFlow": "170000000",
+      "internallyMatchedFlow": "140000000",
+      "actualAmmInput": "30000000"
+    },
+    "verifiedAt": "2026-10-02T10:06:51.975Z"
   },
   "configurationDigest": "0cff98ff809f7d8caf96cddd22ffe622d3f93851d313f2d0219cb61fc00606a4",
   "transactions": [
